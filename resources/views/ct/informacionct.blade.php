@@ -13,11 +13,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {{-- CSS --}}
     <link rel="stylesheet" href="{{ asset('resources/css/app.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
     {{-- MAPA --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
     {{-- BOOTSTRAP --}}
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
@@ -1369,7 +1372,8 @@
                                                             // Agregar el marcador ctMarker al mapa
                                                             map.addLayer(ctMarker);
                                                         @endif
-                                                        var markers = [];
+                                                        //CONECTIVIDAD
+                                                        var markersConectividad = L.markerClusterGroup();
                                                         var ubicaciones = [];
                                                         @foreach ($cups_info as $cups)
                                                             @if ($cups->lat_cups !== null && $cups->lon_cups !== null)
@@ -1457,33 +1461,39 @@
                                                                 }).bindPopup(popupContent, {
                                                                     className: 'custom-popup'
                                                                 });
-                                                                markers.push(marker);
+                                                                //markers.push(marker);
+                                                                markersConectividad.addLayer(marker);
                                                             @endif
                                                         @endforeach
                                                         var bounds = new L.LatLngBounds(ubicaciones);
                                                         map.fitBounds(bounds);
-                                                        var capasConectividad = L.layerGroup(markers);
+                                                        var capasConectividad = map.addLayer(markersConectividad); 
 
 
 
+                                                        //SOBRETENSIONES
+                                                        var capasSobretensiones = L.layerGroup([]);
+                                                        //var markersSobretensiones = L.markerClusterGroup(); 
+                                                        
+                                                        //ELIMINAMOS DUPLICADOS            
+                                                        var resultadosQ28 = @json($resultadosQ28);
+                                                        @php
+                                                            // Convertir en colección y eliminar duplicados por latitud y longitud
+                                                            $resultadosUnicos = collect($resultadosQ28)->unique(function ($item) {
+                                                                return $item->lat_cups . ',' . $item->lon_cups; // Acceder como objeto, no como array
+                                                            });
+                                                        @endphp
+
+                                                        var resultadosUnicos = @json($resultadosUnicos);
+                                                        console.log(resultadosUnicos);
 
 
-
-
-
-                                                        var capasSobretensiones = L.layerGroup([]); // mapa de sobretensiones
-
-
-
-
-
-
-                                                        @foreach ($resultadosQ28 as $sobretension)
+                                                        @foreach ($resultadosUnicos as $sobretension)
                                                             // Obtener latitud y longitud del objeto $sobretension si existen
                                                             @if (isset($sobretension->lat_cups) && isset($sobretension->lon_cups))
                                                                 var latCupsSobretension = '{{ $sobretension->lat_cups }}';
                                                                 var lonCupsSobretension = '{{ $sobretension->lon_cups }}';
-
+                                                                //console.log(latCupsSobretension, lonCupsSobretension);
 
                                                                 // Verificar si latCups y lonCups no son cadena vacía
                                                                 if (latCupsSobretension !== '' && lonCupsSobretension !== '') {
@@ -1556,620 +1566,15 @@
                                                                             className: 'custom-popup'
                                                                         }
                                                                     );
-
-
-
-
+                                                                    console.log(marker);
                                                                     capasSobretensiones.addLayer(marker);
+                                                                    
                                                                 }
                                                             @endif
-                                                        @endforeach
+                                                        @endforeach        
 
+                                                        //var capasSobretensiones = map.addLayer(markersSobretensiones);
 
-
-
-
-
-
-
-
-
-
-
-                                                        var capasSubtensiones = L.layerGroup([]); // mapa de subtensiones
-
-
-
-
-
-
-
-
-                                                        @foreach ($resultadosQ29 as $subtension)
-                                                            // Obtener latitud y longitud del objeto $subtension si existen
-                                                            @if (isset($subtension->lat_cups) && isset($subtension->lon_cups))
-                                                                var latCupsSubtension = '{{ $subtension->lat_cups }}';
-                                                                var lonCupsSubtension = '{{ $subtension->lon_cups }}';
-
-
-                                                                // Verificar si latCups y lonCups no son cadena vacía
-                                                                if (latCupsSubtension !== '' && lonCupsSubtension !== '') {
-                                                                    @if (isset($subtension->ind_autoconsumo))
-                                                                        // Determinar la imagen basada en el valor de ind_autoconsumo
-                                                                        var iconImage = "{{ $subtension->ind_autoconsumo }}" === 'S' ?
-                                                                            '../../images/casaverdepanelsolar.png' :
-                                                                            '../../images/casaverde.png';
-                                                                    @else
-                                                                        var iconImage = '../../images/casaverde.png'; // imagen por defecto si no tiene ind_autoconsumo
-                                                                    @endif
-
-
-                                                                    var divIcon = L.divIcon({
-                                                                        html: `<div style="position: relative; text-align: center; font-family: 'Didact Gothic', sans-serif;">
-                                                                            <img src="${iconImage}" style="width: 30px; height: 40px;">
-                                                                            <div style="position: absolute; bottom: 5px; left: 0; width: 100%; color: white; font-weight: bold; font-size: 12px; text-shadow: 0 0 4px black;">{{ $subtension->nro_sub_voltajes ?? ' ' }}</div>
-                                                                        </div>`,
-                                                                        className: 'custom-div-icon',
-                                                                        iconSize: [30, 40],
-                                                                        iconAnchor: [15, 40],
-                                                                        popupAnchor: [0, -40],
-                                                                        shadowSize: [30, 30]
-                                                                    });
-
-
-                                                                    var marker = L.marker([latCupsSubtension, lonCupsSubtension], {
-                                                                        icon: divIcon
-                                                                    }).bindPopup(
-                                                                        '<div id="popup-map" class="popup-content">' +
-                                                                        // Nombre del cliente o CUPS
-                                                                        '<h3><strong>{{ !empty($subtension->nom_cups) ? $subtension->nom_cups : 'No hay datos' }}</strong></h3>' +
-
-
-                                                                        // Pestañas (General y Localización)
-                                                                        '<ul class="nav nav-tabs">' +
-                                                                        '<li class="nav-item"><a class="nav-link active" href="#general-subtension" data-toggle="tab">General</a></li>' +
-                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion-subtension" data-toggle="tab">Localización</a></li>' +
-                                                                        '</ul>' +
-
-
-                                                                        // Contenido de las pestañas
-                                                                        '<div class="tab-content">' +
-
-
-                                                                        // Pestaña de General
-                                                                        '<div class="tab-pane fade show active" id="general-subtension">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $subtension->id_cups ?? ' ' }}" target="_blank">{{ $subtension->id_cups ?? ' ' }}</a></li>' +
-                                                                        '<li><b>Subtensiones:</b> {{ $subtension->nro_sub_voltajes ?? ' ' }}</li>' +
-                                                                        '<li><b>Última fecha:</b> {{ $subtension->fecha ?? ' ' }}</li>' +
-                                                                        '<li><b>Hora:</b> {{ $subtension->hora ?? ' ' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        // Pestaña de Localización
-                                                                        '<div class="tab-pane fade" id="localizacion-subtension">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Latitud:</b> {{ !empty($subtension->lat_cups) ? $subtension->lat_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Longitud:</b> {{ !empty($subtension->lon_cups) ? $subtension->lon_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Dirección:</b> {{ !empty($subtension->dir_cups) ? $subtension->dir_cups : 'No hay datos' }}</li>' +
-																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        '</div>' + // Cierra tab-content
-                                                                        '</div>', {
-                                                                            className: 'custom-popup'
-                                                                        }
-                                                                    );
-
-
-
-
-                                                                    capasSubtensiones.addLayer(marker);
-                                                                }
-                                                            @endif
-                                                        @endforeach
-
-
-
-
-
-
-
-
-                                                        var capasApagones = L.layerGroup([]); // mapa de apagones
-
-
-
-
-
-
-
-
-                                                        @foreach ($resultadosQ30 as $apagone)
-                                                            // Obtener latitud y longitud del objeto $apagone si existen
-                                                            @if (isset($apagone->lat_cups) && isset($apagone->lon_cups))
-                                                                var latCupsApagone = '{{ $apagone->lat_cups }}';
-                                                                var lonCupsApagone = '{{ $apagone->lon_cups }}';
-
-
-                                                                // Verificar si latCups y lonCups no son cadena vacía
-                                                                if (latCupsApagone !== '' && lonCupsApagone !== '') {
-                                                                    @if (isset($apagone->ind_autoconsumo))
-                                                                        // Determinar la imagen basada en el valor de ind_autoconsumo
-                                                                        var iconImage = "{{ $apagone->ind_autoconsumo }}" === 'S' ?
-                                                                            '../../images/casaverdepanelsolar.png' :
-                                                                            '../../images/casaverde.png';
-                                                                    @else
-                                                                        var iconImage = '../../images/casaverde.png'; // imagen por defecto si no tiene ind_autoconsumo
-                                                                    @endif
-
-
-                                                                    var divIcon = L.divIcon({
-                                                                        html: `<div style="position: relative; text-align: center; font-family: 'Didact Gothic', sans-serif;">
-                                                                        <img src="${iconImage}" style="width: 30px; height: 40px;">
-                                                                        <div style="position: absolute; bottom: 5px; left: 0; width: 100%; color: white; font-weight: bold; font-size: 12px; text-shadow: 0 0 4px black;">{{ $apagone->apagones ?? ' ' }}</div>
-                                                                    </div>`,
-                                                                        className: 'custom-div-icon',
-                                                                        iconSize: [30, 40],
-                                                                        iconAnchor: [15, 40],
-                                                                        popupAnchor: [0, -40],
-                                                                        shadowSize: [30, 30]
-                                                                    });
-
-
-                                                                    var marker = L.marker([latCupsApagone, lonCupsApagone], {
-                                                                        icon: divIcon
-                                                                    }).bindPopup(
-                                                                        '<div id="popup-map" class="popup-content">' +
-                                                                        // Nombre del cliente o CUPS
-                                                                        '<h3><strong>{{ !empty($apagone->nom_cups) ? $apagone->nom_cups : 'No hay datos' }}</strong></h3>' +
-
-
-                                                                        // Pestañas (General y Localización)
-                                                                        '<ul class="nav nav-tabs">' +
-                                                                        '<li class="nav-item"><a class="nav-link active" href="#general-apagone" data-toggle="tab">General</a></li>' +
-                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion-apagone" data-toggle="tab">Localización</a></li>' +
-                                                                        '</ul>' +
-
-
-                                                                        // Contenido de las pestañas
-                                                                        '<div class="tab-content">' +
-
-
-                                                                        // Pestaña de General
-                                                                        '<div class="tab-pane fade show active" id="general-apagone">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $apagone->id_cups ?? ' ' }}" target="_blank">{{ $apagone->id_cups ?? ' ' }}</a></li>' +
-                                                                        '<li><b>Cortes:</b> {{ $apagone->apagones ?? ' ' }}</li>' +
-                                                                        '<li><b>Última fecha:</b> {{ $apagone->fecha ?? ' ' }}</li>' +
-                                                                        '<li><b>Hora:</b> {{ $apagone->hora ?? ' ' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        // Pestaña de Localización
-                                                                        '<div class="tab-pane fade" id="localizacion-apagone">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Latitud:</b> {{ !empty($apagone->lat_cups) ? $apagone->lat_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Longitud:</b> {{ !empty($apagone->lon_cups) ? $apagone->lon_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Dirección:</b> {{ !empty($apagone->dir_cups) ? $apagone->dir_cups : 'No hay datos' }}</li>' +
-																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        '</div>' + // Cierra tab-content
-                                                                        '</div>', {
-                                                                            className: 'custom-popup'
-                                                                        }
-                                                                    );
-
-
-
-
-                                                                    capasApagones.addLayer(marker);
-                                                                }
-                                                            @endif
-                                                        @endforeach
-
-
-
-
-
-
-
-
-
-
-
-
-                                                        var capasMicrocortes = L.layerGroup([]); // mapa de microcortes
-
-
-
-
-
-
-
-
-                                                        @foreach ($resultadosQ31 as $microcorte)
-                                                            // Obtener latitud y longitud del objeto $microcorte si existen
-                                                            @if (isset($microcorte->lat_cups) && isset($microcorte->lon_cups))
-                                                                var latCupsMicrocorte = '{{ $microcorte->lat_cups }}';
-                                                                var lonCupsMicrocorte = '{{ $microcorte->lon_cups }}';
-
-
-                                                                // Verificar si latCups y lonCups no son cadena vacía
-                                                                if (latCupsMicrocorte !== '' && lonCupsMicrocorte !== '') {
-                                                                    @if (isset($microcorte->ind_autoconsumo))
-                                                                        // Determinar la imagen basada en el valor de ind_autoconsumo
-                                                                        var iconImage = "{{ $microcorte->ind_autoconsumo }}" === 'S' ?
-                                                                            '../../images/casaverdepanelsolar.png' :
-                                                                            '../../images/casaverde.png';
-                                                                    @else
-                                                                        var iconImage = '../../images/casaverde.png'; // imagen por defecto si no tiene ind_autoconsumo
-                                                                    @endif
-
-
-                                                                    var divIcon = L.divIcon({
-                                                                        html: `<div style="position: relative; text-align: center; font-family: 'Didact Gothic', sans-serif;">
-                                                                            <img src="${iconImage}" style="width: 30px; height: 40px;">
-                                                                            <div style="position: absolute; bottom: 5px; left: 0; width: 100%; color: white; font-weight: bold; font-size: 12px; text-shadow: 0 0 4px black;">{{ $microcorte->microcortes ?? ' ' }}</div>
-                                                                        </div>`,
-                                                                        className: 'custom-div-icon',
-                                                                        iconSize: [30, 40],
-                                                                        iconAnchor: [15, 40],
-                                                                        popupAnchor: [0, -40],
-                                                                        shadowSize: [30, 30]
-                                                                    });
-
-
-                                                                    var marker = L.marker([latCupsMicrocorte, lonCupsMicrocorte], {
-                                                                        icon: divIcon
-                                                                    }).bindPopup(
-                                                                        '<div id="popup-map" class="popup-content">' +
-                                                                        // Nombre del cliente o CUPS
-                                                                        '<h3><strong>{{ !empty($microcorte->nom_cups) ? $microcorte->nom_cups : 'No hay datos' }}</strong></h3>' +
-
-
-                                                                        // Pestañas (General y Localización)
-                                                                        '<ul class="nav nav-tabs">' +
-                                                                        '<li class="nav-item"><a class="nav-link active" href="#general-microcorte" data-toggle="tab">General</a></li>' +
-                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion-microcorte" data-toggle="tab">Localización</a></li>' +
-                                                                        '</ul>' +
-
-
-                                                                        // Contenido de las pestañas
-                                                                        '<div class="tab-content">' +
-
-
-                                                                        // Pestaña de General
-                                                                        '<div class="tab-pane fade show active" id="general-microcorte">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $microcorte->id_cups ?? ' ' }}" target="_blank">{{ $microcorte->id_cups ?? ' ' }}</a></li>' +
-                                                                        '<li><b>Microcortes:</b> {{ $microcorte->microcortes ?? ' ' }}</li>' +
-                                                                        '<li><b>Última fecha:</b> {{ $microcorte->fecha ?? ' ' }}</li>' +
-                                                                        '<li><b>Hora:</b> {{ $microcorte->hora ?? ' ' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        // Pestaña de Localización
-                                                                        '<div class="tab-pane fade" id="localizacion-microcorte">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Latitud:</b> {{ !empty($microcorte->lat_cups) ? $microcorte->lat_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Longitud:</b> {{ !empty($microcorte->lon_cups) ? $microcorte->lon_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Dirección:</b> {{ !empty($microcorte->dir_cups) ? $microcorte->dir_cups : 'No hay datos' }}</li>' +
-																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        '</div>' + // Cierra tab-content
-                                                                        '</div>', {
-                                                                            className: 'custom-popup'
-                                                                        }
-                                                                    );
-
-
-
-
-                                                                    capasMicrocortes.addLayer(marker);
-                                                                }
-                                                            @endif
-                                                        @endforeach
-
-
-
-
-
-
-                                                        var capasLecturas = L.layerGroup([]); // Mapa de lecturas
-
-
-
-
-
-
-                                                        // @foreach ($resultadosQ32 as $lectura)
-                                                        //     @if (isset($lectura->lat_cups) && isset($lectura->lon_cups))
-                                                        //         var iconUrlLectura;
-                                                        //         var indAutoconsumo = '{{ $lectura->ind_autoconsumo }}';
-                                                        //         var indS05 = '{{ $lectura->ind_s05 }}';
-                                                        //         var latCupsLectura = '{{ $lectura->lat_cups }}';
-                                                        //         var lonCupsLectura = '{{ $lectura->lon_cups }}';
-
-
-
-
-                                                        //         // Verificar si latCups y lonCups no son null
-                                                        //         if (latCupsLectura !== null && lonCupsLectura !== null) {
-                                                        //             if (indAutoconsumo !== '' && indS05 !== '') {
-                                                        //                 if (indS05 === 'S' && indAutoconsumo === 'N') {
-                                                        //                     iconUrlLectura = '../../images/casaverde.png';
-                                                        //                 } else if (indS05 === 'S' && indAutoconsumo === 'S') {
-                                                        //                     iconUrlLectura = '../../images/casaverdepanelsolar.png';
-                                                        //                 } else if ((indS05 === 'N' || indS05 == null) && indAutoconsumo === 'N') {
-                                                        //                     iconUrlLectura = '../../images/casaroja.png';
-                                                        //                 } else if ((indS05 === 'N' || indS05 == null) && indAutoconsumo === 'S') {
-                                                        //                     iconUrlLectura = '../../images/casarojapanelsolar.png';
-                                                        //                 }
-                                                        //             } else {
-                                                        //                 iconUrlLectura =
-                                                        //                     '../../images/casaverde.png'; // Imagen por defecto si no tiene ind_autoconsumo o ind_s05
-                                                        //             }
-                                                        //             var customIcon = L.icon({
-                                                        //                 iconUrl: iconUrlLectura,
-                                                        //                 iconSize: [30, 40],
-                                                        //                 iconAnchor: [15, 40],
-                                                        //                 popupAnchor: [0, -40],
-                                                        //                 shadowSize: [30, 30]
-                                                        //             });
-                                                        //             var message;
-                                                        //             if (indS05 === 'S') {
-                                                        //                 message = 'Leído';
-                                                        //             } else {
-                                                        //                 message = 'No leído';
-                                                        //             }
-                                                        //             var lecturaMarker = L.marker([latCupsLectura, lonCupsLectura], {
-                                                        //                 icon: customIcon
-                                                        //             }).bindPopup(
-                                                        //                 '<div>' +
-                                                        //                 '<b>Id cups:</b> <a href="detallesinformacioncups?id_cups={{ $lectura->id_cups ?? ' ' }}" target="_blank">{{ $lectura->id_cups ?? ' ' }}</a><br>' +
-                                                        //                 '<strong>Estado de Lectura:</strong> ' + message + '<br>' +
-                                                        //                 '<strong>Fecha de Lectura:</strong> {{ $lectura->fecha }}<br>' +
-                                                        //                 '</div>', {
-                                                        //                     className: 'custom-popup'
-                                                        //                 });
-                                                        //             capasLecturas.addLayer(lecturaMarker);
-                                                        //         }
-                                                        //     @endif
-                                                        // @endforeach
-
-
-
-
-
-
-                                                        @php
-                                                            $filtroFechaLectura = !empty($_GET['fecha_lecturas']) ? \Carbon\Carbon::createFromFormat('Y-m-d', $_GET['fecha_lecturas'])->format('Y-m-d') : \Carbon\Carbon::today()->format('Y-m-d');
-                                                        @endphp
-
-
-                                                        @foreach ($resultadosQ32 as $lectura)
-                                                            @if (isset($lectura->lat_cups) && isset($lectura->lon_cups))
-                                                                @php
-                                                                    $fechaLectura = \Carbon\Carbon::createFromFormat('d/m/Y', $lectura->fecha)->format('Y-m-d');
-                                                                @endphp
-
-
-                                                                var iconUrlLectura;
-                                                                var indAutoconsumo = '{{ $lectura->ind_autoconsumo }}';
-                                                                var indS05 = '{{ $lectura->ind_s05 }}';
-                                                                var latCupsLectura = '{{ $lectura->lat_cups }}';
-                                                                var lonCupsLectura = '{{ $lectura->lon_cups }}';
-                                                                var fechaLectura = '{{ $fechaLectura }}';
-                                                                var filtroFechaLectura = '{{ $filtroFechaLectura }}';
-
-
-                                                                if (latCupsLectura !== null && lonCupsLectura !== null) {
-                                                                    if (indAutoconsumo !== '' && indS05 !== '') {
-                                                                        if (fechaLectura === filtroFechaLectura) {
-                                                                            if (indS05 === 'S' && indAutoconsumo === 'N') {
-                                                                                iconUrlLectura = '../../images/casaverde.png';
-                                                                            } else if (indS05 === 'S' && indAutoconsumo === 'S') {
-                                                                                iconUrlLectura = '../../images/casaverdepanelsolar.png';
-                                                                            } else if ((indS05 === 'N' || indS05 == null) && indAutoconsumo === 'N') {
-                                                                                iconUrlLectura = '../../images/casaroja.png';
-                                                                            } else if ((indS05 === 'N' || indS05 == null) && indAutoconsumo === 'S') {
-                                                                                iconUrlLectura = '../../images/casarojapanelsolar.png';
-                                                                            }
-                                                                        } else if (indAutoconsumo === 'S') {
-                                                                            iconUrlLectura = '../../images/casarojapanelsolar.png';
-                                                                        } else {
-                                                                            iconUrlLectura = '../../images/casaroja.png';
-                                                                        }
-                                                                    }
-
-
-                                                                    var customIcon = L.icon({
-                                                                        iconUrl: iconUrlLectura,
-                                                                        iconSize: [30, 40],
-                                                                        iconAnchor: [15, 40],
-                                                                        popupAnchor: [0, -40],
-                                                                        shadowSize: [30, 30]
-                                                                    });
-
-
-                                                                    var message = indS05 === 'S' ? 'Leído' : 'No leído';
-
-
-                                                                    var lecturaMarker = L.marker([latCupsLectura, lonCupsLectura], {
-                                                                        icon: customIcon
-                                                                    }).bindPopup(
-                                                                        '<div id="popup-map" class="popup-content">' +
-                                                                        // Nombre del cliente
-                                                                        '<h3><strong>{{ !empty($lectura->nom_cups) ? $lectura->nom_cups : 'No hay datos' }}</strong></h3>' +
-
-
-                                                                        // Pestañas (General y Localización)
-                                                                        '<ul class="nav nav-tabs">' +
-                                                                        '<li class="nav-item"><a class="nav-link active" href="#general" data-toggle="tab">General</a></li>' +
-                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion" data-toggle="tab">Localización</a></li>' +
-                                                                        '</ul>' +
-
-
-                                                                        // Contenido de las pestañas
-                                                                        '<div class="tab-content">' +
-
-
-                                                                        // Pestaña de General
-                                                                        '<div class="tab-pane fade show active" id="general">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Id cups:</b> <a href="detallesinformacioncups?id_cups={{ $lectura->id_cups ?? ' ' }}" target="_blank">{{ $lectura->id_cups ?? ' ' }}</a></li>' +
-                                                                        '<li><b>Estado de Lectura:</b> ' + message + '</li>' +
-                                                                        '<li><b>Fecha de Lectura:</b> {{ $lectura->fecha }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        // Pestaña de Localización
-                                                                        '<div class="tab-pane fade" id="localizacion">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Latitud:</b> {{ !empty($lectura->lat_cups) ? $lectura->lat_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Longitud:</b> {{ !empty($lectura->lon_cups) ? $lectura->lon_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Dirección:</b> {{ !empty($lectura->dir_cups) ? $lectura->dir_cups : 'No hay datos' }}</li>' +
-																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        '</div>' + // Cierra tab-content
-                                                                        '</div>', {
-                                                                            className: 'custom-popup'
-                                                                        });
-
-
-                                                                    capasLecturas.addLayer(lecturaMarker);
-                                                                }
-                                                            @endif
-                                                        @endforeach
-
-
-
-
-                                                        var capasNivelesTension = L.layerGroup([]); // Mapa de niveles de tensión
-
-
-                                                        @foreach ($resultadosQ50 as $nivelestension)
-                                                            // Verificar si existen latitud y longitud en el objeto $nivelestension
-                                                            @if (isset($nivelestension->lat_cups) && isset($nivelestension->lon_cups))
-                                                                var latCupsNivelesTension = '{{ $nivelestension->lat_cups }}';
-                                                                var lonCupsNivelesTension = '{{ $nivelestension->lon_cups }}';
-
-
-                                                                // Verificar si latCupsNivelesTension y lonCupsNivelesTension no son cadenas vacías
-                                                                if (latCupsNivelesTension !== '' && lonCupsNivelesTension !== '') {
-                                                                    var avgL1v = "{{ $nivelestension->avg_l1v }}";
-                                                                    var indAutoconsumo = "{{ $nivelestension->ind_autoconsumo }}";
-
-
-                                                                    // Definir el color y el ícono según el valor de avgL1v y el ind_autoconsumo
-                                                                    var iconImage;
-
-
-                                                                    if (avgL1v >= 214 && avgL1v <= 246) {
-                                                                        // Verde
-                                                                        iconImage = (indAutoconsumo === 'S') ? '../../images/casaverdepanelsolar.png' :
-                                                                            '../../images/casaverde.png';
-                                                                    } else if (avgL1v < 214) {
-                                                                        // Naranja
-                                                                        iconImage = (indAutoconsumo === 'S') ? '../../images/casanaranjapanelsolar.png' :
-                                                                            '../../images/casanaranja.png';
-                                                                    } else if (avgL1v > 246) {
-                                                                        // Rojo
-                                                                        iconImage = (indAutoconsumo === 'S') ? '../../images/casarojapanelsolar.png' :
-                                                                            '../../images/casaroja.png';
-                                                                    }
-
-
-                                                                    // Crear el ícono personalizado
-                                                                    var divIcon = L.divIcon({
-                                                                        html: `<div style="position: relative; text-align: center; font-family: 'Didact Gothic', sans-serif;">
-                                                                            <img src="${iconImage}" style="width: 30px; height: 40px;">
-                                                                            <div style="position: absolute; bottom: 5px; left: 0; width: 100%; color: white; font-weight: bold; font-size: 12px; text-shadow: 0 0 4px black;">
-                                                                                {{ $nivelestension->avg_l1v ?? ' ' }}
-                                                                            </div>
-                                                                        </div>`,
-                                                                        className: 'custom-div-icon',
-                                                                        iconSize: [30, 40],
-                                                                        iconAnchor: [15, 40],
-                                                                        popupAnchor: [0, -40],
-                                                                        shadowSize: [30, 30]
-                                                                    });
-
-
-                                                                    // Crear el marcador con las coordenadas
-                                                                    var marker = L.marker([latCupsNivelesTension, lonCupsNivelesTension], {
-                                                                        icon: divIcon
-                                                                    }).bindPopup(
-                                                                        '<div id="popup-map" class="popup-content">' +
-                                                                        // Nombre del cliente o CUPS
-                                                                        '<h3><strong>{{ !empty($nivelestension->nom_cups) ? $nivelestension->nom_cups : 'No hay datos' }}</strong></h3>' +
-
-
-                                                                        // Pestañas (General y Localización)
-                                                                        '<ul class="nav nav-tabs">' +
-                                                                        '<li class="nav-item"><a class="nav-link active" href="#general-niveles-tension" data-toggle="tab">General</a></li>' +
-                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion-niveles-tension" data-toggle="tab">Localización</a></li>' +
-                                                                        '</ul>' +
-
-
-                                                                        // Contenido de las pestañas
-                                                                        '<div class="tab-content">' +
-
-
-                                                                        // Pestaña de General
-                                                                        '<div class="tab-pane fade show active" id="general-niveles-tension">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $nivelestension->id_cups ?? ' ' }}" target="_blank">{{ $nivelestension->id_cups ?? ' ' }}</a></li>' +
-                                                                        '<li><b>Promedio:</b> {{ $nivelestension->avg_l1v ?? ' ' }}</li>' +
-                                                                        '<li><b>Máximo:</b> {{ $nivelestension->max_l1v ?? ' ' }}</li>' +
-                                                                        '<li><b>Mínimo:</b> {{ $nivelestension->min_l1v ?? ' ' }}</li>' +
-                                                                        '<li><b>Total lecturas:</b> {{ $nivelestension->total_lecturas ?? ' ' }}</li>' +
-                                                                        '<li><b>Última fecha:</b> {{ $nivelestension->ultima_fecha ?? ' ' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        // Pestaña de Localización
-                                                                        '<div class="tab-pane fade" id="localizacion-niveles-tension">' +
-                                                                        '<ul>' +
-                                                                        '<li><b>Latitud:</b> {{ !empty($nivelestension->lat_cups) ? $nivelestension->lat_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Longitud:</b> {{ !empty($nivelestension->lon_cups) ? $nivelestension->lon_cups : 'No hay datos' }}</li>' +
-                                                                        '<li><b>Dirección:</b> {{ !empty($nivelestension->dir_cups) ? $nivelestension->dir_cups : 'No hay datos' }}</li>' +
-																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
-                                                                        '</ul>' +
-                                                                        '</div>' +
-
-
-                                                                        '</div>' + // Cierra tab-content
-                                                                        '</div>', {
-                                                                            className: 'custom-popup'
-                                                                        }
-                                                                    );
-
-
-
-
-                                                                    // Añadir el marcador a la capa
-                                                                    capasNivelesTension.addLayer(marker);
-                                                                }
-                                                            @endif
-                                                        @endforeach
 
 
 
@@ -2195,11 +1600,11 @@
                                                             button.addEventListener('click', function() {
                                                                 map.removeLayer(capasConectividad);
                                                                 map.removeLayer(capasSobretensiones);
-                                                                map.removeLayer(capasSubtensiones);
-                                                                map.removeLayer(capasApagones);
-                                                                map.removeLayer(capasMicrocortes);
-                                                                map.removeLayer(capasLecturas);
-                                                                map.removeLayer(capasNivelesTension);
+                                                                //map.removeLayer(capasSubtensiones);
+                                                                //map.removeLayer(capasApagones);
+                                                                //map.removeLayer(capasMicrocortes);
+                                                                //map.removeLayer(capasLecturas);
+                                                                //map.removeLayer(capasNivelesTension);
 
 
                                                                 // Agregar el marcador ctMarker si está definido
@@ -2216,6 +1621,7 @@
                                                                     case 'option2':
                                                                         map.addLayer(capasSobretensiones);
                                                                         break;
+                                                                        /*
                                                                     case 'option3':
                                                                         map.addLayer(capasSubtensiones);
                                                                         break;
@@ -2231,6 +1637,7 @@
                                                                     case 'option7':
                                                                         map.addLayer(capasNivelesTension);
                                                                         break;
+                                                                        */
                                                                     default:
                                                                         // Opción por defecto
                                                                         break;
