@@ -1,0 +1,17 @@
+{
+  "apps": [
+    {
+      "name": "Gridmonitor",
+      "script": "artisan",
+      "args": ["serve", "--host=0.0.0.0", "--port=80"],
+      "interpreter": "php",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "log_file": "log/combined_artisan.log",
+      "error_file": "log/err_artisan.log",
+      "out_file": "log/out_artisan.log",
+      "time": true
+    }
+  ]
+}

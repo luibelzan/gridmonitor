@@ -1,0 +1,15 @@
+{
+  "apps": [
+    {
+      "name": "Npm",
+      "script": "npm",
+      "args": "run dev",        
+      "watch": true,
+      "autorestart": true,
+      "log_file": "log/combined_npm.log",
+      "error_file": "log/err_npm.log",
+      "out_file": "log/out_npm.log",
+      "time": true
+    }
+  ]
+}

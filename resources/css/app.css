@@ -1,3 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+@font-face {
+    font-family: 'Didact Gothic';
+    src: url('../../public/fonts/DidactGothic-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+        /* Encabezado de las tablas fijo */
+        thead th {
+            position: sticky;
+            top: -24px;
+            background-color: rgb(27, 32, 38);
+            z-index: 1;
+
+        }
+
+html,
+body {
+    font-family: 'Didact Gothic', sans-serif !important;
+    /* font-family: 'Minimal', sans-serif !important; */
+}
+
+.text-xs,
+.text-sm,
+.text-base,
+.text-lg,
+.text-xl,
+.text-2xl,
+.text-3xl,
+.text-4xl,
+.text-5xl,
+.text-6xl {
+    font-family: 'Didact Gothic', sans-serif !important;
+    /* font-family: 'Minimal', sans-serif !important;      */
+}
+
+/* CARGANDO */
+.loading {
+    position: fixed;
+    /* Centra el elemento en la mitad de la pantalla */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    /* Ajusta el tamaño del icono de carga según tus necesidades */
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9998;
+    transition: 1s all;
+    opacity: 0;
+}
+
+.loading.show {
+    opacity: 1;
+}
+
+.loading .spin {
+    border: 3px solid hsla(185, 100%, 62%, 0.2);
+    border-top-color: #3cefff;
+    border-radius: 50%;
+    width: 3em;
+    height: 3em;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* BOTON SUBIR SCROLL */
+.boton-subir {
+    display: none;
+    background: rgb(42,50,62); /* Cambio del color de fondo */
+    border-radius: 50%; /* Hacer el botón lo más redondo posible */
+    padding: 0; /* Eliminar cualquier espacio interno */
+    position: fixed;
+    right: 15px;
+    bottom: 2px;
+    z-index: 999999999;
+    width: 32px; /* Tamaño ligeramente mayor que el ancho del SVG */
+    height: 32px; /* Tamaño ligeramente mayor que el alto del SVG */
+}
+
+
+
+.boton-subir:hover {
+    box-shadow: 0px 2px 10px 0px rgba(255, 255, 255, 0.75);
+}
+
+.boton-subir i {
+    color: #fff;
+    font-size: 1.5em; /* Tamaño del icono de flecha */
+    padding: 0; /* Eliminamos el padding */
+    margin-top: 3px; /* Alineamos verticalmente el icono */
+    margin-left: 3px; /* Alineamos horizontalmente el icono */
+}
+
+input[type="date"] {
+    color: white;
+    /* Cambia el color del texto */
+    background-color: transparent;
+    /* Fondo transparente */
+    border: 1px solid gray;
+    /* Borde gris */
+    padding: 5px;
+    /* Espaciado interno */
+    border-radius: 5px;
+    /* Bordes redondeados */
+    -webkit-appearance: none;
+    /* Elimina el estilo por defecto en WebKit (Chrome, Safari) */
+    -moz-appearance: none;
+    /* Elimina el estilo por defecto en Firefox */
+    appearance: none;
+    /* Elimina el estilo por defecto en otros navegadores */
+}
+
+
+/* Para Google Chrome */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    /* Invierte el color del icono */
+}
+
+
+/* Para Firefox */
+input[type="date"]::-moz-focus-inner {
+    border: 0;
+}
+
+
+input[type="date"]::-moz-placeholder {
+    color: white;
+    /* Cambia el color del texto del placeholder */
+}
+
+
+/* Para Edge y otros navegadores */
+input[type="date"]::-ms-clear {
+    display: none;
+}
+
+
+input[type="date"]::-ms-expand {
+    display: none;
+}
+
+

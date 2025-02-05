@@ -18,8 +18,12 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('nom_distribuidora');
-            $table->string('tip_user')->nullable();
-            $table->date('fec_acceso')->nullable();
+            $table->date('fec_acceso')->nullable();            
+            $table->boolean('ind_pf')->nullable();   
+            $table->boolean('ind_ct')->nullable();   
+            $table->boolean('ind_cups')->nullable();   
+            $table->boolean('ind_sabt')->nullable();   
+            $table->string('cod_id_group')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

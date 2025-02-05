@@ -10,6 +10,10 @@
         "ext-pgsql": "*",
         "laravel/framework": "^11.0",
         "laravel/tinker": "^2.9",
+        "laraveldaily/laravel-charts": "^0.2.3",
+        "larswiegers/laravel-maps": "^0.18.0",
+        "maatwebsite/excel": "^1.1",
+        "phpoffice/phpspreadsheet": "^2.2",
         "spatie/laravel-permission": "^6.4"
     },
     "require-dev": {
