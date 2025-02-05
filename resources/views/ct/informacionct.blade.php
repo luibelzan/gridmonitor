@@ -1467,13 +1467,13 @@
                                                         @endforeach
                                                         var bounds = new L.LatLngBounds(ubicaciones);
                                                         map.fitBounds(bounds);
-                                                        var capasConectividad = map.addLayer(markersConectividad); 
+                                                        var capasConectividad = markersConectividad; 
 
 
 
                                                         //SOBRETENSIONES
-                                                        var capasSobretensiones = L.layerGroup([]);
-                                                        //var markersSobretensiones = L.markerClusterGroup(); 
+                                                        //var capasSobretensiones = L.layerGroup([]);
+                                                        var markersSobretensiones = L.markerClusterGroup(); 
                                                         
                                                         //ELIMINAMOS DUPLICADOS            
                                                         var resultadosQ28 = @json($resultadosQ28);
@@ -1483,10 +1483,7 @@
                                                                 return $item->lat_cups . ',' . $item->lon_cups; // Acceder como objeto, no como array
                                                             });
                                                         @endphp
-
                                                         var resultadosUnicos = @json($resultadosUnicos);
-                                                        console.log(resultadosUnicos);
-
 
                                                         @foreach ($resultadosUnicos as $sobretension)
                                                             // Obtener latitud y longitud del objeto $sobretension si existen
@@ -1566,14 +1563,14 @@
                                                                             className: 'custom-popup'
                                                                         }
                                                                     );
-                                                                    console.log(marker);
-                                                                    capasSobretensiones.addLayer(marker);
+                                                                    markersSobretensiones.addLayer(marker);
+                                                                    //capasSobretensiones.addLayer(marker);
                                                                     
                                                                 }
                                                             @endif
                                                         @endforeach        
 
-                                                        //var capasSobretensiones = map.addLayer(markersSobretensiones);
+                                                        var capasSobretensiones = markersSobretensiones;
 
 
 
@@ -1598,13 +1595,9 @@
 
                                                         document.querySelectorAll('.btn-option').forEach(function(button) {
                                                             button.addEventListener('click', function() {
-                                                                map.removeLayer(capasConectividad);
-                                                                map.removeLayer(capasSobretensiones);
-                                                                //map.removeLayer(capasSubtensiones);
-                                                                //map.removeLayer(capasApagones);
-                                                                //map.removeLayer(capasMicrocortes);
-                                                                //map.removeLayer(capasLecturas);
-                                                                //map.removeLayer(capasNivelesTension);
+                                                                // Remover todas las capas antes de agregar una nueva
+                                                                if (map.hasLayer(capasConectividad)) map.removeLayer(capasConectividad);
+                                                                if (map.hasLayer(capasSobretensiones)) map.removeLayer(capasSobretensiones);
 
 
                                                                 // Agregar el marcador ctMarker si está definido
