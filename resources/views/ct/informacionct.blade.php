@@ -1676,8 +1676,7 @@
 
                                                         //SUBTENSIONES
                                                         var markersSubtensiones = L.markerClusterGroup(); // mapa de subtensiones
-                                                        var subtensiones = @json($resultadosQ29);
-                                                        console.log(subtensiones);
+                                                        
                                                         @foreach ($resultadosQ29 as $subtension)
                                                             // Obtener latitud y longitud del objeto $subtension si existen
                                                             @if (isset($subtension->lat_cups) && isset($subtension->lon_cups))
@@ -1767,6 +1766,99 @@
 
                                                         var capasSubtensiones = markersSubtensiones;
 
+                                                        
+                                                        //CORTES
+                                                        var markersApagones = L.markerClusterGroup();
+
+                                                        @foreach ($resultadosQ30 as $apagone)
+                                                            // Obtener latitud y longitud del objeto $apagone si existen
+                                                            @if (isset($apagone->lat_cups) && isset($apagone->lon_cups))
+                                                                var latCupsApagone = '{{ $apagone->lat_cups }}';
+                                                                var lonCupsApagone = '{{ $apagone->lon_cups }}';
+
+
+                                                                // Verificar si latCups y lonCups no son cadena vacía
+                                                                if (latCupsApagone !== '' && lonCupsApagone !== '') {
+                                                                    @if (isset($apagone->ind_autoconsumo))
+                                                                        // Determinar la imagen basada en el valor de ind_autoconsumo
+                                                                        var iconImage = "{{ $apagone->ind_autoconsumo }}" === 'S' ?
+                                                                            '../../images/casaverdepanelsolar.png' :
+                                                                            '../../images/casaverde.png';
+                                                                    @else
+                                                                        var iconImage = '../../images/casaverde.png'; // imagen por defecto si no tiene ind_autoconsumo
+                                                                    @endif
+
+
+                                                                    var divIcon = L.divIcon({
+                                                                        html: `<div style="position: relative; text-align: center; font-family: 'Didact Gothic', sans-serif;">
+                                                                        <img src="${iconImage}" style="width: 30px; height: 40px;">
+                                                                        <div style="position: absolute; bottom: 5px; left: 0; width: 100%; color: white; font-weight: bold; font-size: 12px; text-shadow: 0 0 4px black;">{{ $apagone->apagones ?? ' ' }}</div>
+                                                                    </div>`,
+                                                                        className: 'custom-div-icon',
+                                                                        iconSize: [30, 40],
+                                                                        iconAnchor: [15, 40],
+                                                                        popupAnchor: [0, -40],
+                                                                        shadowSize: [30, 30]
+                                                                    });
+
+
+                                                                    var marker = L.marker([latCupsApagone, lonCupsApagone], {
+                                                                        icon: divIcon
+                                                                    }).bindPopup(
+                                                                        '<div id="popup-map" class="popup-content">' +
+                                                                        // Nombre del cliente o CUPS
+                                                                        '<h3><strong>{{ !empty($apagone->nom_cups) ? $apagone->nom_cups : 'No hay datos' }}</strong></h3>' +
+
+
+                                                                        // Pestañas (General y Localización)
+                                                                        '<ul class="nav nav-tabs">' +
+                                                                        '<li class="nav-item"><a class="nav-link active" href="#general-apagone" data-toggle="tab">General</a></li>' +
+                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion-apagone" data-toggle="tab">Localización</a></li>' +
+                                                                        '</ul>' +
+
+
+                                                                        // Contenido de las pestañas
+                                                                        '<div class="tab-content">' +
+
+
+                                                                        // Pestaña de General
+                                                                        '<div class="tab-pane fade show active" id="general-apagone">' +
+                                                                        '<ul>' +
+                                                                        '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $apagone->id_cups ?? ' ' }}" target="_blank">{{ $apagone->id_cups ?? ' ' }}</a></li>' +
+                                                                        '<li><b>Cortes:</b> {{ $apagone->apagones ?? ' ' }}</li>' +
+                                                                        '<li><b>Última fecha:</b> {{ $apagone->fecha ?? ' ' }}</li>' +
+                                                                        '<li><b>Hora:</b> {{ $apagone->hora ?? ' ' }}</li>' +
+                                                                        '</ul>' +
+                                                                        '</div>' +
+
+
+                                                                        // Pestaña de Localización
+                                                                        '<div class="tab-pane fade" id="localizacion-apagone">' +
+                                                                        '<ul>' +
+                                                                        '<li><b>Latitud:</b> {{ !empty($apagone->lat_cups) ? $apagone->lat_cups : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Longitud:</b> {{ !empty($apagone->lon_cups) ? $apagone->lon_cups : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Dirección:</b> {{ !empty($apagone->dir_cups) ? $apagone->dir_cups : 'No hay datos' }}</li>' +
+																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
+                                                                        '</ul>' +
+                                                                        '</div>' +
+
+
+                                                                        '</div>' + // Cierra tab-content
+                                                                        '</div>', {
+                                                                            className: 'custom-popup'
+                                                                        }
+                                                                    );
+
+
+
+
+                                                                    markersApagones.addLayer(marker);
+                                                                }
+                                                            @endif
+                                                        @endforeach
+
+                                                        var capasApagones = markersApagones;
+
 
 
 
@@ -1794,6 +1886,7 @@
                                                                 if (map.hasLayer(capasSobretensiones)) map.removeLayer(capasSobretensiones);
                                                                 if (map.hasLayer(capasLecturas)) map.removeLayer(capasLecturas);
                                                                 if (map.hasLayer(capasSubtensiones)) map.removeLayer(capasSubtensiones);
+                                                                if (map.hasLayer(capasApagones)) map.removeLayer(capasApagones);
 
 
                                                                 // Agregar el marcador ctMarker si está definido
@@ -1813,10 +1906,10 @@
                                                                     case 'option3':
                                                                         map.addLayer(capasSubtensiones);
                                                                         break;
-                                                                        /*
                                                                     case 'option4':
                                                                         map.addLayer(capasApagones);
                                                                         break;
+                                                                        /*
                                                                     case 'option5':
                                                                         map.addLayer(capasMicrocortes);
                                                                         break;
