@@ -1372,6 +1372,7 @@
                                                             // Agregar el marcador ctMarker al mapa
                                                             map.addLayer(ctMarker);
                                                         @endif
+
                                                         //CONECTIVIDAD
                                                         var markersConectividad = L.markerClusterGroup();
                                                         var ubicaciones = [];
@@ -1484,6 +1485,7 @@
                                                             });
                                                         @endphp
                                                         var resultadosUnicos = @json($resultadosUnicos);
+                                                        console.log(Object.keys(resultadosUnicos).length);
 
                                                         @foreach ($resultadosUnicos as $sobretension)
                                                             // Obtener latitud y longitud del objeto $sobretension si existen
@@ -1573,6 +1575,115 @@
                                                         var capasSobretensiones = markersSobretensiones;
 
 
+                                                        //LECTURAS
+                                                        //var capasLecturas = L.layerGroup([]); // Mapa de lecturas
+                                                        var markersLecturas = L.markerClusterGroup();
+
+                                                        @php
+                                                            $filtroFechaLectura = !empty($_GET['fecha_lecturas']) ? \Carbon\Carbon::createFromFormat('Y-m-d', $_GET['fecha_lecturas'])->format('Y-m-d') : \Carbon\Carbon::today()->format('Y-m-d');
+                                                        @endphp
+
+                                                        @foreach ($resultadosQ32 as $lectura)
+                                                            @if (isset($lectura->lat_cups) && isset($lectura->lon_cups))
+                                                                @php
+                                                                    $fechaLectura = \Carbon\Carbon::createFromFormat('d/m/Y', $lectura->fecha)->format('Y-m-d');
+                                                                @endphp
+
+
+                                                                var iconUrlLectura;
+                                                                var indAutoconsumo = '{{ $lectura->ind_autoconsumo }}';
+                                                                var indS05 = '{{ $lectura->ind_s05 }}';
+                                                                var latCupsLectura = '{{ $lectura->lat_cups }}';
+                                                                var lonCupsLectura = '{{ $lectura->lon_cups }}';
+                                                                var fechaLectura = '{{ $fechaLectura }}';
+                                                                var filtroFechaLectura = '{{ $filtroFechaLectura }}';
+
+
+                                                                if (latCupsLectura !== null && lonCupsLectura !== null) {
+                                                                    if (indAutoconsumo !== '' && indS05 !== '') {
+                                                                        if (fechaLectura === filtroFechaLectura) {
+                                                                            if (indS05 === 'S' && indAutoconsumo === 'N') {
+                                                                                iconUrlLectura = '../../images/casaverde.png';
+                                                                            } else if (indS05 === 'S' && indAutoconsumo === 'S') {
+                                                                                iconUrlLectura = '../../images/casaverdepanelsolar.png';
+                                                                            } else if ((indS05 === 'N' || indS05 == null) && indAutoconsumo === 'N') {
+                                                                                iconUrlLectura = '../../images/casaroja.png';
+                                                                            } else if ((indS05 === 'N' || indS05 == null) && indAutoconsumo === 'S') {
+                                                                                iconUrlLectura = '../../images/casarojapanelsolar.png';
+                                                                            }
+                                                                        } else if (indAutoconsumo === 'S') {
+                                                                            iconUrlLectura = '../../images/casarojapanelsolar.png';
+                                                                        } else {
+                                                                            iconUrlLectura = '../../images/casaroja.png';
+                                                                        }
+                                                                    }
+
+
+                                                                    var customIcon = L.icon({
+                                                                        iconUrl: iconUrlLectura,
+                                                                        iconSize: [30, 40],
+                                                                        iconAnchor: [15, 40],
+                                                                        popupAnchor: [0, -40],
+                                                                        shadowSize: [30, 30]
+                                                                    });
+
+
+                                                                    var message = indS05 === 'S' ? 'Leído' : 'No leído';
+
+
+                                                                    var lecturaMarker = L.marker([latCupsLectura, lonCupsLectura], {
+                                                                        icon: customIcon
+                                                                    }).bindPopup(
+                                                                        '<div id="popup-map" class="popup-content">' +
+                                                                        // Nombre del cliente
+                                                                        '<h3><strong>{{ !empty($lectura->nom_cups) ? $lectura->nom_cups : 'No hay datos' }}</strong></h3>' +
+
+
+                                                                        // Pestañas (General y Localización)
+                                                                        '<ul class="nav nav-tabs">' +
+                                                                        '<li class="nav-item"><a class="nav-link active" href="#general" data-toggle="tab">General</a></li>' +
+                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion" data-toggle="tab">Localización</a></li>' +
+                                                                        '</ul>' +
+
+
+                                                                        // Contenido de las pestañas
+                                                                        '<div class="tab-content">' +
+
+
+                                                                        // Pestaña de General
+                                                                        '<div class="tab-pane fade show active" id="general">' +
+                                                                        '<ul>' +
+                                                                        '<li><b>Id cups:</b> <a href="detallesinformacioncups?id_cups={{ $lectura->id_cups ?? ' ' }}" target="_blank">{{ $lectura->id_cups ?? ' ' }}</a></li>' +
+                                                                        '<li><b>Estado de Lectura:</b> ' + message + '</li>' +
+                                                                        '<li><b>Fecha de Lectura:</b> {{ $lectura->fecha }}</li>' +
+                                                                        '</ul>' +
+                                                                        '</div>' +
+
+
+                                                                        // Pestaña de Localización
+                                                                        '<div class="tab-pane fade" id="localizacion">' +
+                                                                        '<ul>' +
+                                                                        '<li><b>Latitud:</b> {{ !empty($lectura->lat_cups) ? $lectura->lat_cups : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Longitud:</b> {{ !empty($lectura->lon_cups) ? $lectura->lon_cups : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Dirección:</b> {{ !empty($lectura->dir_cups) ? $lectura->dir_cups : 'No hay datos' }}</li>' +
+																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
+                                                                        '</ul>' +
+                                                                        '</div>' +
+
+
+                                                                        '</div>' + // Cierra tab-content
+                                                                        '</div>', {
+                                                                            className: 'custom-popup'
+                                                                        });
+
+
+                                                                        markersLecturas.addLayer(lecturaMarker);
+                                                                }
+                                                            @endif
+                                                        @endforeach
+
+                                                        var capasLecturas = markersLecturas;
+
 
 
 
@@ -1598,6 +1709,7 @@
                                                                 // Remover todas las capas antes de agregar una nueva
                                                                 if (map.hasLayer(capasConectividad)) map.removeLayer(capasConectividad);
                                                                 if (map.hasLayer(capasSobretensiones)) map.removeLayer(capasSobretensiones);
+                                                                if (map.hasLayer(capasLecturas)) map.removeLayer(capasLecturas);
 
 
                                                                 // Agregar el marcador ctMarker si está definido
@@ -1624,9 +1736,11 @@
                                                                     case 'option5':
                                                                         map.addLayer(capasMicrocortes);
                                                                         break;
+                                                                        */
                                                                     case 'option6':
                                                                         map.addLayer(capasLecturas);
                                                                         break;
+                                                                        /*
                                                                     case 'option7':
                                                                         map.addLayer(capasNivelesTension);
                                                                         break;
