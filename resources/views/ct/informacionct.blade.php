@@ -1474,20 +1474,9 @@
 
                                                         //SOBRETENSIONES
                                                         //var capasSobretensiones = L.layerGroup([]);
-                                                        var markersSobretensiones = L.markerClusterGroup(); 
-                                                        
-                                                        //ELIMINAMOS DUPLICADOS            
-                                                        var resultadosQ28 = @json($resultadosQ28);
-                                                        @php
-                                                            // Convertir en colección y eliminar duplicados por latitud y longitud
-                                                            $resultadosUnicos = collect($resultadosQ28)->unique(function ($item) {
-                                                                return $item->lat_cups . ',' . $item->lon_cups; // Acceder como objeto, no como array
-                                                            });
-                                                        @endphp
-                                                        var resultadosUnicos = @json($resultadosUnicos);
-                                                        console.log(Object.keys(resultadosUnicos).length);
+                                                        var markersSobretensiones = L.markerClusterGroup();
 
-                                                        @foreach ($resultadosUnicos as $sobretension)
+                                                        @foreach ($resultadosQ28 as $sobretension)
                                                             // Obtener latitud y longitud del objeto $sobretension si existen
                                                             @if (isset($sobretension->lat_cups) && isset($sobretension->lon_cups))
                                                                 var latCupsSobretension = '{{ $sobretension->lat_cups }}';
@@ -1685,6 +1674,100 @@
                                                         var capasLecturas = markersLecturas;
 
 
+                                                        //SUBTENSIONES
+                                                        var markersSubtensiones = L.markerClusterGroup(); // mapa de subtensiones
+                                                        var subtensiones = @json($resultadosQ29);
+                                                        console.log(subtensiones);
+                                                        @foreach ($resultadosQ29 as $subtension)
+                                                            // Obtener latitud y longitud del objeto $subtension si existen
+                                                            @if (isset($subtension->lat_cups) && isset($subtension->lon_cups))
+                                                                var latCupsSubtension = '{{ $subtension->lat_cups }}';
+                                                                var lonCupsSubtension = '{{ $subtension->lon_cups }}';
+
+
+                                                                // Verificar si latCups y lonCups no son cadena vacía
+                                                                if (latCupsSubtension !== '' && lonCupsSubtension !== '') {
+                                                                    @if (isset($subtension->ind_autoconsumo))
+                                                                        // Determinar la imagen basada en el valor de ind_autoconsumo
+                                                                        var iconImage = "{{ $subtension->ind_autoconsumo }}" === 'S' ?
+                                                                            '../../images/casaverdepanelsolar.png' :
+                                                                            '../../images/casaverde.png';
+                                                                    @else
+                                                                        var iconImage = '../../images/casaverde.png'; // imagen por defecto si no tiene ind_autoconsumo
+                                                                    @endif
+
+
+                                                                    var divIcon = L.divIcon({
+                                                                        html: `<div style="position: relative; text-align: center; font-family: 'Didact Gothic', sans-serif;">
+                                                                            <img src="${iconImage}" style="width: 30px; height: 40px;">
+                                                                            <div style="position: absolute; bottom: 5px; left: 0; width: 100%; color: white; font-weight: bold; font-size: 12px; text-shadow: 0 0 4px black;">{{ $subtension->nro_sub_voltajes ?? ' ' }}</div>
+                                                                        </div>`,
+                                                                        className: 'custom-div-icon',
+                                                                        iconSize: [30, 40],
+                                                                        iconAnchor: [15, 40],
+                                                                        popupAnchor: [0, -40],
+                                                                        shadowSize: [30, 30]
+                                                                    });
+
+
+                                                                    var marker = L.marker([latCupsSubtension, lonCupsSubtension], {
+                                                                        icon: divIcon
+                                                                    }).bindPopup(
+                                                                        '<div id="popup-map" class="popup-content">' +
+                                                                        // Nombre del cliente o CUPS
+                                                                        '<h3><strong>{{ !empty($subtension->nom_cups) ? $subtension->nom_cups : 'No hay datos' }}</strong></h3>' +
+
+
+                                                                        // Pestañas (General y Localización)
+                                                                        '<ul class="nav nav-tabs">' +
+                                                                        '<li class="nav-item"><a class="nav-link active" href="#general-subtension" data-toggle="tab">General</a></li>' +
+                                                                        '<li class="nav-item"><a class="nav-link" href="#localizacion-subtension" data-toggle="tab">Localización</a></li>' +
+                                                                        '</ul>' +
+
+
+                                                                        // Contenido de las pestañas
+                                                                        '<div class="tab-content">' +
+
+
+                                                                        // Pestaña de General
+                                                                        '<div class="tab-pane fade show active" id="general-subtension">' +
+                                                                        '<ul>' +
+                                                                        '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $subtension->id_cups ?? ' ' }}" target="_blank">{{ $subtension->id_cups ?? ' ' }}</a></li>' +
+                                                                        '<li><b>Subtensiones:</b> {{ $subtension->nro_sub_voltajes ?? ' ' }}</li>' +
+                                                                        '<li><b>Última fecha:</b> {{ $subtension->fecha ?? ' ' }}</li>' +
+                                                                        '<li><b>Hora:</b> {{ $subtension->hora ?? ' ' }}</li>' +
+                                                                        '</ul>' +
+                                                                        '</div>' +
+
+
+                                                                        // Pestaña de Localización
+                                                                        '<div class="tab-pane fade" id="localizacion-subtension">' +
+                                                                        '<ul>' +
+                                                                        '<li><b>Latitud:</b> {{ !empty($subtension->lat_cups) ? $subtension->lat_cups : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Longitud:</b> {{ !empty($subtension->lon_cups) ? $subtension->lon_cups : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Dirección:</b> {{ !empty($subtension->dir_cups) ? $subtension->dir_cups : 'No hay datos' }}</li>' +
+																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
+                                                                        '</ul>' +
+                                                                        '</div>' +
+
+
+                                                                        '</div>' + // Cierra tab-content
+                                                                        '</div>', {
+                                                                            className: 'custom-popup'
+                                                                        }
+                                                                    );
+
+
+
+
+                                                                    markersSubtensiones.addLayer(marker);
+                                                                }
+                                                            @endif
+                                                        @endforeach
+
+                                                        var capasSubtensiones = markersSubtensiones;
+
+
 
 
                                                         var baseLayers = {
@@ -1710,6 +1793,7 @@
                                                                 if (map.hasLayer(capasConectividad)) map.removeLayer(capasConectividad);
                                                                 if (map.hasLayer(capasSobretensiones)) map.removeLayer(capasSobretensiones);
                                                                 if (map.hasLayer(capasLecturas)) map.removeLayer(capasLecturas);
+                                                                if (map.hasLayer(capasSubtensiones)) map.removeLayer(capasSubtensiones);
 
 
                                                                 // Agregar el marcador ctMarker si está definido
@@ -1726,10 +1810,10 @@
                                                                     case 'option2':
                                                                         map.addLayer(capasSobretensiones);
                                                                         break;
-                                                                        /*
                                                                     case 'option3':
                                                                         map.addLayer(capasSubtensiones);
                                                                         break;
+                                                                        /*
                                                                     case 'option4':
                                                                         map.addLayer(capasApagones);
                                                                         break;
