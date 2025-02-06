@@ -2435,14 +2435,14 @@ public function consultaVeintidos($id_ct, $connection)
                 WITH max_fec_evento AS (
                     SELECT
                         id_cups,
-                        fec_evento AS max_fecha
+                        MAX(fec_evento) AS max_fecha
                     FROM core.v_micro_cortes
-                    GROUP BY id_cups, v_micro_cortes.fec_evento
+                    GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
                     SELECT
                         v.id_cups,
-                        v.fec_evento AS max_fecha,
+                        MAX(v.fec_evento) AS max_fecha,
                         MAX(v.hor_evento) AS max_hora
                     FROM core.v_micro_cortes v
                     JOIN max_fec_evento m ON v.id_cups = m.id_cups AND v.fec_evento = m.max_fecha
