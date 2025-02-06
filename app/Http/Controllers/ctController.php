@@ -2131,45 +2131,47 @@ public function consultaVeintidos($id_ct, $connection)
 
                 // Construir la consulta SQL con las fechas
                 $query = "
-                WITH max_fec_evento AS (
+                    WITH max_fec_evento AS (
+                        SELECT
+                            id_cups,
+                            MAX(fec_evento) AS max_fecha
+                        FROM core.v_sobre_voltajes
+                        GROUP BY id_cups
+                    ),
+                    max_fec_hor_evento AS (
+                        SELECT
+                            v.id_cups,
+                            MAX(v.fec_evento) AS max_fecha,
+                            MAX(v.hor_evento) AS max_hora
+                        FROM core.v_sobre_voltajes v
+                        JOIN max_fec_evento m 
+                            ON v.id_cups = m.id_cups 
+                            AND v.fec_evento = m.max_fecha
+                        GROUP BY v.id_cups
+                    ),
+                    sobre_voltajes_totales AS (
+                        SELECT
+                            id_cups,
+                            COUNT(*) AS nro_sobre_voltajes
+                        FROM core.v_sobre_voltajes
+                        GROUP BY id_cups
+                    )
                     SELECT
-                        id_cups,
-                        fec_evento AS max_fecha
-                    FROM core.v_sobre_voltajes
-                    GROUP BY id_cups, v_sobre_voltajes.fec_evento
-                ),
-                max_fec_hor_evento AS (
-                    SELECT
-                        v.id_cups,
-                        v.fec_evento AS max_fecha,
-                        MAX(v.hor_evento) AS max_hora
-                    FROM core.v_sobre_voltajes v
-                    JOIN max_fec_evento m ON v.id_cups = m.id_cups AND v.fec_evento = m.max_fecha
-                    GROUP BY v.id_cups, v.fec_evento
-                ),
-                sobre_voltajes_totales AS (
-                    SELECT
-                        id_cups,
-                        COUNT(*) AS nro_sobre_voltajes
-                    FROM core.v_sobre_voltajes
-                    GROUP BY id_cups
-                )
-                SELECT
-                    c.id_cups,
-                    c.nom_cups,
-                    c.dir_cups,
-                    c.ind_autoconsumo,
-                    c.lat_cups,
-                    c.lon_cups,
-                    TO_CHAR(m.max_fecha, 'DD/MM/YYYY') AS fecha,
-                    TO_CHAR(h.max_hora, 'HH24:MI:SS') AS hora,
-                    s.nro_sobre_voltajes
-                FROM core.t_cups c
-                JOIN core.t_ct t ON c.id_ct = t.id_ct
-                JOIN max_fec_evento m ON c.id_cups = m.id_cups
-                JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
-                JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
-                WHERE t.id_ct = :id_ct
+                        c.id_cups,
+                        c.nom_cups,
+                        c.dir_cups,
+                        c.ind_autoconsumo,
+                        c.lat_cups,
+                        c.lon_cups,
+                        TO_CHAR(m.max_fecha, 'DD/MM/YYYY') AS fecha,
+                        TO_CHAR(h.max_hora, 'HH24:MI:SS') AS hora,
+                        s.nro_sobre_voltajes
+                    FROM core.t_cups c
+                    JOIN core.t_ct t ON c.id_ct = t.id_ct
+                    JOIN max_fec_evento m ON c.id_cups = m.id_cups
+                    JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
+                    JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
+                    WHERE t.id_ct = :id_ct;
                 ";
 
 
