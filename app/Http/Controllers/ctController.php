@@ -2239,14 +2239,14 @@ public function consultaVeintidos($id_ct, $connection)
                 WITH max_fec_evento AS (
                     SELECT
                         id_cups,
-                        fec_evento AS max_fecha
+                        MAX(fec_evento) AS max_fecha
                     FROM core.v_sub_voltajes
-                    GROUP BY id_cups, v_sub_voltajes.fec_evento
+                    GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
                     SELECT
                         v.id_cups,
-                        v.fec_evento AS max_fecha,
+                        MAX(v.fec_evento) AS max_fecha,
                         MAX(v.hor_evento) AS max_hora
                     FROM core.v_sub_voltajes v
                     JOIN max_fec_evento m ON v.id_cups = m.id_cups AND v.fec_evento = m.max_fecha
@@ -2337,14 +2337,14 @@ public function consultaVeintidos($id_ct, $connection)
                 WITH max_fec_evento AS (
                     SELECT
                         id_cups,
-                        fec_evento AS max_fecha
+                        MAX(fec_evento) AS max_fecha
                     FROM core.v_apagones
-                    GROUP BY id_cups, v_apagones.fec_evento
+                    GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
                     SELECT
                         v.id_cups,
-                        v.fec_evento AS max_fecha,
+                        MAX(v.fec_evento) AS max_fecha,
                         MAX(v.hor_evento) AS max_hora
                     FROM core.v_apagones v
                     JOIN max_fec_evento m ON v.id_cups = m.id_cups AND v.fec_evento = m.max_fecha
