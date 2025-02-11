@@ -722,6 +722,14 @@
                         </div>
                     </div>
 
+                    <script>
+                        var res = @json($resultadosQ1Eventos);
+                        var res2 = @json($resultadosQ3Eventos);
+                        console.log('======================');
+                        console.log(res);
+                        console.log(res2);
+                        </script>
+
 
 
                     {{-- SEGUNDA FILA --}}
