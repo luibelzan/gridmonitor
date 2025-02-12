@@ -178,7 +178,7 @@ class EventosEspontaneosController extends Controller
     ) s13
     JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
     JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
-    LEFT JOIN core.t_descripcion_eventos_contador t_dec  
+    INNER JOIN core.t_descripcion_eventos_contador t_dec  
         ON s13.et = t_dec.grp_evento 
         AND s13.c = t_dec.cod_evento
 ";
@@ -210,7 +210,8 @@ class EventosEspontaneosController extends Controller
                 SELECT * 
                 FROM eventos_ordenados
                 WHERE fila_ordenada = 1
-                ORDER BY id DESC";
+                ORDER BY id DESC
+                LIMIT 20";
 
             // Ejecutar la consulta
             $resultadosQ1Eventos = DB::connection($connection)->select($query);
@@ -356,11 +357,12 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
                 // Añadir el filtro de las últimas 100 horas si no se especifica fecha
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " AND TO_TIMESTAMP(SUBSTRING(s15.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '1000 hours'";
+                    $query .= " AND TO_TIMESTAMP(SUBSTRING(s15.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
                 }
 
                 // Añadir el ordenamiento
-                $query .= " ORDER BY s15.id DESC";
+                $query .= " ORDER BY s15.id DESC
+                LIMIT 20";
 
                 // Ejecutar la consulta
                 $resultadosQ3Eventos = DB::connection($connection)->select($query);
@@ -546,18 +548,23 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
                     AND s13.c = t_dec.cod_evento";
 
             // Añadir el filtro de fecha_inicio si está disponible
-            if ($fecha_inicio) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')";
+            if ($fecha_inicio && !$fecha_fin) {
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')";
+            }
+
+            if($fecha_fin && !$fecha_inicio) {
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
             }
 
             // Añadir el filtro de fecha_fin si está disponible
-            if ($fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
+            if ($fecha_fin && $fecha_inicio) {
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                            AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
             }
 
             // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
             if (!$fecha_inicio && !$fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '240 hours'";
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
             }
 
             // Finalizar la consulta
