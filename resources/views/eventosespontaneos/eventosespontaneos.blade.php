@@ -724,10 +724,8 @@
 
                     <script>
                         var res = @json($resultadosQ1Eventos);
-                        var res2 = @json($resultadosQ3Eventos);
                         console.log('======================');
                         console.log(res);
-                        console.log(res2);
                         </script>
 
 
@@ -822,9 +820,7 @@
                                                     <label
                                                         style="color: rgb(88,226,194); font-size: 1.25rem;">{{ $evento['nombre'] }}</label>
                                                 </div>
-                                                <div class="mb-4"
-                                                    style="border-bottom: 3px solid transparent; border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                                                </div>
+                                                
                                                 <div
                                                     style="display: flex; justify-content: center; align-items: baseline; gap: 1rem;">
                                                     <!-- Añadir resultado 24h -->
