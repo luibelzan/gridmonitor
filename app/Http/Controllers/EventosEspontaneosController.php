@@ -261,36 +261,42 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
                             cnt, 
                             TO_CHAR(TO_TIMESTAMP(SUBSTRING(fh, 1, 14), 'YYYYMMDDHH24MISS'), 'DD/MM/YYYY HH24:MI:SS') AS fh_legible 
                         FROM core.s13
-                    ) s13
-                    JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
-                    JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct  ";
+                    ";
 
             // Añadir el filtro de fecha_inicio si está disponible
-            if ($fecha_inicio) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')";
+            if ($fecha_inicio && !$fecha_fin) {
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')";
+            }
+
+            if($fecha_fin && !$fecha_inicio) {
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
             }
 
             // Añadir el filtro de fecha_fin si está disponible
-            if ($fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
+            if ($fecha_fin && $fecha_inicio) {
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                            AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
             }
 
-            // Añadir el filtro de las últimas 150 horas si no se especifica fecha
+            // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
             if (!$fecha_inicio && !$fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
             }
 
             // Continuar con la consulta final
             $query .= "
-                )
-                SELECT 
-                    id_ct,
-                    nom_ct,
-                    COUNT(id) AS total_eventos
-                FROM eventos_ordenados
-                WHERE fila_ordenada = 1
-                GROUP BY id_ct, nom_ct
-                ORDER BY total_eventos DESC";
+            ) s13
+                    JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
+                    JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct  
+            )    
+            SELECT 
+                id_ct,
+                nom_ct,
+                COUNT(id) AS total_eventos
+            FROM eventos_ordenados
+            WHERE fila_ordenada = 1
+            GROUP BY id_ct, nom_ct
+            ORDER BY total_eventos DESC";
 
             // Ejecutar la consulta
             $resultadosQ2Eventos = DB::connection($connection)->select($query);
