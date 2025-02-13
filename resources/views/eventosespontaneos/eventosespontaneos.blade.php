@@ -244,7 +244,7 @@
                     method: 'GET',
                     success: function(data) {
                         if (data.resultadosQ1Eventos) {
-                            actualizarTabla(data.resultadosQ1Eventos);
+                            actualizarTabla(data.resultadosQ1EventosPaginate);
                             actualizarMapa(data
                                 .resultadosQ1Eventos); // Actualiza el mapa con los nuevos eventos
                         }
@@ -617,6 +617,8 @@
                                                     var idCt = evento.id_ct;
                                                     var eventosCount = evento.total_eventos || 0; // Usar 'total_eventos' del evento
 
+                                                    console.log("Evento procesado:", evento);
+console.log("Total eventos calculado:", evento.total_eventos);
 
 
 
@@ -699,7 +701,9 @@
                                         // Llama a la función actualizarMapa inmediatamente con los datos iniciales
                                         document.addEventListener('DOMContentLoaded', function() {
                                             var eventosIniciales =
-                                                @json($resultadosQ1Eventos); // Los eventos iniciales del servidor con los conteos correctos
+                                                @json($resultadosQ1Eventos);
+                                                console.log('====================='); // Los eventos iniciales del servidor con los conteos correctos
+                                                console.log(@json($resultadosQ1Eventos));
                                             actualizarMapa(eventosIniciales); // Mostrar los eventos en el mapa de inmediato
                                         });
                                     </script>
@@ -721,13 +725,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <script>
-                        var res = @json($resultadosQ1Eventos);
-                        console.log('======================');
-                        console.log(res);
-                        </script>
-
 
 
                     {{-- SEGUNDA FILA --}}
@@ -883,7 +880,7 @@
 
 
                                             <tbody>
-                                                @foreach ($resultadosQ1Eventos as $resultado)
+                                                @foreach ($resultadosQ1EventosPaginate as $resultado)
                                                     <tr class="highlight-row @if ($loop->first) new-notification @endif"
                                                         @if (isset($resultado->cod_gravedad)) @switch($resultado->cod_gravedad)
                     @case(1)
@@ -951,8 +948,6 @@
                                                     </tr>
                                                 @endforeach
                                             </tbody>
-
-
                                         </table>
                                     </div>
                                 @else
@@ -962,7 +957,11 @@
                                     </div>
                                 @endif
                                 <!-- Contenedor del botón de descarga -->
-                                <div class="text-right mt-4">
+                                <div class="text-right mt-4 flex justify-between">
+                                    <!-- Paginación -->
+                                    <div class="pagination-container">
+                                                {{ $resultadosQ1EventosPaginate->links() }}
+                                            </div>
                                     <input type="button" onclick="tableToExcel('tabla-eventos', 'W3C Example Table')"
                                         style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
                                 </div>
@@ -1082,7 +1081,11 @@
                                     </div>
                                 @endif
                                 <!-- Contenedor del botón de descarga -->
-                                <div class="text-right mt-4">
+                                <div class="text-right mt-4 flex justify-between">
+                                    <!-- Paginación -->
+                                    <div class="pagination-container">
+                                                {{ $resultadosQ3Eventos->links() }}
+                                            </div>
                                     <input type="button"
                                         onclick="tableToExcel('tabla-eventos-concentrador', 'W3C Example Table')"
                                         style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
