@@ -398,6 +398,8 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
                     ['path' => request()->url(), 'query' => request()->query()]
                 );
 
+                $resultadosQ3Eventos->setPageName('cnc_page');
+
                 // Retornar los resultados o un mensaje si no hay datos
                 return $resultadosQ3Eventos ?: ['message' => 'No hay datos'];
             } else {
@@ -834,6 +836,8 @@ public function consultaUnoEventosEspontaneosPaginate(Request $request, $connect
                 $page, // Página actual
                 ['path' => request()->url(), 'query' => request()->query()] // Para mantener parámetros en la URL
             );
+
+            $resultadosQ1Eventos -> setPageName('cnt_page');
 
             // Retornar los resultados o un mensaje si no hay datos
             return $resultadosQ1Eventos ?: ['message' => 'No hay datos'];

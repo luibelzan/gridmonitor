@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {{-- CSS --}}
-    <link rel="stylesheet" href="{{ asset('resources/css/app.css') }}">
     {{-- MAPA --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -28,7 +26,6 @@
     </script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     {{-- CHART.JS --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src='https://cdn.plot.ly/plotly-2.31.1.min.js'></script> <!-- Load plotly.js into the DOM -->
@@ -40,7 +37,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     {{-- ENLACE A JS GENERAL --}}
-    <script src="{{ asset('js/app.js') }}"></script>
     <style>
         /* POPUP */
         .custom-popup {
@@ -188,6 +184,25 @@
             transition: background-color 0.3s ease;
             /* Agrega una transición suave */
         }
+
+        .pagination-container > nav > div:last-child > div:last-child > span > a {
+            background-color: rgb(52 176 148 / var(--tw-bg-opacity)) !important;
+            border-color: rgb(52 176 148 / var(--tw-bg-opacity)) !important;
+            font-weight: bolder;
+            color: white !important;
+
+        }
+
+        .pagination-container > nav > div:last-child > div:last-child > span > span > span {
+            background-color: rgb(52 176 148 / var(--tw-bg-opacity)) !important;
+            border-color: rgb(52 176 148 / var(--tw-bg-opacity)) !important;
+            color: white !important;
+        }
+
+        span[aria-current="page"] > span {
+        text-decoration: underline;
+        }
+
 
         @media (max-width: 600px) {
             #barraNavegacion .nav {
@@ -957,11 +972,11 @@ console.log("Total eventos calculado:", evento.total_eventos);
                                     </div>
                                 @endif
                                 <!-- Contenedor del botón de descarga -->
-                                <div class="text-right mt-4 flex justify-between">
+                                <div class="text-right m-4 flex justify-between">
                                     <!-- Paginación -->
                                     <div class="pagination-container">
-                                                {{ $resultadosQ1EventosPaginate->links() }}
-                                            </div>
+                                    {{ $resultadosQ1EventosPaginate->appends(['cnt_page' => request()->get('cnt_page')])->links() }}
+                                    </div>
                                     <input type="button" onclick="tableToExcel('tabla-eventos', 'W3C Example Table')"
                                         style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
                                 </div>
@@ -1084,8 +1099,8 @@ console.log("Total eventos calculado:", evento.total_eventos);
                                 <div class="text-right mt-4 flex justify-between">
                                     <!-- Paginación -->
                                     <div class="pagination-container">
-                                                {{ $resultadosQ3Eventos->links() }}
-                                            </div>
+                                    {{ $resultadosQ3Eventos->appends(['cnc_page' => request()->get('cnc_page')])->links() }}
+                                    </div>
                                     <input type="button"
                                         onclick="tableToExcel('tabla-eventos-concentrador', 'W3C Example Table')"
                                         style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
