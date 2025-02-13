@@ -1374,7 +1374,7 @@
                                                         @endif
 
                                                         //CONECTIVIDAD
-                                                        var markersConectividad = L.markerClusterGroup();
+                                                        var markers = [];
                                                         var ubicaciones = [];
                                                         @foreach ($cups_info as $cups)
                                                             @if ($cups->lat_cups !== null && $cups->lon_cups !== null)
@@ -1463,18 +1463,17 @@
                                                                     className: 'custom-popup'
                                                                 });
                                                                 //markers.push(marker);
-                                                                markersConectividad.addLayer(marker);
+                                                                markers.push(marker);
                                                             @endif
                                                         @endforeach
                                                         var bounds = new L.LatLngBounds(ubicaciones);
                                                         map.fitBounds(bounds);
-                                                        var capasConectividad = markersConectividad; 
+                                                        var capasConectividad = L.layerGroup(markers);
 
 
 
                                                         //SOBRETENSIONES
-                                                        //var capasSobretensiones = L.layerGroup([]);
-                                                        var markersSobretensiones = L.markerClusterGroup();
+                                                        var capasSobretensiones = L.layerGroup([]);
 
                                                         @foreach ($resultadosQ28 as $sobretension)
                                                             // Obtener latitud y longitud del objeto $sobretension si existen
@@ -1554,19 +1553,15 @@
                                                                             className: 'custom-popup'
                                                                         }
                                                                     );
-                                                                    markersSobretensiones.addLayer(marker);
-                                                                    //capasSobretensiones.addLayer(marker);
+                                                                    capasSobretensiones.addLayer(marker);
                                                                     
                                                                 }
                                                             @endif
                                                         @endforeach        
 
-                                                        var capasSobretensiones = markersSobretensiones;
-
 
                                                         //LECTURAS
-                                                        //var capasLecturas = L.layerGroup([]); // Mapa de lecturas
-                                                        var markersLecturas = L.markerClusterGroup();
+                                                        var capasLecturas = L.layerGroup([]); // Mapa de lecturas
 
                                                         @php
                                                             $filtroFechaLectura = !empty($_GET['fecha_lecturas']) ? \Carbon\Carbon::createFromFormat('Y-m-d', $_GET['fecha_lecturas'])->format('Y-m-d') : \Carbon\Carbon::today()->format('Y-m-d');
@@ -1666,16 +1661,14 @@
                                                                         });
 
 
-                                                                        markersLecturas.addLayer(lecturaMarker);
+                                                                        capasLecturas.addLayer(lecturaMarker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
-                                                        var capasLecturas = markersLecturas;
-
 
                                                         //SUBTENSIONES
-                                                        var markersSubtensiones = L.markerClusterGroup(); // mapa de subtensiones
+                                                        var capasSubtensiones = L.layerGroup([]); // mapa de subtensiones
                                                         
                                                         @foreach ($resultadosQ29 as $subtension)
                                                             // Obtener latitud y longitud del objeto $subtension si existen
@@ -1759,16 +1752,14 @@
 
 
 
-                                                                    markersSubtensiones.addLayer(marker);
+                                                                    capasSubtensiones.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
-                                                        var capasSubtensiones = markersSubtensiones;
-
                                                         
                                                         //CORTES
-                                                        var markersApagones = L.markerClusterGroup();
+                                                        var capasApagones = L.layerGroup([]);
 
                                                         @foreach ($resultadosQ30 as $apagone)
                                                             // Obtener latitud y longitud del objeto $apagone si existen
@@ -1852,16 +1843,14 @@
 
 
 
-                                                                    markersApagones.addLayer(marker);
+                                                                    capasApagones.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
-                                                        var capasApagones = markersApagones;
-
 
                                                         //MICROCORTES
-                                                        var markersMicrocortes = L.markerClusterGroup(); // mapa de microcortes
+                                                        var capasMicrocortes = L.layerGroup([]); // mapa de microcortes
 
                                                         @foreach ($resultadosQ31 as $microcorte)
                                                             // Obtener latitud y longitud del objeto $microcorte si existen
@@ -1942,16 +1931,14 @@
                                                                         }
                                                                     );
 
-                                                                    markersMicrocortes.addLayer(marker);
+                                                                    capasMicrocortes.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
-                                                        var capasMicrocortes = markersMicrocortes;
-
 
                                                         //NIVELES DE TENSION
-                                                        var markersNivelesTension = L.markerClusterGroup(); // Mapa de niveles de tensión
+                                                        var capasNivelesTension = L.layerGroup([]); // Mapa de niveles de tensión
 
 
                                                         @foreach ($resultadosQ50 as $nivelestension)
@@ -2052,12 +2039,10 @@
                                                                         }
                                                                     );
                                                                     // Añadir el marcador a la capa
-                                                                    markersNivelesTension.addLayer(marker);
+                                                                    capasNivelesTension.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
-                                                        var capasNivelesTension = markersNivelesTension;
-
 
 
                                                         var baseLayers = {
