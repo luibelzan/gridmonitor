@@ -126,7 +126,7 @@ class EventosEspontaneosController extends Controller
 
 
     //CONSULTAS ----------------------------
-    public function consultaUnoEventosEspontaneos(Request $request, $connection)
+    public function consultaUnoEventosEspontaneos(Request $request, $connection) //Eventos contador
 {
     try {
         // Verificar la existencia de las tablas
@@ -203,9 +203,9 @@ class EventosEspontaneosController extends Controller
                 $query .= " AND s13.et IN ($et_values)";
             }
 
-            // Añadir el filtro de las últimas 150 horas si no se especifica fecha
+            // Añadir el filtro de las últimas 24 horas si no se especifica fecha
             if (!$fecha_inicio && !$fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
             }
 
             // Continuar con la consulta final
@@ -287,7 +287,7 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
             // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
             if (!$fecha_inicio && !$fecha_fin) {
-                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                $query .= " WHERE TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
             }
 
             // Continuar con la consulta final
@@ -322,7 +322,7 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 }
 
 
-    public function consultaTresEventosEspontaneos(Request $request, $connection) //datos de los eventos s15
+    public function consultaTresEventosEspontaneos(Request $request, $connection) //datos de los eventos s15 (Eventos concentrador)
     {
         try {
             // Verificar la existencia de las tablas
@@ -373,12 +373,12 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
                 // Añadir el filtro de las últimas 100 horas si no se especifica fecha
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " AND TO_TIMESTAMP(SUBSTRING(s15.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                    $query .= " AND TO_TIMESTAMP(SUBSTRING(s15.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
                 }
 
                 // Añadir el ordenamiento
                 $query .= " ORDER BY s15.id DESC
-                LIMIT 20";
+                ";
 
                 // Ejecutar la consulta
                 $resultadosQ3Eventos = DB::connection($connection)->select($query);
@@ -567,14 +567,36 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
             // Construir la consulta SQL base
             $query = "
-               SELECT 
-                    s13.et, 
-                    COUNT(DISTINCT s13.fh) AS cantidad_eventos_24h
-                FROM core.s13 s13
+               WITH eventos_ordenados AS (
+                SELECT 
+                    s13.id,  
+                    s13.et,  
+                    fecha_hora_legible,  
+                    t_ct.id_ct,  
+                    t_dec.cod_gravedad_cnt AS cod_gravedad,  
+                    ROW_NUMBER() OVER (
+                        PARTITION BY fecha_hora_legible,  
+                                    t_dec.des_evento_contador,  
+                                    t_cups.id_cups,  
+                                    t_ct.id_ct,  
+                                    t_dec.cod_gravedad_cnt  
+                        ORDER BY s13.id DESC  
+                    ) AS fila_ordenada  
+                FROM (
+                    SELECT 
+                        s13.id,  
+                        s13.et,  
+                        s13.c,  
+                        s13.cnt,  
+                        s13.fh,
+                        TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'),  
+                                'DD/MM/YYYY HH24:MI:SS') AS fecha_hora_legible  
+                    FROM core.s13 s13  
+                ) s13  
                 JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
                 JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
                 LEFT JOIN core.t_descripcion_eventos_contador t_dec  
-                    ON s13.et = t_dec.grp_evento 
+                    ON s13.et = t_dec.grp_evento  
                     AND s13.c = t_dec.cod_evento";
 
             // Añadir el filtro de fecha_inicio si está disponible
@@ -599,8 +621,15 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
             // Finalizar la consulta
             $query .= "
-                GROUP BY s13.et
+                )  
+                SELECT 
+                    et,  
+                    COUNT(*) AS cantidad_eventos_24h  
+                FROM eventos_ordenados  
+                WHERE fila_ordenada = 1  
+                GROUP BY et  
                 ORDER BY cantidad_eventos_24h DESC;
+
             ";
 
             // Ejecutar la consulta
@@ -635,18 +664,47 @@ public function consultaSeisEventosEspontaneos(Request $request, $connection) //
 
             // Construir la consulta SQL base
             $query = "
-               SELECT 
+               WITH eventos_ordenados AS (
+                SELECT 
+                    s13.id, 
                     s13.et, 
-                    COUNT(DISTINCT s13.fh) AS cantidad_eventos_historico
+                    s13.c, 
+                    s13.cnt, 
+                    TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'), 'DD/MM/YYYY HH24:MI:SS') AS fecha_hora_legible,  
+                    t_dec.des_evento_contador,  
+                    t_cups.id_cups,
+                    t_cups.nom_cups,
+                    t_cups.dir_cups,
+                    t_cups.lat_cups,
+                    t_cups.lon_cups,
+                    t_ct.id_ct,
+                    t_ct.nom_ct,
+                    t_ct.lat_ct,
+                    t_ct.lon_ct,
+                    t_ct.dir_ct,
+                    t_dec.cod_gravedad_cnt AS cod_gravedad,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'), 'DD/MM/YYYY HH24:MI:SS'), 
+                                    t_dec.des_evento_contador,  
+                                    t_cups.id_cups,
+                                    t_ct.id_ct,
+                                    t_dec.cod_gravedad_cnt
+                        ORDER BY s13.id DESC
+                    ) AS fila_ordenada
                 FROM core.s13 s13
                 JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
                 JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
                 LEFT JOIN core.t_descripcion_eventos_contador t_dec  
                     ON s13.et = t_dec.grp_evento 
                     AND s13.c = t_dec.cod_evento
-                -- Eliminado LEFT JOIN innecesario a t_eventos_contador si no se usa
-                GROUP BY s13.et
-                ORDER BY cantidad_eventos_historico DESC;
+            )
+            SELECT 
+                et,  -- Referenciamos correctamente la columna 'et' del CTE 'eventos_ordenados'
+                COUNT(DISTINCT fecha_hora_legible) AS cantidad_eventos_historico  -- Contamos los eventos únicos
+            FROM eventos_ordenados
+            WHERE fila_ordenada = 1  -- Filtramos solo la primera fila de cada partición
+            GROUP BY et  -- Agrupamos por la columna 'et'
+            ORDER BY cantidad_eventos_historico DESC;
 
             ";
 
@@ -745,9 +803,9 @@ public function consultaUnoEventosEspontaneosPaginate(Request $request, $connect
                 $query .= " AND s13.et IN ($et_values)";
             }
 
-            // Añadir el filtro de las últimas 150 horas si no se especifica fecha
+            // Añadir el filtro de las últimas 24 horas si no se especifica fecha
             if (!$fecha_inicio && !$fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
             }
 
             // Continuar con la consulta final
