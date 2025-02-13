@@ -9,7 +9,7 @@ export default defineConfig({
         }),
     ],
     server: {
-        host: '192.168.0.104',  // Escucha en las interfaces
+        host: '127.0.0.1',  // Escucha en las interfaces
         port: 5173,  // Usar el puerto 5173
     }
 });
