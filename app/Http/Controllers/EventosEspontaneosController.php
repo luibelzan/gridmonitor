@@ -386,7 +386,7 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
                 $resultadosCollection = collect($resultadosQ3Eventos);
 
                 // Paginar manualmente
-                $page = request()->get('page', 1);
+                $page = request()->get('cnc_page', 1);
                 $perPage = 20;
                 $offset = ($page - 1) * $perPage;
 
@@ -824,7 +824,7 @@ public function consultaUnoEventosEspontaneosPaginate(Request $request, $connect
             $resultadosCollection = new Collection($resultadosQ1Eventos);
 
             // Obtener la página actual desde la solicitud
-            $page = request()->get('page', 1);
+            $page = request()->get('cnt_page', 1);
             $perPage = 20;
             $offset = ($page - 1) * $perPage;
 
