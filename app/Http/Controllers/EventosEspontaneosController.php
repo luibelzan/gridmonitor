@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 
 
@@ -42,6 +44,7 @@ class EventosEspontaneosController extends Controller
             $resultadosQ4Eventos = $this->consultaCuatroEventosEspontaneos($request, $connection);
             $resultadosQ5Eventos = $this->consultaCincoEventosEspontaneos($request, $connection);
             $resultadosQ6Eventos = $this->consultaSeisEventosEspontaneos($request, $connection);
+            $resultadosQ1EventosPaginate = $this->consultaUnoEventosEspontaneosPaginate($request, $connection);
 
             // Crear un mapa (array asociativo) de conteos de eventos por ID de CT
             $conteoEventosPorCt = [];
@@ -114,6 +117,7 @@ class EventosEspontaneosController extends Controller
                 'resultadosQ4Eventos' => $resultadosQ4Eventos,
                 'resultadosQ5Eventos' => $resultadosQ5Eventos,
                 'resultadosQ6Eventos' => $resultadosQ6Eventos,
+                'resultadosQ1EventosPaginate' => $resultadosQ1EventosPaginate,
 
 
             ]);
@@ -122,7 +126,7 @@ class EventosEspontaneosController extends Controller
 
 
     //CONSULTAS ----------------------------
-    public function consultaUnoEventosEspontaneos(Request $request, $connection)
+    public function consultaUnoEventosEspontaneos(Request $request, $connection) //Eventos contador
 {
     try {
         // Verificar la existencia de las tablas
@@ -199,9 +203,9 @@ class EventosEspontaneosController extends Controller
                 $query .= " AND s13.et IN ($et_values)";
             }
 
-            // Añadir el filtro de las últimas 150 horas si no se especifica fecha
+            // Añadir el filtro de las últimas 24 horas si no se especifica fecha
             if (!$fecha_inicio && !$fecha_fin) {
-                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
             }
 
             // Continuar con la consulta final
@@ -211,7 +215,7 @@ class EventosEspontaneosController extends Controller
                 FROM eventos_ordenados
                 WHERE fila_ordenada = 1
                 ORDER BY id DESC
-                LIMIT 20";
+                ";
 
             // Ejecutar la consulta
             $resultadosQ1Eventos = DB::connection($connection)->select($query);
@@ -251,13 +255,16 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
                         s13.id,
                         t_ct.id_ct,
                         t_ct.nom_ct,
+                        t_dec.cod_gravedad_cnt,  -- Agregamos esta columna para el PARTITION BY
                         ROW_NUMBER() OVER (
-                            PARTITION BY s13.fh_legible, t_ct.id_ct 
+                            PARTITION BY s13.fh_legible, t_ct.id_ct, t_dec.cod_gravedad_cnt, t_dec.des_evento_contador, t_cups.id_cups
                             ORDER BY s13.id DESC
                         ) AS fila_ordenada
                     FROM (
                         SELECT 
                             id, 
+                            et,  -- Se necesita para la unión con t_dec
+                            c,   -- Se necesita para la unión con t_dec
                             cnt, 
                             TO_CHAR(TO_TIMESTAMP(SUBSTRING(fh, 1, 14), 'YYYYMMDDHH24MISS'), 'DD/MM/YYYY HH24:MI:SS') AS fh_legible 
                         FROM core.s13
@@ -285,9 +292,12 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
             // Continuar con la consulta final
             $query .= "
-            ) s13
-                    JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
-                    JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct  
+                        ) s13
+                JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
+                JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct  
+                JOIN core.t_descripcion_eventos_contador t_dec  
+                    ON s13.et = t_dec.grp_evento  
+                    AND s13.c = t_dec.cod_evento
             )    
             SELECT 
                 id_ct,
@@ -312,7 +322,7 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 }
 
 
-    public function consultaTresEventosEspontaneos(Request $request, $connection) //datos de los eventos s15
+    public function consultaTresEventosEspontaneos(Request $request, $connection) //datos de los eventos s15 (Eventos concentrador)
     {
         try {
             // Verificar la existencia de las tablas
@@ -363,18 +373,32 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
                 // Añadir el filtro de las últimas 100 horas si no se especifica fecha
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " AND TO_TIMESTAMP(SUBSTRING(s15.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '150 hours'";
+                    $query .= " AND TO_TIMESTAMP(SUBSTRING(s15.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
                 }
 
                 // Añadir el ordenamiento
                 $query .= " ORDER BY s15.id DESC
-                LIMIT 20";
+                ";
 
                 // Ejecutar la consulta
                 $resultadosQ3Eventos = DB::connection($connection)->select($query);
 
-                // Mostrar los resultados para depuración
-                // dd($resultadosQ3Eventos);
+                $resultadosCollection = collect($resultadosQ3Eventos);
+
+                // Paginar manualmente
+                $page = request()->get('cnc_page', 1);
+                $perPage = 20;
+                $offset = ($page - 1) * $perPage;
+
+                $resultadosQ3Eventos = new LengthAwarePaginator(
+                    $resultadosCollection->slice($offset, $perPage)->values(),
+                    $resultadosCollection->count(),
+                    $perPage,
+                    $page,
+                    ['path' => request()->url(), 'query' => request()->query()]
+                );
+
+                $resultadosQ3Eventos->setPageName('cnc_page');
 
                 // Retornar los resultados o un mensaje si no hay datos
                 return $resultadosQ3Eventos ?: ['message' => 'No hay datos'];
@@ -463,6 +487,7 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
             $resultadosQ4Eventos = $this->consultaCuatroEventosEspontaneos($request, $connection);
             $resultadosQ5Eventos = $this->consultaCincoEventosEspontaneos($request, $connection);
             $resultadosQ6Eventos = $this->consultaSeisEventosEspontaneos($request, $connection);
+            $resultadosQ1EventosPaginate = $this->consultaUnoEventosEspontaneosPaginate($request, $connection);
 
             // Crear un mapa (array asociativo) de conteos de eventos por ID de CT
             $conteoEventosPorCt = [];
@@ -518,6 +543,7 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
                 'resultadosQ4Eventos' => $resultadosQ4Eventos,
                 'resultadosQ5Eventos' => $resultadosQ5Eventos,
                 'resultadosQ6Eventos' => $resultadosQ6Eventos,
+                'resultadosQ1EventosPaginate' => $resultadosQ1EventosPaginate,
 
             ]);
         }
@@ -543,14 +569,36 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
             // Construir la consulta SQL base
             $query = "
-               SELECT 
-                    s13.et, 
-                    COUNT(DISTINCT s13.fh) AS cantidad_eventos_24h
-                FROM core.s13 s13
+               WITH eventos_ordenados AS (
+                SELECT 
+                    s13.id,  
+                    s13.et,  
+                    fecha_hora_legible,  
+                    t_ct.id_ct,  
+                    t_dec.cod_gravedad_cnt AS cod_gravedad,  
+                    ROW_NUMBER() OVER (
+                        PARTITION BY fecha_hora_legible,  
+                                    t_dec.des_evento_contador,  
+                                    t_cups.id_cups,  
+                                    t_ct.id_ct,  
+                                    t_dec.cod_gravedad_cnt  
+                        ORDER BY s13.id DESC  
+                    ) AS fila_ordenada  
+                FROM (
+                    SELECT 
+                        s13.id,  
+                        s13.et,  
+                        s13.c,  
+                        s13.cnt,  
+                        s13.fh,
+                        TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'),  
+                                'DD/MM/YYYY HH24:MI:SS') AS fecha_hora_legible  
+                    FROM core.s13 s13  
+                ) s13  
                 JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
                 JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
                 LEFT JOIN core.t_descripcion_eventos_contador t_dec  
-                    ON s13.et = t_dec.grp_evento 
+                    ON s13.et = t_dec.grp_evento  
                     AND s13.c = t_dec.cod_evento";
 
             // Añadir el filtro de fecha_inicio si está disponible
@@ -575,8 +623,15 @@ public function consultaDosEventosEspontaneos(Request $request, $connection) // 
 
             // Finalizar la consulta
             $query .= "
-                GROUP BY s13.et
+                )  
+                SELECT 
+                    et,  
+                    COUNT(*) AS cantidad_eventos_24h  
+                FROM eventos_ordenados  
+                WHERE fila_ordenada = 1  
+                GROUP BY et  
                 ORDER BY cantidad_eventos_24h DESC;
+
             ";
 
             // Ejecutar la consulta
@@ -611,18 +666,47 @@ public function consultaSeisEventosEspontaneos(Request $request, $connection) //
 
             // Construir la consulta SQL base
             $query = "
-               SELECT 
+               WITH eventos_ordenados AS (
+                SELECT 
+                    s13.id, 
                     s13.et, 
-                    COUNT(DISTINCT s13.fh) AS cantidad_eventos_historico
+                    s13.c, 
+                    s13.cnt, 
+                    TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'), 'DD/MM/YYYY HH24:MI:SS') AS fecha_hora_legible,  
+                    t_dec.des_evento_contador,  
+                    t_cups.id_cups,
+                    t_cups.nom_cups,
+                    t_cups.dir_cups,
+                    t_cups.lat_cups,
+                    t_cups.lon_cups,
+                    t_ct.id_ct,
+                    t_ct.nom_ct,
+                    t_ct.lat_ct,
+                    t_ct.lon_ct,
+                    t_ct.dir_ct,
+                    t_dec.cod_gravedad_cnt AS cod_gravedad,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'), 'DD/MM/YYYY HH24:MI:SS'), 
+                                    t_dec.des_evento_contador,  
+                                    t_cups.id_cups,
+                                    t_ct.id_ct,
+                                    t_dec.cod_gravedad_cnt
+                        ORDER BY s13.id DESC
+                    ) AS fila_ordenada
                 FROM core.s13 s13
                 JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
                 JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
                 LEFT JOIN core.t_descripcion_eventos_contador t_dec  
                     ON s13.et = t_dec.grp_evento 
                     AND s13.c = t_dec.cod_evento
-                -- Eliminado LEFT JOIN innecesario a t_eventos_contador si no se usa
-                GROUP BY s13.et
-                ORDER BY cantidad_eventos_historico DESC;
+            )
+            SELECT 
+                et,  -- Referenciamos correctamente la columna 'et' del CTE 'eventos_ordenados'
+                COUNT(DISTINCT fecha_hora_legible) AS cantidad_eventos_historico  -- Contamos los eventos únicos
+            FROM eventos_ordenados
+            WHERE fila_ordenada = 1  -- Filtramos solo la primera fila de cada partición
+            GROUP BY et  -- Agrupamos por la columna 'et'
+            ORDER BY cantidad_eventos_historico DESC;
 
             ";
 
@@ -634,6 +718,129 @@ public function consultaSeisEventosEspontaneos(Request $request, $connection) //
 
             // Retornar los resultados o un mensaje si no hay datos
             return $resultadosQ6Eventos ?: ['message' => 'No hay datos'];
+        } else {
+            // La tabla no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    } catch (\Exception $e) {
+        // Manejo de excepciones con mensaje específico
+        return ['message' => 'No hay datos'];
+    }
+}
+
+public function consultaUnoEventosEspontaneosPaginate(Request $request, $connection)
+{
+    try {
+        // Verificar la existencia de las tablas
+        if (
+            Schema::connection($connection)->hasTable('t_ct') &&
+            Schema::connection($connection)->hasTable('s13') &&
+            Schema::connection($connection)->hasTable('t_cups') &&
+            Schema::connection($connection)->hasTable('t_descripcion_eventos_contador') &&
+            Schema::connection($connection)->hasTable('t_eventos_contador')
+        ) {
+            // Obtener las fechas de inicio y fin del request
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+
+            // Obtener los valores seleccionados de 'et' del request
+            $et_values = $request->input('et', []);
+
+            // Construir la consulta SQL base con eliminación de duplicados
+            $query = "
+                WITH eventos_ordenados AS (
+    SELECT 
+        s13.id,  -- Seleccionamos solo las columnas necesarias
+        s13.et, 
+        s13.c, 
+        s13.cnt, 
+        fecha_hora_legible,  
+        t_dec.des_evento_contador,  
+        t_cups.id_cups,
+        t_cups.nom_cups,
+        t_cups.dir_cups,
+        t_cups.lat_cups,
+        t_cups.lon_cups,
+        t_ct.id_ct,
+        t_ct.nom_ct,
+        t_ct.lat_ct,
+        t_ct.lon_ct,
+        t_ct.dir_ct,
+        t_dec.cod_gravedad_cnt AS cod_gravedad,
+        ROW_NUMBER() OVER (
+            PARTITION BY fecha_hora_legible, 
+                         t_dec.des_evento_contador,  
+                         t_cups.id_cups,
+                         t_ct.id_ct,
+                         t_dec.cod_gravedad_cnt
+            ORDER BY s13.id DESC
+        ) AS fila_ordenada
+    FROM (
+        SELECT 
+            s13.*,
+            TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'), 
+                    'DD/MM/YYYY HH24:MI:SS') AS fecha_hora_legible
+        FROM core.s13 s13
+    ) s13
+    JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
+    JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
+    INNER JOIN core.t_descripcion_eventos_contador t_dec  
+        ON s13.et = t_dec.grp_evento 
+        AND s13.c = t_dec.cod_evento
+";
+
+            // Añadir el filtro de fecha_inicio si está disponible
+            if ($fecha_inicio) {
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')";
+            }
+
+            // Añadir el filtro de fecha_fin si está disponible
+            if ($fecha_fin) {
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
+            }
+
+            // Filtrar por los valores de 'et' seleccionados
+            if (!empty($et_values)) {
+                $et_values = implode(',', array_map('intval', $et_values)); // Convertir a cadena de valores separados por comas
+                $query .= " AND s13.et IN ($et_values)";
+            }
+
+            // Añadir el filtro de las últimas 24 horas si no se especifica fecha
+            if (!$fecha_inicio && !$fecha_fin) {
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
+            }
+
+            // Continuar con la consulta final
+            $query .= "
+                )
+                SELECT * 
+                FROM eventos_ordenados
+                WHERE fila_ordenada = 1
+                ORDER BY id DESC";
+
+            // Ejecutar la consulta
+            $resultadosQ1Eventos = DB::connection($connection)->select($query);
+
+            $resultadosCollection = new Collection($resultadosQ1Eventos);
+
+            // Obtener la página actual desde la solicitud
+            $page = request()->get('cnt_page', 1);
+            $perPage = 20;
+            $offset = ($page - 1) * $perPage;
+
+            // Paginar manualmente
+            $resultadosQ1Eventos = new LengthAwarePaginator(
+                $resultadosCollection->slice($offset, $perPage)->values(), // Elementos para esta página
+                $resultadosCollection->count(), // Total de elementos
+                $perPage, // Elementos por página
+                $page, // Página actual
+                ['path' => request()->url(), 'query' => request()->query()] // Para mantener parámetros en la URL
+            );
+
+            $resultadosQ1Eventos -> setPageName('cnt_page');
+
+            // Retornar los resultados o un mensaje si no hay datos
+            return $resultadosQ1Eventos ?: ['message' => 'No hay datos'];
         } else {
             // La tabla no existe, retornar un mensaje específico
             return ['message' => 'No hay datos'];
