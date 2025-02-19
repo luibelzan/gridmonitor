@@ -11,6 +11,7 @@ use App\Http\Controllers\EventosEspontaneosController;
 use App\Http\Controllers\InformacionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PuntoFronteraController;
+use App\Http\Controllers\SupervisionAvanzadaController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -137,7 +138,8 @@ Route::get('/eventosespontaneos', [EventosEspontaneosController::class, 'eventos
 Route::get('/eventos/actualizar', [EventosEspontaneosController::class, 'actualizarEventos']);
 
 
-
+//SUPERVISION AVANZADA ----------------------------
+Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'supervisionavanzada'])->name('supervisionavanzada');
 
 
 
