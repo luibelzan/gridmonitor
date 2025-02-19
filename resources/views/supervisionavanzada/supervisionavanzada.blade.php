@@ -56,10 +56,7 @@
             <i class="fas fa-arrow-up"></i>
         </a>
     </div>
-    <script>
-        var res = @json($resultadosS64);
-        console.log(res);
-        </script>
+    
     <div class="min-h-screen flex flex-col flex-auto flex-shrink-0 antialiased text-black dark:text-white">
         @include('includes/header')
         <div class="lg:flex lg:ml-40 md:ml-56 sm:ml-14 ">
@@ -107,7 +104,7 @@
 
                                         <!-- Botones de selección -->
                                         <div class="flex gap-2 justify-center mb-4">
-                                            @foreach(['S64', 'S65', 'S66', 'S67'] as $key)
+                                            @foreach(['S64', 'G53', 'S66', 'S67'] as $key)
                                                 <button 
                                                     type="button"
                                                     class="px-4 py-2 border rounded button {{ request('tipo_evento', 'S64') == $key ? 'bg-blue-500 text-white' : 'bg-gray-200' }}" 
@@ -156,8 +153,12 @@
                             </div>
                         </div>
 
-                        @if(count($resultadosS64) > 0)
+                        @if(isset($resultadosS64) && count($resultadosS64) > 0)
                             <x-table-s64 :resultados="$resultadosS64" />
+                        @endif
+
+                        @if(isset($resultadosG53) && count($resultadosG53) > 0)
+                            <x-table-g53 :resultados="$resultadosG53" />
                         @endif
 
                     </div>
