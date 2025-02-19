@@ -715,10 +715,7 @@ console.log("Total eventos calculado:", evento.total_eventos);
 
                                         // Llama a la función actualizarMapa inmediatamente con los datos iniciales
                                         document.addEventListener('DOMContentLoaded', function() {
-                                            var eventosIniciales =
-                                                @json($resultadosQ1Eventos);
-                                                console.log('====================='); // Los eventos iniciales del servidor con los conteos correctos
-                                                console.log(@json($resultadosQ1Eventos));
+                                            var eventosIniciales = @json($resultadosQ1Eventos);
                                             actualizarMapa(eventosIniciales); // Mostrar los eventos en el mapa de inmediato
                                         });
                                     </script>
