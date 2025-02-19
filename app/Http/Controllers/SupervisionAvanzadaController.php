@@ -30,6 +30,7 @@ class SupervisionAvanzadaController extends Controller {
         } else {
             //Obtener los datos de todos los G53, S64, S52, S96, S97
             $tipo_evento = $request -> input('tipo_evento');
+            $resultadosG53 = [];
 
             if($tipo_evento == null) {
                 $tipo_evento = 'S64';
@@ -37,22 +38,22 @@ class SupervisionAvanzadaController extends Controller {
 
             if($tipo_evento == 'S64') {
                 $resultadosS64 = $this->getAllS64($request, $connection);
+                return view('supervisionavanzada/supervisionavanzada', [
+                    'resultadosS64' => $resultadosS64]);
             } else if($tipo_evento == 'G53') {
-                //$resultadosG53 = $this->getAllG53($request, $connection);
+                $resultadosG53 = $this->getAllG53($request, $connection);
+                return view('supervisionavanzada/supervisionavanzada', [
+                    'resultadosG53' => $resultadosG53]);
             } else if($tipo_evento == 'S52') {
                 //$resultadosS52 = $this->getAllS52($request, $connection);
             } else if($tipo_evento == 'S97') {
                 //$resultadosS96 = $this->getAllS97($request, $connection);
-            } 
+            } else {
+                return view('supervisionavanzada/supervisionavanzada', []);
+            }
 
 
-            return view('supervisionavanzada/supervisionavanzada', [
-                //'resultadosG53' => $resultadosG53,
-                'resultadosS64' => $resultadosS64,
-                'tipo_evento' => $tipo_evento
-                //'resultadosS52' => $resultadosS52,
-                //'resultadosS96' => $resultadosS96,
-            ]);
+            
         }
     }
 
@@ -98,6 +99,50 @@ class SupervisionAvanzadaController extends Controller {
         } catch(\Exception $e) {
             return ['message' => 'No hay datos error', $e];
         }
+    }
+
+    public function getAllG53(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection) -> hasTable('t_g53')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+                //Construir la consulta SQL para obtener los eventos S64
+                $query = "
+                SELECT * FROM t_g53";
+
+                // Añadir el filtro de fecha_inicio si está disponible
+                if ($fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                if($fecha_fin && !$fecha_inicio) {
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Añadir el filtro de fecha_fin si está disponible
+                if ($fecha_fin && $fecha_inicio) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
+                if (!$fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                }
+
+                //Ejecutar la consulta
+                $resultadosS64 = DB::connection($connection)->select($query);
+
+                return $resultadosS64 ?: ['message' => 'No hay datos db'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+
+        }
+
+
     }
 
 
