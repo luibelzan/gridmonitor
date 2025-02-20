@@ -48,8 +48,14 @@ class SupervisionAvanzadaController extends Controller {
                 $resultadosS52 = $this->getAllS52($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS52' => $resultadosS52]);
+            } else if($tipo_evento == 'S96') {
+                $resultadosS96 = $this->getAllS96($request, $connection);
+                return view('supervisionavanzada/supervisionavanzada', [
+                    'resultadosS96' => $resultadosS96]);
             } else if($tipo_evento == 'S97') {
-                //$resultadosS96 = $this->getAllS97($request, $connection);
+                $resultadosS97 = $this->getAllS97($request, $connection);
+                return view('supervisionavanzada/supervisionavanzada', [
+                    'resultadosS97' => $resultadosS97]);
             } else {
                 return view('supervisionavanzada/supervisionavanzada', []);
             }
@@ -180,6 +186,90 @@ class SupervisionAvanzadaController extends Controller {
                 $resultadosS52 = DB::connection($connection)->select($query);
 
                 return $resultadosS52 ?: ['message' => 'No hay datos db'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+
+        }
+    }
+
+    public function getAllS96(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection) -> hasTable('t_s96')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+                //Construir la consulta SQL para obtener los eventos S64
+                $query = "
+                SELECT * FROM t_s96";
+
+                // Añadir el filtro de fecha_inicio si está disponible
+                if ($fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                if($fecha_fin && !$fecha_inicio) {
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Añadir el filtro de fecha_fin si está disponible
+                if ($fecha_fin && $fecha_inicio) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
+                if (!$fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                }
+
+                //Ejecutar la consulta
+                $resultadosS96 = DB::connection($connection)->select($query);
+
+                return $resultadosS96 ?: ['message' => 'No hay datos db'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+
+        }
+    }
+
+    public function getAllS97(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection) -> hasTable('t_s97')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+                //Construir la consulta SQL para obtener los eventos S64
+                $query = "
+                SELECT * FROM t_s97";
+
+                // Añadir el filtro de fecha_inicio si está disponible
+                if ($fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                if($fecha_fin && !$fecha_inicio) {
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Añadir el filtro de fecha_fin si está disponible
+                if ($fecha_fin && $fecha_inicio) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
+                if (!$fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                }
+
+                //Ejecutar la consulta
+                $resultadosS97 = DB::connection($connection)->select($query);
+
+                return $resultadosS97 ?: ['message' => 'No hay datos db'];
             } else {
                 return ['message' => 'No hay datos'];
             }
