@@ -104,7 +104,7 @@
 
                                         <!-- Botones de selección -->
                                         <div class="flex gap-2 justify-center mb-4">
-                                            @foreach(['S64', 'G53', 'S66', 'S67'] as $key)
+                                            @foreach(['S64', 'G53', 'S52', 'S67'] as $key)
                                                 <button 
                                                     type="button"
                                                     class="px-4 py-2 border rounded button {{ request('tipo_evento', 'S64') == $key ? 'bg-blue-500 text-white' : 'bg-gray-200' }}" 
@@ -159,6 +159,10 @@
 
                         @if(isset($resultadosG53) && count($resultadosG53) > 0)
                             <x-table-g53 :resultados="$resultadosG53" />
+                        @endif
+
+                        @if(isset($resultadosS52) && count($resultadosS52) > 0)
+                            <x-table-s52 :resultados="$resultadosS52" />
                         @endif
 
                     </div>
