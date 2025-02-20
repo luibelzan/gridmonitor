@@ -102,19 +102,6 @@
                                         <!-- Campo oculto para el tipo de evento -->
                                         <input type="hidden" id="tipo_evento" name="tipo_evento" value="{{ request('tipo_evento', 'S64') }}">
 
-                                        <!-- Botones de selección -->
-                                        <div class="flex gap-2 justify-center mb-4">
-                                            @foreach(['S64', 'G53', 'S52', 'S96', 'S97'] as $key)
-                                                <button 
-                                                    type="button"
-                                                    class="px-4 py-2 border rounded button {{ request('tipo_evento', 'S64') == $key ? 'bg-blue-500 text-white' : 'bg-gray-200' }}" 
-                                                    id="btn-{{ $key }}" 
-                                                    onclick="selectData(event, '{{ $key }}')">
-                                                    {{ $key }}
-                                                </button>
-                                            @endforeach
-                                        </div>
-
                                         <!-- Botón de filtrar -->
                                         <div class="flex items-end">
                                             <button type="submit" class="btn btn-outline-info text-white"
@@ -125,6 +112,25 @@
                                             </button>
                                         </div>
                                     </div>
+
+                                    <!-- Botones de selección -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
+                                                @foreach(['S64', 'G53', 'S52', 'S96', 'S97'] as $key)
+                                                    <div class="card text-white mb-3" style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                    <div
+                                                    style="display: flex; justify-content: center; align-items: baseline; gap: 1rem;">
+                                                            <button 
+                                                                type="button"
+                                                                class="px-4 py-2 border rounded button" 
+                                                                id="btn-{{ $key }}" 
+                                                                onclick="selectData(event, '{{ $key }}')"
+                                                                style="@if(request('tipo_evento') == $key) background-color: rgb(88,226,194); color: white; @endif">
+                                                                {{ $key }}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                        </div>
                                 </form>
 
                                     <script>
@@ -132,22 +138,27 @@
                                             event.preventDefault();
 
                                             // Cambiar el valor del input oculto
-                                            document.getElementById('tipo_evento').value = key;
-
-                                            // Quitar selección de todos los botones
+                                            document.getElementById('tipo_evento').value = key;       
+                                            
+                        
+                                            // Recorrer todos los botones y cambiar su color solo si NO son el seleccionado
                                             document.querySelectorAll('.button').forEach(btn => {
-                                                btn.classList.remove('bg-blue-500', 'text-white');
-                                                btn.classList.add('bg-gray-200');
+                                                if (btn.id !== 'btn-' + key) {
+                                                    btn.style.backgroundColor = ''; // Resetear color
+                                                    btn.classList.remove('text-white');
+                                                }
                                             });
 
-                                            console.log(key);
-
                                             // Marcar el botón seleccionado
-                                            document.getElementById('btn-' + key).classList.add('bg-blue-500', 'text-white');
+                                            let selectedButton = document.getElementById('btn-' + key);
+                                            
 
-                                            // Enviar el formulario automáticamente
-                                            //document.querySelector('form').submit();
+                                            if (selectedButton) {
+                                                selectedButton.classList.add('text-white');
+                                                selectedButton.style.backgroundColor = 'rgb(88,226,194)';
+                                            }
                                         }
+
                                     </script>
 
                             </div>
