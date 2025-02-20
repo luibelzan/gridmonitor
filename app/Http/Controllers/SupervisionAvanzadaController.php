@@ -45,7 +45,9 @@ class SupervisionAvanzadaController extends Controller {
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosG53' => $resultadosG53]);
             } else if($tipo_evento == 'S52') {
-                //$resultadosS52 = $this->getAllS52($request, $connection);
+                $resultadosS52 = $this->getAllS52($request, $connection);
+                return view('supervisionavanzada/supervisionavanzada', [
+                    'resultadosS52' => $resultadosS52]);
             } else if($tipo_evento == 'S97') {
                 //$resultadosS96 = $this->getAllS97($request, $connection);
             } else {
@@ -141,9 +143,49 @@ class SupervisionAvanzadaController extends Controller {
         } catch(\Exception $e) {
 
         }
-
-
     }
 
+
+    public function getAllS52(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection) -> hasTable('t_s52')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+                //Construir la consulta SQL para obtener los eventos S64
+                $query = "
+                SELECT * FROM t_s52";
+
+                // Añadir el filtro de fecha_inicio si está disponible
+                if ($fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                if($fecha_fin && !$fecha_inicio) {
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Añadir el filtro de fecha_fin si está disponible
+                if ($fecha_fin && $fecha_inicio) {
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                }
+
+                // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
+                if (!$fecha_inicio && !$fecha_fin) {
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                }
+
+                //Ejecutar la consulta
+                $resultadosS52 = DB::connection($connection)->select($query);
+
+                return $resultadosS52 ?: ['message' => 'No hay datos db'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+
+        }
+    }
 
 }
