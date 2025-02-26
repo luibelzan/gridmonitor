@@ -505,6 +505,12 @@
                                     style="background-color: transparent; border-color: rgb(255, 255, 255);"
                                     @if (isset($_GET['id_cnt'])) value="{{ $_GET['id_cnt'] }}" @endif>
 
+                                {{-- buscador por nombre --}}
+                                <input type='text' name='nom_cups' placeholder='Buscar por nombre'
+                                    class='border p-2 rounded-md w-52 ml-1 text-white'
+                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                    @if (isset($_GET['nom_cups'])) value="{{ $_GET['nom_cups'] }}" @endif>
+
 
                                 {{-- Boton buscar --}}
                                 <button type="submit" class="btn btn-outline-info mb-2 ml-2 text-white"
@@ -524,7 +530,7 @@
                             </form>
                         </div>
                     </div>
-                    @if (isset($id_cups) || isset($id_cnt))
+                    @if (isset($id_cups) || isset($id_cnt) || isset($nom_cups))
                         @if (count($resultadosQ1cups) === 0)
                             <div class="flex justify-center">
                                 <div class="alert alert-danger text-center max-w-max flex items-center space-x-2"
