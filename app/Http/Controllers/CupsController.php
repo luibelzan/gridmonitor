@@ -39,6 +39,7 @@ class CupsController extends Controller
         // Obtener los valores de búsqueda
         $id_cups = $request->input('id_cups');
         $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
 
 
         // Convertir a mayúsculas si no son nulos
@@ -51,10 +52,15 @@ class CupsController extends Controller
             $id_cnt = strtoupper($id_cnt);
         }
 
+        if(!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
+        }
+
 
         // Guardar id_cups y vista actual en la sesión
         Session::put('id_cups', $id_cups);
         Session::put('id_cnt', $id_cnt);
+        Session::put('nom_cups', $nom_cups);
         Session::put('vista_actual', 'informacioncups');
 
 
@@ -71,8 +77,8 @@ class CupsController extends Controller
 
 
             // Realizar la consulta por ID de CUPS o ID de CNT si hay valores
-            if ((!is_null($id_cups) && $id_cups !== '') || (!is_null($id_cnt) && $id_cnt !== '')) {
-                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $connection, $request);
+            if ((!is_null($id_cups) && $id_cups !== '') || (!is_null($id_cnt) && $id_cnt !== '') || !is_null($nom_cups) && $nom_cups !== '') {
+                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
             } else {
                 // Si no hay valores de búsqueda, no hacer consulta
                 $resultadosQ1cups = [];
@@ -84,6 +90,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
             ]);
         }
@@ -665,7 +672,7 @@ class CupsController extends Controller
 
 
     //CONSULTAS:
-    public function consultaUnoCups($id_cups, $id_cnt, $connection, Request $request)
+    public function consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, Request $request)
     {
         if (Schema::connection($connection)->hasTable('t_cups')) {
             // Convertir a mayúsculas si no son nulos
@@ -676,6 +683,10 @@ class CupsController extends Controller
 
             if (!is_null($id_cnt)) {
                 $id_cnt = strtoupper($id_cnt);
+            }
+
+            if(!is_null($nom_cups)) {
+                $nom_cups = strtoupper($nom_cups);
             }
 
 
@@ -722,6 +733,13 @@ class CupsController extends Controller
                 $query .= ' AND cups.id_cnt LIKE :id_cnt';
                 $bindings['id_cnt'] = "%$id_cnt%";
             }
+
+            // Añadir condición por nom_cups si está presente
+            if(!is_null($nom_cups) && $nom_cups !== '') {
+                $query .= ' AND cups.nom_cups LIKE :nom_cups';
+                $bindings['nom_cups'] = "%$nom_cups%";
+            }
+
 
 
             // Si el checkbox de autoconsumo está marcado
