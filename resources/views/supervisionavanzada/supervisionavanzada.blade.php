@@ -37,6 +37,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <title>Supervision Avanzada</title>
+
+    
+
 </head>
 
 <body class="h-full sm:grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 justify-center "
@@ -63,6 +66,9 @@
             <div class="lg:ml-14 p-2 mt-0 w-full">
                 <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4 mt-16 ml-14"> <audio id="alarma"
                         src="../../sounds/alarma.mp3" preload="auto"></audio>
+                    
+                    {{-- Botones de arriba --}}
+                    <x-nav-sabt/> 
 
                     {{-- SEGUNDA FILA --}}
                     <div class="grid grid-cols-1 sm:grid-cols-1  md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
