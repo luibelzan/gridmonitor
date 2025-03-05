@@ -12,6 +12,7 @@ use App\Http\Controllers\InformacionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PuntoFronteraController;
 use App\Http\Controllers\SupervisionAvanzadaController;
+use App\Http\Controllers\DashboardSABTController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -129,6 +130,7 @@ Route::get('/detallesenergiacups', [CupsController::class, 'detallesenergiacups'
 Route::get('/dashboardct', [DashboardController::class, 'dashboardct'])->name('dashboardct');
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
+Route::get('/dashboardsabt', [DashboardSABTController::class, 'dashboardsabt'])->name('dashboardsabt');
 
 //********************************
 //******EVENTOS ESPONTANEOS*******
