@@ -38,8 +38,6 @@
 
     <title>Supervision Avanzada</title>
 
-    
-
 </head>
 
 <body class="h-full sm:grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 justify-center "
