@@ -11,11 +11,14 @@ use Illuminate\Support\Facades\Session;
 
 class DashboardSABTController extends Controller {
 
-    public function dashboardsabt() {
+    public function dashboardsabt(Request $request) {
         
         if(!Auth::check()) {
             return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
         }
+
+        //Guardar el nombre de la vista actual en la sesion
+        Session::put('vista_actual', 'dashboardsabt');
 
         $connection = User::conexion();
 
@@ -32,7 +35,7 @@ class DashboardSABTController extends Controller {
             $variacionesTension = $this->getVariacionesTension($connection);
             $numVariacionesTension = $this->getNumVariacionesTension($connection);
 
-            return view('dashboardsabt', [
+            return view('supervisionavanzada/dashboardsabt', [
                 'distorsionesArmonicas' => $distorsionesArmonicas,
                 'numDistorsionesArmonicas' => $numDistorsionesArmonicas,
                 'promedioFase' => $promedioFase,
@@ -54,7 +57,7 @@ class DashboardSABTController extends Controller {
                     AVG(hr_thd) AS avg_hr_thd,  
                     AVG(hs_thd) AS avg_hs_thd,  
                     AVG(ht_thd) AS avg_ht_thd FROM core.t_s96 		 
-                WHERE fh >= NOW() - INTERVAL '72 hours';");
+                WHERE fh >= NOW() - INTERVAL '200000 hours';");
 
                 return $distorsionesArmonicas ?: ['message' => 'No hay datos'];
             } else {
