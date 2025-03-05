@@ -625,6 +625,10 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
+                                            {{-- Paginación --}}
+                                            <div class="mt-4 flex justify-center">
+                                            {{ $resultadosQ1cups->appends(['id_cups' => request()->get('id_cups')])->links() }}
+                                            </div>
                                         </div>
 
                                     </div>

@@ -17,6 +17,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+
 
 
 
@@ -757,7 +762,20 @@ class CupsController extends Controller
 
             // Ejecutar la consulta con las variables enlazadas
             $resultadosQ1cups = DB::connection($connection)->select($query, $bindings);
-            // dd($resultadosQ1cups);
+
+            // Convertir el array a una colección
+            $resultadosQ1Collection = new Collection($resultadosQ1cups);
+
+            // Obtener la página actual
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 10; // Número de elementos por página
+            $currentItems = $resultadosQ1Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+            // Crear paginador manualmente
+            $resultadosQ1cups = new LengthAwarePaginator($currentItems, count($resultadosQ1Collection), $perPage, $currentPage, [
+                'path' => request()->url(), 'query' => request()->query()
+            ]);
+
             return $resultadosQ1cups ?: [];
         } else {
             return ['message' => 'No hay datos'];
