@@ -777,7 +777,6 @@ class ctController extends Controller
                         t_concentradores.cod_mod,
                         t_concentradores.des_cnc_af,
                         t_concentradores.des_vdlms,
-                        t_concentradores.dc_url,
                         t_supervisores.id_svr,
                         t_supervisores.id_trafo,
                         t_trafos.nom_trafo,
@@ -795,7 +794,7 @@ class ctController extends Controller
                     GROUP BY
                         t_ct.id_ct, t_ct.nom_ct, t_concentradores.id_cnc,
                         t_concentradores.cod_mod, t_concentradores.des_cnc_af,
-                        t_concentradores.des_vdlms, t_concentradores.dc_url,
+                        t_concentradores.des_vdlms,
                         t_supervisores.id_svr, t_supervisores.id_trafo,
                         t_trafos.nom_trafo
                     ORDER BY
