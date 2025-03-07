@@ -319,13 +319,14 @@
                             active-color="rgb(88, 226, 194">Curvas Horarias</a>
                         <a href="{{ route('detallesenergiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Calidad Energía</a>
-                        <a href="{{ route('detalleseventoscups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                        <a href="{{ route('detalleseventoscups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt, 'nom_cups' => $nom_cups]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Eventos</a> <span class="nav-indicator"></span>
                     </nav>
                     {{-- Obtener el id_cups almacenado en la sesión --}}
                     @php
                         $id_cups = session()->get('id_cups');
                         $id_cnt = session()->get('id_cnt');
+                        $nom_cups = session()->get('nom_cups');
                     @endphp
                     {{-- BUSCADOR --}}
                     <div class="container ">
