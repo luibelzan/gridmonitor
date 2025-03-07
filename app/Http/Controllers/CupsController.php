@@ -125,17 +125,12 @@ class CupsController extends Controller
 
 
 
-
-        // Guardar el nombre de la vista actual en la sesión
-        Session::put('vista_actual', 'detallesinformacioncups');
-
-
-
-
         // Guardar el id_ct en la sesión
         Session::put('id_cups', $id_cups);
         Session::put('id_cnt', $id_cnt);
         Session::put('nom_cups', $nom_cups);
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'detallesinformacioncups');
 
 
 
@@ -182,6 +177,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
                 'resultadosQ2cups' => $resultadosQ2cups,
                 'resultadosQ3cups' => $resultadosQ3cups,
@@ -210,6 +206,7 @@ class CupsController extends Controller
         // Obtener el valor de id_cups
         $id_cups = $request->input('id_cups');
         $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
 
 
         // Convertir a mayúsculas si no es nulo
@@ -221,6 +218,11 @@ class CupsController extends Controller
         // Convertir a mayúsculas si no es nulo
         if (!is_null($id_cnt)) {
             $id_cnt = strtoupper($id_cnt);
+        }
+
+         // Convertir a mayúsculas si no es nulo
+         if (!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
         }
 
 
@@ -260,6 +262,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
             ]);
         }
@@ -281,13 +284,7 @@ class CupsController extends Controller
 
         $id_cups = strtoupper($request->input('id_cups'));
         $id_cnt = strtoupper($request->input('id_cnt')); // Obtener el id_cnt
-
-
-
-
-        // Guardar el nombre de la vista actual en la sesión
-        Session::put('vista_actual', 'detalleseventoscups');
-
+        $nom_cups = strtoupper($request->input('nom_cups'));
 
 
 
@@ -295,7 +292,8 @@ class CupsController extends Controller
         Session::put('id_cups', $id_cups);
         Session::put('id_cnt', $id_cnt);
         Session::put('nom_cups', $nom_cups);
-
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'detalleseventoscups');
 
 
 
@@ -316,7 +314,7 @@ class CupsController extends Controller
 
 
             // Si hay un valor de búsqueda, realizar la consulta por ID de CUPS
-            if ($id_cups || $id_cnt) {
+            if ($id_cups || $id_cnt || $nom_cups) {
                 $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
                 $resultadosQ6cups = $this->consultaSeisCups($id_cups, $connection, $request);
                 $resultadosQ7cups = $this->consultaSieteCups($id_cups, $connection, $request);
@@ -337,6 +335,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
                 'resultadosQ6cups' => $resultadosQ6cups,
                 'resultadosQ7cups' => $resultadosQ7cups,
@@ -363,6 +362,7 @@ class CupsController extends Controller
         // Obtener el valor de id_cups
         $id_cups = $request->input('id_cups');
         $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
 
 
 
@@ -376,6 +376,11 @@ class CupsController extends Controller
         // Convertir a mayúsculas si no es nulo
         if (!is_null($id_cnt)) {
             $id_cnt = strtoupper($id_cnt);
+        }
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
         }
 
 
@@ -415,6 +420,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
             ]);
         }
@@ -438,13 +444,7 @@ class CupsController extends Controller
 
         $id_cups = strtoupper($request->input('id_cups'));
         $id_cnt = strtoupper($request->input('id_cnt')); // Obtener el id_cnt
-
-
-
-
-        // Guardar el nombre de la vista actual en la sesión
-        Session::put('vista_actual', 'detallescurvashorariascups');
-
+        $nom_cups = strtoupper($request->input('nom_cups'));
 
 
 
@@ -452,6 +452,8 @@ class CupsController extends Controller
         Session::put('id_cups', $id_cups);
         Session::put('id_cnt', $id_cnt);
         Session::put('nom_cups', $nom_cups);
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'detallescurvashorariascups');
 
 
 
@@ -473,7 +475,7 @@ class CupsController extends Controller
 
 
             // Si hay un valor de búsqueda, realizar la consulta por ID de CUPS
-            if ($id_cups || $id_cnt) {
+            if ($id_cups || $id_cnt || $nom_cups) {
                 $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
                 $resultadosQ8cups = $this->consultaOchoCups($id_cups, $connection, $request);
                 $resultadosQ9cups = $this->consultaNueveCups($id_cups, $connection, $request);
@@ -498,6 +500,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
                 'resultadosQ8cups' => $resultadosQ8cups,
                 'resultadosQ9cups' => $resultadosQ9cups,
@@ -525,6 +528,7 @@ class CupsController extends Controller
         // Obtener el valor de id_cups
         $id_cups = $request->input('id_cups');
         $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
 
 
 
@@ -538,6 +542,11 @@ class CupsController extends Controller
         // Convertir a mayúsculas si no es nulo
         if (!is_null($id_cnt)) {
             $id_cnt = strtoupper($id_cnt);
+        }
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
         }
 
 
@@ -577,6 +586,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
             ]);
         }
@@ -665,6 +675,7 @@ class CupsController extends Controller
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
                 'resultadosQ14cups' => $resultadosQ14cups,
                 'resultadosQ15cups' => $resultadosQ15cups,
