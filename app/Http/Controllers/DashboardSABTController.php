@@ -31,7 +31,7 @@ class DashboardSABTController extends Controller {
             $promedioFase = $this->getPromedioFase($connection);
             $numFlickers = $this->getNumFlickers($connection);
             $desbalancesTension = $this->getDesbalancesTension($connection);
-            $numDesbalancesTension = $this->getDesbalancesTension($connection);
+            $numDesbalancesTension = $this->getNumDesbalancesTension($connection);
             $variacionesTension = $this->getVariacionesTension($connection);
             $numVariacionesTension = $this->getNumVariacionesTension($connection);
 
@@ -57,7 +57,7 @@ class DashboardSABTController extends Controller {
                     AVG(hr_thd) AS avg_hr_thd,  
                     AVG(hs_thd) AS avg_hs_thd,  
                     AVG(ht_thd) AS avg_ht_thd FROM core.t_s96 		 
-                WHERE fh >= NOW() - INTERVAL '200000 hours';");
+                WHERE fh >= NOW() - INTERVAL '72 hours';");
 
                 return $distorsionesArmonicas ?: ['message' => 'No hay datos'];
             } else {
