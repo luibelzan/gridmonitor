@@ -92,7 +92,7 @@
 
 {{-- Botones de arriba --}}
 <nav class="nav custom-nav mb-12">
-    <a href="{{ route('dashboardct') }}" class="nav-item"
+    <a href="{{ route('dashboardsabt') }}" class="nav-item"
         active-color="rgb(88, 226, 194)">Dashboard</a>
     <a href="" class="nav-item is-active"
         active-color="rgb(88, 226, 194)">Información</a>

@@ -125,7 +125,7 @@
                             style="
                                         background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                 <h1 class="text-center text-2xl" style="color: white;">
-                                    Distorsiones armonicas
+                                    Distorsiones armonicas (promedio 3 dias)
                                 </h1>
                                 <div 
                                     style="border-bottom: 3px solid transparent;
@@ -134,39 +134,49 @@
                                 <div class="container">
                                     <div class="row">
                                         <div class="col">
-                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row">
-                                                    <p class="mt-4 text-3xl text-center"
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-nowrap overflow-x-auto justify-center">
+                                                <div class="flex flex-col items-center pr-4">
+                                                    <p class="text-2xl font-bold max-w-full">HR</p>
+                                                        <p class="mt-0 text-3xl text-center max-w-full"
+                                                            style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="40"
+                                                                height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
+                                                                <path fill="rgb(88,226,194)"
+                                                                    d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
+                                                            </svg>
+                                                            {{ !empty($distorsionesArmonicas[0]->avg_hr_thd) ? number_format($distorsionesArmonicas[0]->avg_hr_thd, 2) : '0.00' }}
+
+                                                        </p>
+                                                </div>
+
+                                                <div class="flex flex-col items-center pr-4 pl-4">
+                                                    <p class="text-2xl font-bold max-w-full">HS</p>
+                                                    <p class="mt-0 text-3xl text-center max-w-full"
                                                         style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="40"
                                                             height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
                                                             <path fill="rgb(88,226,194)"
                                                                 d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
                                                         </svg>
-                                                        {{ !empty($distorsionesArmonicas[0]->avg_hr_thd) ? $distorsionesArmonicas[0]->avg_hr_thd : '0' }}
+                                                        {{ !empty($distorsionesArmonicas[0]->avg_hs_thd) ? number_format($distorsionesArmonicas[0]->avg_hs_thd, 2) : '0.00' }}
 
                                                     </p>
+                                                </div>
 
-                                                    <p class="mt-4 text-3xl text-center"
+                                                <div class="flex flex-col items-center pl-4">
+                                                    <p class="text-2xl font-bold max-w-full">HT</p>
+                                                    <p class="mt-0 text-3xl text-center max-w-full"
                                                         style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="40"
                                                             height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
                                                             <path fill="rgb(88,226,194)"
                                                                 d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
                                                         </svg>
-                                                        {{ !empty($distorsionesArmonicas[0]->avg_hs_thd) ? $distorsionesArmonicas[0]->avg_hs_thd : '0' }}
+                                                        {{ !empty($distorsionesArmonicas[0]->avg_ht_thd) ? number_format($distorsionesArmonicas[0]->avg_ht_thd, 2) : '0.00' }}
 
                                                     </p>
+                                                </div>
 
-                                                    <p class="mt-4 text-3xl text-center"
-                                                        style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                            height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
-                                                            <path fill="rgb(88,226,194)"
-                                                                d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                        </svg>
-                                                        {{ !empty($distorsionesArmonicas[0]->avg_ht_thd) ? $distorsionesArmonicas[0]->avg_ht_thd : '0' }}
-
-                                                    </p>
                                             </div>
                                             <div
                                                 style="border-bottom: 3px solid transparent;
@@ -176,7 +186,6 @@
                                                 <h2 class="text-sm text-center font-normal">Total Distorsiones Armonicas</h2>
                                                 <p class="mt-4 text-3xl  text-center" style="color:rgb(88,226,194)">
                                                 {{ $numDistorsionesArmonicas[0]->total_distorsiones }}
-                                                    KVA
                                                 </p>
                                             </div>
                                         </div>
@@ -185,7 +194,130 @@
                             </div>
 
 
+                            {{-- 2º cuadro --}}
+                            <div class="card text-white mb-2"
+                            style="
+                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                <h1 class="text-center text-2xl" style="color: white;">
+                                    Flickers (Promedio 3 dias)
+                                </h1>
+                                <div 
+                                    style="border-bottom: 3px solid transparent;
+                                                                      border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-nowrap overflow-x-auto justify-center">
+                                                <div class="flex flex-col items-center pr-4">
+                                                    <p class="text-2xl font-bold max-w-full">FR</p>
+                                                        <p class="mt-0 text-3xl text-center max-w-full"
+                                                            style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="40"
+                                                                height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
+                                                                <path fill="rgb(88,226,194)"
+                                                                    d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
+                                                            </svg>
+                                                            {{ !empty($promedioFase[0]->avg_hr_thd) ? number_format($promedioFase[0]->avg_fr, 2) : '0.00' }}
+
+                                                        </p>
+                                                </div>
+
+                                                <div class="flex flex-col items-center pr-4 pl-4">
+                                                    <p class="text-2xl font-bold max-w-full">FS</p>
+                                                    <p class="mt-0 text-3xl text-center max-w-full"
+                                                        style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="40"
+                                                            height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
+                                                            <path fill="rgb(88,226,194)"
+                                                                d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
+                                                        </svg>
+                                                        {{ !empty($promedioFase[0]->avg_fs) ? number_format($promedioFase[0]->avg_fs, 2) : '0.00' }}
+
+                                                    </p>
+                                                </div>
+
+                                                <div class="flex flex-col items-center pl-4">
+                                                    <p class="text-2xl font-bold max-w-full">FT</p>
+                                                    <p class="mt-0 text-3xl text-center max-w-full"
+                                                        style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="40"
+                                                            height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
+                                                            <path fill="rgb(88,226,194)"
+                                                                d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
+                                                        </svg>
+                                                        {{ !empty($promedioFase[0]->avg_ft) ? number_format($promedioFase[0]->avg_ft, 2) : '0.00' }}
+
+                                                    </p>
+                                                </div>
+
+                                            </div>
+                                            <div
+                                                style="border-bottom: 3px solid transparent;
+                                                                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                            </div>
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
+                                                <h2 class="text-sm text-center font-normal">Numero de Flickers por encima de 1</h2>
+                                                <p class="mt-4 text-3xl  text-center" style="color:rgb(88,226,194)">
+                                                {{ $numFlickers[0]->total_flickers }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            {{-- 3º cuadro --}}
+                            <div class="card text-white mb-2"
+                            style="
+                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                <h1 class="text-center text-2xl" style="color: white;">
+                                    Desbalances de Tension (Ultimos 3 dias)
+                                </h1>
+                                <div 
+                                    style="border-bottom: 3px solid transparent;
+                                                                      border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                </div>
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col">
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-nowrap overflow-x-auto justify-center">
+                                                <div class="flex flex-col items-center pr-4">
+                                                    <p class="text-2xl font-bold max-w-full">Promedio por General</p>
+                                                        <p class="mt-0 text-3xl text-center max-w-full"
+                                                            style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="40"
+                                                                height="40" viewBox="0 0 24 24" style="margin-right: 10px;">
+                                                                <path fill="rgb(88,226,194)"
+                                                                    d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
+                                                            </svg>
+                                                            {{ !empty($desbalancesTension[0]->avg_desbalance_tension) ? number_format($desbalancesTension[0]->avg_desbalance_tension, 2) : '0.00' }}
+
+                                                        </p>
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                style="border-bottom: 3px solid transparent;
+                                                                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                            </div>
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
+                                                <h2 class="text-sm text-center font-normal">Numero de desbalances por encima de 2</h2>
+                                                <p class="mt-4 text-3xl  text-center" style="color:rgb(88,226,194)">
+                                                {{ $numDesbalancesTension[0]-> total_desbalances}}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
                         </div>
+
                     </div>
                 </div>
             </div>
