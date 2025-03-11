@@ -92,15 +92,9 @@
 
 {{-- Botones de arriba --}}
 <nav class="nav custom-nav mb-12">
-    <a href="{{ route('dashboardsabt') }}" class="nav-item"
+    <a href="{{ route('dashboardsabt') }}" class="nav-item {{ Request::is('dashboard*') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Dashboard</a>
-    <a href="" class="nav-item is-active"
+    <a href="{{ route('supervisionavanzada') }}" class="nav-item {{ Request::is('supervisionavanzada') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Información</a>
-    <a href="" class="nav-item"
-        active-color="rgb(88, 226, 194)">Energía</a>
-    <a href="" class="nav-item"
-        active-color="rgb(88, 226, 194)">Lecturas/Señal PLC</a>
-    <a href="" class="nav-item"
-        active-color="rgb(88, 226, 194)">Eventos</a>
     <span class="nav-indicator"></span>
 </nav>
