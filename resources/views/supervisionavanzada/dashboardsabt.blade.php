@@ -109,6 +109,9 @@
         @include('includes/header')
         <div class="lg:flex lg:ml-40 md:ml-56 sm:ml-14 ">
             <div class="lg:ml-14 p-2 mt-0 w-full"> <!-- Añadir margen superior -->
+                <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4 mt-16 ml-14"> <audio id="alarma"
+                    src="../../sounds/alarma.mp3" preload="auto"></audio>
+                <x-nav-sabt/>
                 <!-- Content -->
                 <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4 mt-16 ml-14 ">
                     {{-- Botones de arriba --}}
@@ -134,7 +137,7 @@
                                 <div class="container">
                                     <div class="row">
                                         <div class="col">
-                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-nowrap overflow-x-auto justify-center">
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-wrap justify-center">
                                                 <div class="flex flex-col items-center pr-4">
                                                     <p class="text-2xl font-bold max-w-full">HR</p>
                                                         <p class="mt-0 text-3xl text-center max-w-full"
@@ -208,7 +211,7 @@
                                 <div class="container">
                                     <div class="row">
                                         <div class="col">
-                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-nowrap overflow-x-auto justify-center">
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-wrap justify-center">
                                                 <div class="flex flex-col items-center pr-4">
                                                     <p class="text-2xl font-bold max-w-full">FR</p>
                                                         <p class="mt-0 text-3xl text-center max-w-full"
@@ -283,7 +286,7 @@
                                 <div class="container">
                                     <div class="row">
                                         <div class="col">
-                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-nowrap overflow-x-auto justify-center">
+                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-wrap justify-center">
                                                 <div class="flex flex-col items-center pr-4">
                                                     <p class="text-2xl font-bold max-w-full">Promedio por General</p>
                                                         <p class="mt-0 text-3xl text-center max-w-full"
@@ -319,6 +322,8 @@
                         </div>
 
                     </div>
+
+                </div>
                 </div>
             </div>
         </div>
