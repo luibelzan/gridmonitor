@@ -2114,95 +2114,95 @@ public function consultaVeintidos($id_ct, $connection)
 
 
 
-    public function consultaVeintiOcho(Request $request, $id_ct, $connection) //mapa sobretensiones
+    
+    public function consultaVeintiOcho(Request $request, $id_ct, $connection) // mapa sobretensiones
     {
         try {
+            // Verificar si las tablas existen
             if (
-                Schema::connection($connection)->hasTable('t_ct') &&
-                Schema::connection($connection)->hasTable('t_cups')
+                !Schema::connection($connection)->hasTable('t_ct') ||
+                !Schema::connection($connection)->hasTable('t_cups')
             ) {
-                // Obtener las fechas de inicio y fin del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-
-
-
-
-                // Construir la consulta SQL con las fechas
-                $query = "
-                    WITH max_fec_evento AS (
-                        SELECT
-                            id_cups,
-                            MAX(fec_evento) AS max_fecha
-                        FROM core.v_sobre_voltajes
-                        GROUP BY id_cups
-                    ),
-                    max_fec_hor_evento AS (
-                        SELECT
-                            v.id_cups,
-                            MAX(v.fec_evento) AS max_fecha,
-                            MAX(v.hor_evento) AS max_hora
-                        FROM core.v_sobre_voltajes v
-                        JOIN max_fec_evento m 
-                            ON v.id_cups = m.id_cups 
-                            AND v.fec_evento = m.max_fecha
-                        GROUP BY v.id_cups
-                    ),
-                    sobre_voltajes_totales AS (
-                        SELECT
-                            id_cups,
-                            COUNT(*) AS nro_sobre_voltajes
-                        FROM core.v_sobre_voltajes
-                        GROUP BY id_cups
-                    )
-                    SELECT
-                        c.id_cups,
-                        c.nom_cups,
-                        c.dir_cups,
-                        c.ind_autoconsumo,
-                        c.lat_cups,
-                        c.lon_cups,
-                        TO_CHAR(m.max_fecha, 'DD/MM/YYYY') AS fecha,
-                        TO_CHAR(h.max_hora, 'HH24:MI:SS') AS hora,
-                        s.nro_sobre_voltajes
-                    FROM core.t_cups c
-                    JOIN core.t_ct t ON c.id_ct = t.id_ct
-                    JOIN max_fec_evento m ON c.id_cups = m.id_cups
-                    JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
-                    JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
-                    WHERE t.id_ct = :id_ct;
-                ";
-
-
-
-
-                // Añadir condiciones de fecha si están presentes
-                $params = ['id_ct' => $id_ct];
-                if ($fecha_inicio) {
-                    $query .= " AND m.max_fecha >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                }
-                if ($fecha_fin) {
-                    $query .= " AND m.max_fecha <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                }
-
-
-
-
-                // Ejecutar la consulta
-                $resultadosQ28 = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ28);
-                return $resultadosQ28 ?: ['message' => 'No hay datos'];
-            } else {
-                // Una de las tablas no existe, retornar un mensaje específico 
-                return ['message' => 'No hay datos'];
+                return ['message' => 'No hay datos (Tablas no encontradas)'];
             }
+    
+            // Obtener las fechas de inicio y fin del request
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+    
+            // Definir los parámetros iniciales
+            $params = ['id_ct' => $id_ct];
+    
+            // Construcción de la consulta SQL
+            $query = "
+                WITH max_fec_evento AS (
+                    SELECT
+                        id_cups,
+                        MAX(fec_evento) AS max_fecha
+                    FROM core.v_sobre_voltajes
+                    GROUP BY id_cups
+                ),
+                max_fec_hor_evento AS (
+                    SELECT
+                        v.id_cups,
+                        MAX(v.fec_evento) AS max_fecha,
+                        MAX(v.hor_evento) AS max_hora
+                    FROM core.v_sobre_voltajes v
+                    JOIN max_fec_evento m 
+                        ON v.id_cups = m.id_cups 
+                        AND v.fec_evento = m.max_fecha
+                    GROUP BY v.id_cups
+                ),
+                sobre_voltajes_totales AS (
+                    SELECT
+                        id_cups,
+                        COUNT(*) AS nro_sobre_voltajes
+                    FROM core.v_sobre_voltajes
+                    " . (!empty($fecha_inicio) && !empty($fecha_fin) ? "WHERE fec_evento BETWEEN :fecha_inicio AND :fecha_fin" : "") . "
+                    GROUP BY id_cups
+                )
+                SELECT
+                    c.id_cups,
+                    c.nom_cups,
+                    c.dir_cups,
+                    c.ind_autoconsumo,
+                    c.lat_cups,
+                    c.lon_cups,
+                    TO_CHAR(m.max_fecha, 'DD/MM/YYYY') AS fecha,
+                    TO_CHAR(h.max_hora, 'HH24:MI:SS') AS hora,
+                    s.nro_sobre_voltajes
+                FROM core.t_cups c
+                JOIN core.t_ct t ON c.id_ct = t.id_ct
+                JOIN max_fec_evento m ON c.id_cups = m.id_cups
+                JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
+                JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
+                WHERE t.id_ct = :id_ct
+            ";
+    
+            // Añadir condiciones de fecha si están presentes
+            if ($fecha_inicio) {
+                $query .= " AND m.max_fecha >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            }
+            if ($fecha_fin) {
+                $query .= " AND m.max_fecha <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+    
+            // Depurar consulta antes de ejecutarla
+            // dd($query, $params); // Descomentar para ver la consulta exacta en Laravel
+    
+            // Ejecutar la consulta
+            $resultadosQ28 = DB::connection($connection)->select($query, $params);
+    
+            return !empty($resultadosQ28) ? $resultadosQ28 : ['message' => 'No hay datos'];
+    
         } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'No hay datos'];
+            return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
+    
+    
 
 
 
