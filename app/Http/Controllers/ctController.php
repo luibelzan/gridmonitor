@@ -2256,6 +2256,7 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         COUNT(*) AS nro_sub_voltajes
                     FROM core.v_sub_voltajes
+                    " . (!empty($fecha_inicio) && !empty($fecha_fin) ? "WHERE fec_evento BETWEEN :fecha_inicio AND :fecha_fin" : "") . "
                     GROUP BY id_cups
                 )
                 SELECT
