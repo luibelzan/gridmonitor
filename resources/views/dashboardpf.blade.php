@@ -376,15 +376,13 @@
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Descripción</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Clave</th>
+                                                        style="color:rgb(88,226,194)">T.I</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Intensidad <br> trafos</th>
+                                                        style="color:rgb(88,226,194)">T.T</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Tensión <br> trafos</th>
+                                                        style="color:rgb(88,226,194)">Tipo P.M</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Tipo punto <br> de medida</th>
-                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Tipo de <br> conexión</th>
+                                                        style="color:rgb(88,226,194)">Conexión</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Cierre</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
@@ -413,9 +411,6 @@
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->Descripcion) ? $resultado->Descripcion : 'No hay datos' }}
-                                                        </td>
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->Clave) ? $resultado->Clave : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->Trafos_Intensidad) ? $resultado->Trafos_Intensidad : 'No hay datos' }}
