@@ -2183,11 +2183,9 @@ public function consultaVeintidos($id_ct, $connection)
     
             // Añadir condiciones de fecha si están presentes
             if ($fecha_inicio) {
-                $query .= " AND m.max_fecha >= :fecha_inicio";
                 $params['fecha_inicio'] = $fecha_inicio;
             }
             if ($fecha_fin) {
-                $query .= " AND m.max_fecha <= :fecha_fin";
                 $params['fecha_fin'] = $fecha_fin;
             }
     
@@ -2287,11 +2285,9 @@ public function consultaVeintidos($id_ct, $connection)
                 // Añadir condiciones de fecha si están presentes
                 $params = ['id_ct' => $id_ct];
                 if ($fecha_inicio) {
-                    $query .= " AND m.max_fecha >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
                 }
                 if ($fecha_fin) {
-                    $query .= " AND m.max_fecha <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 }
 
@@ -2388,11 +2384,9 @@ public function consultaVeintidos($id_ct, $connection)
                 // Añadir condiciones de fecha si están presentes
                 $params = ['id_ct' => $id_ct];
                 if ($fecha_inicio) {
-                    $query .= " AND m.max_fecha >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
                 }
                 if ($fecha_fin) {
-                    $query .= " AND m.max_fecha <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 }
 
@@ -2489,11 +2483,9 @@ public function consultaVeintidos($id_ct, $connection)
                 // Añadir condiciones de fecha si están presentes
                 $params = ['id_ct' => $id_ct];
                 if ($fecha_inicio) {
-                    $query .= " AND m.max_fecha >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
                 }
                 if ($fecha_fin) {
-                    $query .= " AND m.max_fecha <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 }
 
