@@ -2158,7 +2158,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         COUNT(*) AS nro_sobre_voltajes
                     FROM core.v_sobre_voltajes
-                    " . (!empty($fecha_inicio) && !empty($fecha_fin) ? "WHERE fec_evento BETWEEN :fecha_inicio AND :fecha_fin" : "") . "
+                    WHERE 1=1 " . 
+                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
+                    (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 )
                 SELECT
@@ -2256,7 +2258,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         COUNT(*) AS nro_sub_voltajes
                     FROM core.v_sub_voltajes
-                    " . (!empty($fecha_inicio) && !empty($fecha_fin) ? "WHERE fec_evento BETWEEN :fecha_inicio AND :fecha_fin" : "") . "
+                    WHERE 1=1 " . 
+                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
+                    (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 )
                 SELECT
@@ -2355,7 +2359,9 @@ public function consultaVeintidos($id_ct, $connection)
                     id_cups,
                     COUNT(*) AS apagones
                 FROM core.v_apagones
-                " . (!empty($fecha_inicio) && !empty($fecha_fin) ? "WHERE fec_evento BETWEEN :fecha_inicio AND :fecha_fin" : "") . "
+                WHERE 1=1 " . 
+                (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
+                (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                 GROUP BY id_cups
                 )
                 SELECT
@@ -2450,12 +2456,14 @@ public function consultaVeintidos($id_ct, $connection)
                     GROUP BY v.id_cups, v.fec_evento
                 ),
                 micro_cortes_totales AS (
-                SELECT
-                    id_cups,
-                    COUNT(*) AS microcortes
-                FROM core.v_micro_cortes
-                " . (!empty($fecha_inicio) && !empty($fecha_fin) ? "WHERE fec_evento BETWEEN :fecha_inicio AND :fecha_fin" : "") . "
-                GROUP BY id_cups
+                    SELECT
+                        id_cups,
+                        COUNT(*) AS microcortes
+                    FROM core.v_micro_cortes
+                    WHERE 1=1 " . 
+                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
+                    (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
+                    GROUP BY id_cups
                 )
                 SELECT
                     c.id_cups,
