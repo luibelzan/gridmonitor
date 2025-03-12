@@ -388,7 +388,9 @@
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Cierre</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Última Curva</th>
+                                                        style="color:rgb(88,226,194)">Última Curva (60 minutos)</th>
+                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                        style="color:rgb(88,226,194)">Última Curva (15 minutos)</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Evento</th>
                                                 </tr>
@@ -432,6 +434,9 @@
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultima_curva) ? $resultado->fecha_ultima_curva : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->fecha_ultima_curva_15) ? $resultado->fecha_ultima_curva_15 : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultimo_evento) ? $resultado->fecha_ultimo_evento : 'No hay datos' }}

@@ -666,6 +666,7 @@ class DashboardController extends Controller
     t_reader_meter_data.tip_punto_medida AS Tipo_Punto_Medida,      
     t_reader_connections.conx_name AS Tipo_Conexion,
     uc.fecha_ultima_curva,
+    uc2.fecha_ultima_curva_15,
     ulc.fecha_ultima_cierre,
     ue.fecha_ultimo_evento
 FROM 
@@ -684,6 +685,18 @@ FROM
             GROUP BY id_cnt
         )
     ) uc ON t_meter_params_iec870.id_cnt = uc.id_cnt
+    LEFT JOIN (
+        SELECT 
+            id_cnt,
+            DATE_FORMAT(fh, '%d/%m/%Y %H:%i:%s') AS fecha_ultima_curva_15
+        FROM 
+            t_dat_iec870_load_profile_1
+        WHERE id IN (
+            SELECT MAX(id)
+            FROM t_dat_iec870_load_profile_1
+            GROUP BY id_cnt
+        )
+    ) uc2 ON t_meter_params_iec870.id_cnt = uc2.id_cnt
     LEFT JOIN (
         SELECT 
             id_cnt,
