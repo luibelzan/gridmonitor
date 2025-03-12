@@ -3263,7 +3263,8 @@ public function consultaVeintidos($id_ct, $connection)
 
 
             // Añadir el GROUP BY
-            $query .= " GROUP BY fec_evento;";
+            $query .= " GROUP BY fec_evento
+            ORDER BY fec_evento ASC;";
 
 
 
@@ -3338,7 +3339,8 @@ public function consultaVeintidos($id_ct, $connection)
 
 
             // Añadir el GROUP BY
-            $query .= " GROUP BY fec_evento;";
+            $query .= " GROUP BY fec_evento
+            ORDER BY fec_evento ASC;";
 
 
 
