@@ -2140,6 +2140,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         MAX(fec_evento) AS max_fecha
                     FROM core.v_sobre_voltajes
+                    WHERE 1=1
+                        " . (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . "
+                        " . (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
@@ -2240,6 +2243,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         MAX(fec_evento) AS max_fecha
                     FROM core.v_sub_voltajes
+                    WHERE 1=1
+                        " . (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . "
+                        " . (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
@@ -2339,6 +2345,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         MAX(fec_evento) AS max_fecha
                     FROM core.v_apagones
+                    WHERE 1=1
+                        " . (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . "
+                        " . (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
@@ -2438,6 +2447,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         MAX(fec_evento) AS max_fecha
                     FROM core.v_micro_cortes
+                    WHERE 1=1
+                        " . (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . "
+                        " . (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 ),
                 max_fec_hor_evento AS (
