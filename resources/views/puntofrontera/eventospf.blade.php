@@ -575,6 +575,9 @@
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     DESCRIPCIÓN</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    DURACION (Segundos)</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -600,6 +603,9 @@
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->description) ? $resultado->description : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->duracion_segundos) ? $resultado->duracion_segundos : '-' }}
                                                                                     </td>
                                                                                 </tr>
                                                                             @endforeach
