@@ -578,6 +578,9 @@
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     DURACION (Segundos)</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    GRUPO FALLO</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -606,6 +609,9 @@
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->duracion_segundos) ? $resultado->duracion_segundos : '-' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->grupo_fallo) ? $resultado->grupo_fallo : '-' }}
                                                                                     </td>
                                                                                 </tr>
                                                                             @endforeach

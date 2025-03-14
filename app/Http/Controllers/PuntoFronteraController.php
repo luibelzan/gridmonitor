@@ -840,28 +840,51 @@ class PuntoFronteraController extends Controller
 
     public function consultaOncepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
 {
+    // Si ha hecho una búsqueda por filtro, lo mandamos a su método
+    if ($request->filled('descripcion')) {
+        return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
+    }
+    
     if ($id_cnt) {
         $query = "
             SELECT 
                 e.id_cnt,
+                STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') AS fecha_hora,
                 e.fh,
                 e.DR,
                 e.SPA,
                 e.SPQ,
                 e.SPI,
                 d.description,
+                
                 CASE 
                     WHEN e.DR = 52 AND e.SPA = 3 AND e.SPQ = 0 AND e.SPI = 1 THEN 
-                        (SELECT TIMESTAMPDIFF(SECOND, STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
+                        (SELECT TIMESTAMPDIFF(SECOND, 
+                            STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
+                            STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
                          FROM reader.t_dat_iec870_eventos fin
                          WHERE fin.id_cnt = e.id_cnt 
                          AND fin.DR = 52 AND fin.SPA = 1 AND fin.SPQ = 2 AND fin.SPI = 1
                          AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
-                         ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') DESC
+                         ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
                          LIMIT 1
                         )
                     ELSE NULL 
-                END AS duracion_segundos
+                END AS duracion_segundos,
+                
+                CASE 
+                    WHEN e.DR = 52 AND e.SPA = 3 AND e.SPQ = 0 AND e.SPI = 1 THEN e.fh
+                    WHEN e.DR = 52 AND e.SPA = 1 AND e.SPQ = 2 AND e.SPI = 1 THEN 
+                        (SELECT inicio.fh
+                         FROM reader.t_dat_iec870_eventos inicio
+                         WHERE inicio.id_cnt = e.id_cnt
+                         AND inicio.DR = 52 AND inicio.SPA = 3 AND inicio.SPQ = 0 AND inicio.SPI = 1
+                         AND STR_TO_DATE(inicio.fh, '%d/%m/%Y %H:%i:%s') < STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
+                         ORDER BY STR_TO_DATE(inicio.fh, '%d/%m/%Y %H:%i:%s') DESC
+                         LIMIT 1)
+                    ELSE NULL
+                END AS grupo_fallo
+                
             FROM reader.t_dat_iec870_eventos e
             JOIN t_reader_events_description d
                 ON e.DR = d.DR 
@@ -875,12 +898,12 @@ class PuntoFronteraController extends Controller
             $query .= "
             AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
             AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') < DATE_ADD(:fecha_fin, INTERVAL 1 DAY)
-            ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;";
+            ORDER BY grupo_fallo ASC, fecha_hora ASC";
             $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
         } else {
             $query .= "
             AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC";
+            ORDER BY grupo_fallo ASC, fecha_hora ASC";
             $params = ['id_cnt' => $id_cnt];
         }
 
@@ -889,6 +912,8 @@ class PuntoFronteraController extends Controller
         return $resultadosQ11pf ?: [];
     }
 }
+
+
 
 
 

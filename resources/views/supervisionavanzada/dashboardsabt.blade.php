@@ -188,7 +188,7 @@
                                             <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
                                                 <h2 class="text-sm text-center font-normal">Total Distorsiones Armonicas</h2>
                                                 <p class="mt-4 text-3xl  text-center" style="color:rgb(88,226,194)">
-                                                {{ $numDistorsionesArmonicas[0]->total_distorsiones }}
+                                                {{ !empty($numDistorsionesArmonicas[0]->total_distorsiones) ?  $numDistorsionesArmonicas[0]->total_distorsiones : 0}}
                                                 </p>
                                             </div>
                                         </div>
@@ -262,7 +262,7 @@
                                             <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
                                                 <h2 class="text-sm text-center font-normal">Numero de Flickers por encima de 1</h2>
                                                 <p class="mt-4 text-3xl  text-center" style="color:rgb(88,226,194)">
-                                                {{ $numFlickers[0]->total_flickers }}
+                                                {{ !empty($numFlickers[0]->total_flickers) ?  $numFlickers[0]->total_flickers : 0}}
                                                 </p>
                                             </div>
                                         </div>
@@ -309,7 +309,7 @@
                                             <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
                                                 <h2 class="text-sm text-center font-normal">Numero de desbalances por encima de 2</h2>
                                                 <p class="mt-4 text-3xl  text-center" style="color:rgb(88,226,194)">
-                                                {{ $numDesbalancesTension[0]-> total_desbalances}}
+                                                {{ !empty($numDesbalancesTension[0]-> total_desbalances) ? $numDesbalancesTension[0]-> total_desbalances : 0}}
                                                 </p>
                                             </div>
                                         </div>
