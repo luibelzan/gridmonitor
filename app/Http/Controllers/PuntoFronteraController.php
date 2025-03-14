@@ -838,13 +838,13 @@ class PuntoFronteraController extends Controller
 
 
 
-    public function consultaOncepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
+    public function consultaOncepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, Request $request)
 {
     // Si ha hecho una búsqueda por filtro, lo mandamos a su método
     if ($request->filled('descripcion')) {
         return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
     }
-    
+
     if ($id_cnt) {
         $query = "
             SELECT 
@@ -898,12 +898,12 @@ class PuntoFronteraController extends Controller
             $query .= "
             AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
             AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') < DATE_ADD(:fecha_fin, INTERVAL 1 DAY)
-            ORDER BY grupo_fallo ASC, fecha_hora ASC";
+            ORDER BY fecha_hora ASC";
             $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
         } else {
             $query .= "
             AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            ORDER BY grupo_fallo ASC, fecha_hora ASC";
+            ORDER BY fecha_hora ASC";
             $params = ['id_cnt' => $id_cnt];
         }
 
@@ -924,61 +924,80 @@ class PuntoFronteraController extends Controller
 
     /* FILTRO DE BÚSQUEDA */
     public function buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, Request $request)
-    {
-        $descripcion = strtolower($request->input('descripcion'));
+{
+    $descripcion = strtolower($request->input('descripcion'));
 
+    $query = "
+        SELECT 
+            e.id_cnt,
+            STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') AS fecha_hora,
+            e.fh,
+            e.DR,
+            e.SPA,
+            e.SPQ,
+            e.SPI,
+            d.description,
+            
+            CASE 
+                WHEN e.DR = 52 AND e.SPA = 3 AND e.SPQ = 0 AND e.SPI = 1 THEN 
+                    (SELECT TIMESTAMPDIFF(SECOND, 
+                        STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
+                        STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
+                     FROM reader.t_dat_iec870_eventos fin
+                     WHERE fin.id_cnt = e.id_cnt 
+                     AND fin.DR = 52 AND fin.SPA = 1 AND fin.SPQ = 2 AND fin.SPI = 1
+                     AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
+                     ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
+                     LIMIT 1
+                    )
+                ELSE NULL 
+            END AS duracion_segundos,
 
+            CASE 
+                WHEN e.DR = 52 AND e.SPA = 3 AND e.SPQ = 0 AND e.SPI = 1 THEN e.fh
+                WHEN e.DR = 52 AND e.SPA = 1 AND e.SPQ = 2 AND e.SPI = 1 THEN 
+                    (SELECT inicio.fh
+                     FROM reader.t_dat_iec870_eventos inicio
+                     WHERE inicio.id_cnt = e.id_cnt
+                     AND inicio.DR = 52 AND inicio.SPA = 3 AND inicio.SPQ = 0 AND inicio.SPI = 1
+                     AND STR_TO_DATE(inicio.fh, '%d/%m/%Y %H:%i:%s') < STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
+                     ORDER BY STR_TO_DATE(inicio.fh, '%d/%m/%Y %H:%i:%s') DESC
+                     LIMIT 1)
+                ELSE NULL
+            END AS grupo_fallo
+            
+        FROM reader.t_dat_iec870_eventos e
+        JOIN t_reader_events_description d
+            ON e.DR = d.DR 
+            AND e.SPA = d.SPA 
+            AND e.SPQ = d.SPQ 
+            AND e.SPI = d.SPI
+        WHERE e.id_cnt = :id_cnt
+        AND LOWER(d.description) LIKE :descripcion
+    ";
 
-
-
-
-
-
-        $query = "
-        SELECT    
-            t_dat_iec870_eventos.id_cnt,
-            t_dat_iec870_eventos.fh,    
-            t_dat_iec870_eventos.DR,
-            t_dat_iec870_eventos.SPA,
-            t_dat_iec870_eventos.SPQ,
-            t_dat_iec870_eventos.SPI,
-            t_reader_events_description.description
-        FROM reader.t_dat_iec870_eventos, t_reader_events_description
-        WHERE
-            t_dat_iec870_eventos.DR = t_reader_events_description.DR
-            AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
-            AND t_dat_iec870_eventos.SPQ = t_reader_events_description.SPQ
-            AND t_dat_iec870_eventos.SPI = t_reader_events_description.SPI
-            AND t_dat_iec870_eventos.id_cnt = :id_cnt";
-
-
-
-
-        if ($fecha_inicio && $fecha_fin) {
-            $query .= "
-            AND LOWER(t_reader_events_description.description) LIKE :descripcion
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') <= :fecha_fin";
-            $params = ['id_cnt' => $id_cnt, 'descripcion' => "%$descripcion%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-        } else {
-            $query .= "
-            AND LOWER(t_reader_events_description.description) LIKE :descripcion
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s')
-            ORDER BY STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') DESC";
-            $params = ['id_cnt' => $id_cnt, 'descripcion' => "%$descripcion%"];
-        }
-        $resultadosQ11pfFiltro = DB::connection($connectionpf)
-            ->select($query, $params);
-
-
-
-
-
-
-
-
-        return $resultadosQ11pfFiltro ?: [];
+    if ($fecha_inicio && $fecha_fin) {
+        $query .= "
+        AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
+        AND STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') < DATE_ADD(:fecha_fin, INTERVAL 1 DAY)
+        ORDER BY fecha_hora ASC";
+        $params = [
+            'id_cnt' => $id_cnt,
+            'descripcion' => "%$descripcion%",
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin
+        ];
+    } else {
+        $query .= "
+        ORDER BY fecha_hora ASC";
+        $params = ['id_cnt' => $id_cnt, 'descripcion' => "%$descripcion%"];
     }
+
+    $resultadosQ11pfFiltro = DB::connection($connectionpf)->select($query, $params);
+
+    return $resultadosQ11pfFiltro ?: [];
+}
+
 
 
 
