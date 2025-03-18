@@ -442,6 +442,14 @@
                                                                                         style="color:rgb(88,226,194)">
                                                                                         FECHA DE CORTE
                                                                                     </th>
+                                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                                        style="color:rgb(88,226,194)">
+                                                                                        DURACION (Segundos)
+                                                                                    </th>
+                                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                                        style="color:rgb(88,226,194)">
+                                                                                        FIN
+                                                                                    </th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
@@ -457,6 +465,18 @@
                                                                                         </td>
                                                                                         <td class="py-2">
                                                                                             {{ !empty($resultado->Fecha_Corte) ? $resultado->Fecha_Corte : 'No hay datos' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->duracion_segundos) ? $resultado->duracion_segundos : 'No hay datos' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            @if (!empty($resultado->Fecha_Corte) && !empty($resultado->duracion_segundos))
+                                                                                                {{ \Carbon\Carbon::createFromFormat('d/m/Y H:i:s', $resultado->Fecha_Corte)
+                                                                                                    ->addSeconds($resultado->duracion_segundos)
+                                                                                                    ->format('d/m/Y H:i:s') }}
+                                                                                            @else
+                                                                                                No hay datos
+                                                                                            @endif
                                                                                         </td>
                                                                                     </tr>
                                                                                 @endforeach
@@ -575,12 +595,6 @@
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     DESCRIPCIÓN</th>
-                                                                                <th class="mt-0 text-xl font-bold text-center"
-                                                                                    style="color:rgb(88,226,194)">
-                                                                                    DURACION (Segundos)</th>
-                                                                                <th class="mt-0 text-xl font-bold text-center"
-                                                                                    style="color:rgb(88,226,194)">
-                                                                                    GRUPO FALLO</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
@@ -606,12 +620,6 @@
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->description) ? $resultado->description : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->duracion_segundos) ? $resultado->duracion_segundos : '-' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->grupo_fallo) ? $resultado->grupo_fallo : '-' }}
                                                                                     </td>
                                                                                 </tr>
                                                                             @endforeach
