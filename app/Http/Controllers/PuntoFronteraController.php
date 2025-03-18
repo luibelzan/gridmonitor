@@ -13,6 +13,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 
 
@@ -815,7 +816,9 @@ class PuntoFronteraController extends Controller
     public function consultaDiezpf($id_cnt, $connectionpf) //Estadisticas de Cortes
     {
         if ($id_cnt) {
-            $resultadosQ10pf = DB::connection($connectionpf)
+
+            if(Str::startsWith($id_cnt, 'B') || Str::startsWith($id_cnt, 'C')) {
+                $resultadosQ10pf = DB::connection($connectionpf)
                 ->select("
                 SELECT
                     t_meter_params_iec870.cups AS 'CUPS',
@@ -842,7 +845,37 @@ class PuntoFronteraController extends Controller
                 ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;
 
                 ", ['id_cnt' => $id_cnt]);
-            // dd($resultadosQ10pf);
+
+            } else if(Str::startsWith($id_cnt, 'Q') || Str::startsWith($id_cnt, 'Z')) {
+                $resultadosQ10pf = DB::connection($connectionpf)
+                ->select("
+                SELECT
+                    t_meter_params_iec870.cups AS 'CUPS',
+                    e.id_cnt,
+                    e.fh AS 'Fecha_Corte',
+                    (SELECT TIMESTAMPDIFF(SECOND, 
+                                STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
+                                STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
+                    FROM t_dat_iec870_eventos fin
+                    WHERE fin.id_cnt = e.id_cnt
+                    AND fin.DR = 52 AND fin.SPA = 3 AND fin.SPQ = 0 AND fin.SPI = 0
+                    AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
+                    ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
+                    LIMIT 1
+                    ) AS 'duracion_segundos'
+                FROM t_dat_iec870_eventos e
+                JOIN t_meter_params_iec870
+                    ON e.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE e.id_cnt = :id_cnt
+                AND e.DR = '52'
+                AND e.SPA = '1'
+                AND e.SPQ = '2'
+                AND e.SPI = '0'
+                ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;
+
+                ", ['id_cnt' => $id_cnt]);
+
+            } 
             return $resultadosQ10pf  ?: [];
         }
     }
