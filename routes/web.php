@@ -115,6 +115,7 @@ Route::get('/detalleseventoscups', [CupsController::class, 'detalleseventoscups'
 // CURVAS HORARIAS CUPS ------------------------------
 Route::get('/curvashorariascups', [CupsController::class, 'curvashorariascups'])->name('curvashorariascups');
 Route::get('/detallescurvashorariascups', [CupsController::class, 'detallescurvashorariascups'])->name('detallescurvashorariascups');
+Route::get('/consumodiariocups', [CupsController::class, 'consumodiariocups'])->name('consumodiariocups');
 
 
 // ENERGIA CUPS -------------------------------
