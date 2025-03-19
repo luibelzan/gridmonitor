@@ -583,7 +583,7 @@
                                                     @foreach ($resultadosQ1cups as $resultado)
                                                         <tr class="highlight-row">
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt, 'nom_cups'=>$resultado->nom_cups]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
@@ -591,7 +591,7 @@
                                                                 </a>
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt, 'nom_cups'=>$resultado->nom_cups]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
@@ -599,7 +599,7 @@
 
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt, 'nom_cups'=>$resultado->nom_cups]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : 'No hay datos' }}
@@ -607,13 +607,13 @@
 
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt, 'nom_cups'=>$resultado->nom_cups]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->dir_cups) ? $resultado->dir_cups : 'No hay datos' }}
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt, 'nom_cups'=>$resultado->nom_cups]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->ind_autoconsumo) ? $resultado->ind_autoconsumo : 'No hay datos' }}

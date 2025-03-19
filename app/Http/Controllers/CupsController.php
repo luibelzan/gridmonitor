@@ -830,7 +830,7 @@ class CupsController extends Controller
 
 
                 // Verificar si se encontraron resultados en la primera consulta
-                if (!empty($resultadosQ1cups)) {
+                if (!empty($resultadosQ1cups) && isset($resultadosQ1cups[0]) && $resultadosQ1cups[0] !== null) {
                     $id_cnt = $resultadosQ1cups[0]->id_cnt;
 
 
@@ -878,16 +878,25 @@ class CupsController extends Controller
             if ($id_cups) {
                 $resultadosQ3cups = DB::connection($connection)
                     ->select("
+                WITH meses AS (
+                    SELECT generate_series(
+                        date_trunc('month', (SELECT MAX(fec_fin) FROM core.t_consumos_mensual)) - INTERVAL '11 months',
+                        date_trunc('month', (SELECT MAX(fec_fin) FROM core.t_consumos_mensual)),
+                        INTERVAL '1 month'
+                    )::date AS mes
+                )
                 SELECT 
-                TO_CHAR(fec_fin, 'MM/YYYY') AS fec_fin, 
-                TO_CHAR(fec_inicio, 'MM/YYYY') AS fec_inicio,
-                val_ai_m, val_ae_m
-                FROM core.t_consumos_mensual
-                WHERE cod_contrato = '1'
-                AND cod_periodotarifa = '0'
-                AND fec_fin >= (SELECT MAX(fec_inicio) - INTERVAL '11 months' FROM core.t_consumos_mensual)
-                and id_cups LIKE :id_cups
-                ORDER BY fec_fin::date ASC;
+                    TO_CHAR(m.mes, 'MM/YYYY') AS fec_fin,
+                    TO_CHAR(c.fec_inicio, 'MM/YYYY') AS fec_inicio,
+                    COALESCE(c.val_ai_m, 0) AS val_ai_m,
+                    COALESCE(c.val_ae_m, 0) AS val_ae_m
+                FROM meses m
+                LEFT JOIN core.t_consumos_mensual c 
+                    ON date_trunc('month', c.fec_fin) = m.mes
+                    AND c.cod_contrato = '1'
+                    AND c.cod_periodotarifa = '0'
+                    AND c.id_cups LIKE :id_cups
+                ORDER BY m.mes ASC;
             ", ['id_cups' => "%$id_cups%"]);
 
 
