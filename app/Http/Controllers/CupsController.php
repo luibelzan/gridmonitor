@@ -1861,13 +1861,22 @@ class CupsController extends Controller
             if ($id_cups) {
                 $resultadosQ23cups = DB::connection($connection)
                     ->select("
-                SELECT TO_CHAR(fec_lectura, 'DD/MM/YYYY') as fec_lectura, hor_lectura, l1v as tension
-                FROM core.t_valores_instantaneos
-                where id_cups = :id_cups
-                AND fec_lectura <= (SELECT MAX(fec_lectura) FROM core.t_valores_instantaneos)
-                order by 1,2
-                LIMIT 100
-            ", ['id_cups' => $id_cups]);
+                    SELECT 
+                        TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura,  -- Formatea la fecha
+                        hor_lectura, 
+                        l1v AS tension
+                    FROM (
+                        SELECT 
+                            fec_lectura,
+                            hor_lectura, 
+                            l1v 
+                        FROM core.t_valores_instantaneos
+                        WHERE id_cups = :id_cups
+                            AND fec_lectura <= (SELECT MAX(fec_lectura) FROM core.t_valores_instantaneos)
+                        ORDER BY fec_lectura DESC, hor_lectura DESC  -- Limita a los 100 más recientes
+                        LIMIT 100
+                    ) AS subquery
+                    ORDER BY fec_lectura ASC, hor_lectura ASC;", ['id_cups' => $id_cups]);
                 // dd($resultadosQ23cups);
                 return $resultadosQ23cups ?: [];
             }
