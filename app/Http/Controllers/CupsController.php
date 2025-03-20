@@ -2029,23 +2029,25 @@ class CupsController extends Controller
 
                     if($fecha_fin) {
                         $query .= "
-                            AND fec_consumo::DATE <= :fecha_fin";
+                            AND fec_consumo::DATE <= :fecha_fin
+                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC";
                             $params = ['id_cups' => "%$id_cups%", 'fecha_fin' => $fecha_fin];
                     } else if($fecha_inicio) {
                         $query .= "
                             AND fec_consumo::DATE >= :fecha_inicio
-                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC";
                         $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio];
                     } else if($fecha_fin && $fecha_inicio) {
                         $query .= "
                         AND fec_consumo::DATE <= :fecha_fin
                         AND fec_consumo::DATE >= :fecha_inicio
-                        ORDER BY fec_consumo::DATE ASC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+                        ORDER BY fec_consumo::DATE ASC, hor_consumo ASC";
                         $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
                     } 
                     else {
                         $query .= "
-                            ORDER BY fec_consumo::DATE DESC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+                        AND fec_consumo >= CURRENT_DATE - INTERVAL '1 month'    
+                        ORDER BY fec_consumo::DATE DESC, hor_consumo ASC";
                         $params = ['id_cups' => "%$id_cups%"];
                     }
 
