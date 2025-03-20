@@ -426,8 +426,7 @@ class CupsController extends Controller
         }
     }
 
-    public function consumodiariocups(Request $request)
-    {
+    public function consumodiariocups(Request $request) {
         // Verificar si el usuario está autenticado
         if (!Auth::check()) {
             // Si no está autenticado, redirigir a la página de inicio de sesión
@@ -483,17 +482,94 @@ class CupsController extends Controller
 
 
             // Realizar la consulta por ID de CUPS o ID de CNT si hay valores
+            if ((!is_null($id_cups) && $id_cups !== '') || (!is_null($id_cnt) && $id_cnt !== '')) {
+                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
+            } else {
+                // Si no hay valores de búsqueda, no hacer consulta
+                $resultadosQ1cups = [];
+            }
+
+
+            // Pasar los datos de los CTs a la vista
+            return view('cups/consumodiariocups', [
+                'ct_info' => $ct_info,
+                'id_cups' => $id_cups,
+                'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
+                'resultadosQ1cups' => $resultadosQ1cups,
+            ]);
+        }
+    }
+
+    public function detallesconsumodiariocups(Request $request)
+    {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            // Si no está autenticado, redirigir a la página de inicio de sesión
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+
+        // Obtener el valor de id_cups
+        $id_cups = $request->input('id_cups');
+        $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
+
+
+
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($id_cups)) {
+            $id_cups = strtoupper($id_cups);
+        }
+
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($id_cnt)) {
+            $id_cnt = strtoupper($id_cnt);
+        }
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
+        }
+
+
+        // Guardar el id_cups en la sesión
+        Session::put('id_cups', $id_cups);
+        Session::put('id_cnt', $id_cnt);
+        Session::put('nom_cups', $nom_cups);
+
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'detallesconsumodiariocups');
+
+
+        // Obtener la conexión dinámica
+        $connection = User::conexion();
+
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin');
+        } else {
+            // Obtener los datos de todos los CTs
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
+
+
+            // Realizar la consulta por ID de CUPS o ID de CNT si hay valores
             if ((!is_null($id_cups) && $id_cups !== '')) {
                 $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
                 $consumoDiario = $this->getConsumoDiario($id_cups, $connection, $request);
             } else {
                 // Si no hay valores de búsqueda, no hacer consulta
                 $consumoDiario = [];
+                $resultadosQ1cups = [];
             }
 
 
             // Pasar los datos de los CTs a la vista
-            return view('cups/consumodiariocups', [
+            return view('cups/detallesconsumodiariocups', [
                 'ct_info' => $ct_info,
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
