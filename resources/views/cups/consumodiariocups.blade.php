@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,20 +12,14 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
-    {{-- TAILWIND --}}
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     {{-- CHART.JS --}}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src='https://cdn.plot.ly/plotly-2.31.1.min.js'></script> <!-- Load plotly.js into the DOM -->
-    <script src="https://unpkg.com/@popperjs/core@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@latest"></script>
-
-
     {{-- JAVASCRIPT --}}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script> <!--icono cargando -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     {{-- ENLACE A JS GENERAL --}}
     <script src="{{ asset('js/app.js') }}"></script>
     <style>
@@ -35,7 +28,6 @@
             max-height: calc(100vh - 80px);
         }
 
-
         @media (min-width: 1024px) {
             #panel-container {
                 margin-left: auto;
@@ -43,12 +35,10 @@
             }
         }
 
-
         canvas {
             width: 100% !important;
             height: auto !important;
         }
-
 
         /* Define la animación */
         @keyframes fadeIn {
@@ -57,19 +47,16 @@
                 transform: translateY(20px);
             }
 
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-
         /* Aplica la animación a los elementos */
         .fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
-
 
         /* Define una regla de CSS para escalar los elementos al pasar el ratón por encima */
         .table-cell:hover {
@@ -79,7 +66,6 @@
             /* Añade una transición suave */
         }
 
-
         /* POPUP */
         .custom-popup {
             /* Estilo del contenedor del popup */
@@ -87,7 +73,6 @@
             padding: 10px;
             font-family: 'Didact Gothic';
         }
-
 
         .custom-popup h3 {
             /* Estilo del título */
@@ -97,7 +82,6 @@
             /* Añade el estilo de letra */
         }
 
-
         .custom-popup ul {
             /* Estilo de la lista */
             list-style: none;
@@ -106,7 +90,6 @@
             /* Añade el estilo de letra */
         }
 
-
         .custom-popup ul li {
             /* Estilo de cada ítem de la lista */
             margin-bottom: 5px;
@@ -114,28 +97,33 @@
             /* Añade el estilo de letra */
         }
 
+        /* Color al pasar el raton por encima de la fila de datos */
+        .highlight-row:hover {
+            background-color: rgba(88, 226, 194, 0.1);
+            /* Cambia el color de fondo al pasar el ratón */
+            transition: background-color 0.3s ease;
+            /* Agrega una transición suave */
+            cursor: pointer;
+            /* Cambia el cursor a un ícono de dedito */
+        }
 
         /* Estilo para el enlace cuando el mouse está encima */
         .nav-link:hover {
             color: rgb(88, 226, 194);
         }
 
-
         a {
             text-decoration: none !important;
         }
-
 
         /* PARA EL NAV */
         * {
             box-sizing: border-box;
         }
 
-
         .container {
             max-width: 100%;
         }
-
 
         .nav {
             display: inline-flex;
@@ -150,7 +138,6 @@
             /* Centra horizontalmente */
         }
 
-
         .nav-item {
             color: #ffffff;
             padding: 12px;
@@ -162,7 +149,6 @@
             font-weight: 500;
             position: relative;
         }
-
 
         .nav-item:before {
             content: "";
@@ -178,12 +164,10 @@
             transition: .3s;
         }
 
-
         .nav-item:not(.is-active):hover:before {
             opacity: 1;
             bottom: 0;
         }
-
 
         .nav-item.is-active:before {
             background-color: rgb(88, 226, 194);
@@ -192,12 +176,10 @@
             bottom: 0;
         }
 
-
         .nav-item:not(.is-active):hover {
             color: rgb(88, 226, 194);
             ;
         }
-
 
         .nav-indicator {
             position: absolute;
@@ -210,17 +192,6 @@
             border-radius: 8px 8px 0 0;
         }
 
-
-        /* Color al pasar el raton por encima de la fila de datos */
-        .highlight-row:hover {
-            background-color: rgba(88, 226, 194, 0.1);
-            /* Cambia el color de fondo al pasar el ratón */
-            transition: background-color 0.3s ease;
-            /* Agrega una transición suave */
-
-        }
-
-
         @media (max-width: 600px) {
             .nav {
                 flex-wrap: wrap;
@@ -232,7 +203,6 @@
                 /* Elimina el box-shadow en dispositivos móviles */
             }
 
-
             .nav-item {
                 flex: 1 0 40%;
                 /* Mostrar en dos columnas */
@@ -241,49 +211,14 @@
                 text-align: center;
             }
 
-
             .nav-indicator {
                 display: none;
                 /* Oculta la barra indicadora en dispositivos móviles */
             }
         }
     </style>
-    <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
-    <title>Consumo Diario CUPS</title>
+
+    <title>Consumos Diarios CUPS</title>
 </head>
 
 <body class="h-full sm:grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 justify-center "
@@ -303,37 +238,42 @@
         </a>
     </div>
     <div class="min-h-screen flex flex-col flex-auto flex-shrink-0 antialiased text-black dark:text-white ">
-        @include('includes/header')
-        <div class="lg:flex lg:ml-40 md:ml-56 sm:ml-14 ">
+        @include('includes/header') <div class="lg:flex lg:ml-40 md:ml-56 sm:ml-14 ">
             <div class="lg:ml-14 p-2 mt-0 w-full"> <!-- Añadir margen superior -->
                 <!-- Content -->
                 <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4 mt-16 ml-14">
                     {{-- Botones de arriba --}}
+
                     <nav class="nav mb-12 ">
                         <a href="{{ route('dashboardct') }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Dashboard</a>
-                        <a href="{{ route('detallesinformacioncups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}"
-                            class="nav-item" active-color="rgb(88, 226, 194">Información</a>
-                        <a href="{{ route('detallescurvashorariascups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                        <a href="{{ route('informacioncups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Información</a>
+                        <a href="{{ route('curvashorariascups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Curvas Horarias</a>
                         <a href="{{ route('consumodiariocups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194">Consumos Diarios</a>
-                        <a href="{{ route('detallesenergiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                        <a href="{{ route('energiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Calidad Energía</a>
-                        <a href="{{ route('detalleseventoscups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
-                            active-color="rgb(88, 226, 194">Eventos</a> <span class="nav-indicator"></span>
+                        <a href="{{ route('eventoscups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Eventos</a>
+                        <span class="nav-indicator"></span>
                     </nav>
+
                     {{-- Obtener el id_cups almacenado en la sesión --}}
                     @php
-                    $id_cups = session()->get('id_cups');
-                    $id_cnt = session()->get('id_cnt');
-                    $nom_cups = session()->get('nom_cups');
+                        $id_cups = session()->get('id_cups');
+                        $id_cnt = session()->get('id_cnt');
+                        $nom_cups = session()->get('nom_cups');
                     @endphp
+
                     {{-- BUSCADOR --}}
                     <div class="container ">
+
                         <div class="form-group ">
-                            <form action="{{ route('informacioncups') }}" method="GET">
+                            <form action="{{ route('consumodiariocups') }}" method="GET">
                                 {{-- buscador por ID cups --}}
+
                                 <input type="text" name="id_cups" placeholder="Buscar por ID de CUPS"
                                     class="border p-2 rounded-md w-52 ml-1 text-white "
                                     style="background-color: transparent; border-color: rgb(255, 255, 255);"
@@ -375,139 +315,85 @@
                                 </div>
                             </div>
                         @else
-                            <h1 class="text-center text-3xl w-full" style="color: white;">INFORMACIÓN CUPS</h1>
-                            <div
-                                style="border-bottom: 3px solid transparent;
-                                    border-image: linear-gradient(to right, transparent, rgb(27,32,38), transparent) 1;">
-                            </div>
-                    <div class="container">
-                        {{-- GRÁFICO CONSUMOS MENSUALES - GRAFICO DE BARRAS --}}
-                        <div class="card text-white mb-2 col-span-1 sm:col-span-1 md:col-span-1 lg:col-span-2"
-                            style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                            <h1 class="text-center text-2xl" style="color: white;">CONSUMOS</h1>
-                            <div
-                                style="border-bottom: 3px solid transparent; border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                            </div>
-                            <div class="container">
-                                <h2 class="text-center text-1xl mt-2" style="color: white;">Últimos mes</h2>
-                                <div class="table-responsive w-full"
-                                    style="display: flex; justify-content: center;">
+                            <div class="col-span-1 md:col-span-1">
+                                <div class="container ">
 
-                                    {{-- GRÁFICO DE CONSUMOS MENSUALES --}}
-                                    <div class="grafico-wrapper"
-                                        style="position: relative; height: 40vh; width: 80vw; overflow: hidden;">
-                                        <canvas id="graficoBarrasConsumoCups" class="w-full"></canvas>
+                                    <div class="border-blue-900 p-2 shadow-md sm:p-6 md:p-8 h-full w-full"
+                                        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                        <h1 class="text-center text-3xl w-full" style="color: white;">SELECCIONE UN CUPS
+                                        </h1>
+                                        <div
+                                            style="border-bottom: 3px solid transparent; border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                        </div>
+
+                                        {{-- CONTENEDOR CUERPO --}}
+                                        <div class="container text-white mt-2 overflow-x-auto">
+                                            <table class="w-full">
+                                                <tr>
+                                                    <th class="text-center" style="color:rgb(88,226,194)">ID CUPS</th>
+                                                    <th class="text-center" style="color:rgb(88,226,194)">Contador</th>
+
+                                                    <th class="text-center" style="color:rgb(88,226,194)">Nombre CUPS
+                                                    </th>
+                                                    <th class="text-center" style="color:rgb(88,226,194)">Dirección
+                                                        CUPS
+                                                    </th>
+                                                    <th class="text-center" style="color:rgb(88,226,194)">Autoconsumo
+                                                    </th>
+                                                </tr>
+                                                <tbody>
+                                                    @foreach ($resultadosQ1cups as $resultado)
+                                                        <tr class="highlight-row">
+                                                            <td class="py-2 px-4 text-center">
+                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                    style="text-decoration: none; color: inherit;">
+                                                                    {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                                    <i class="fas fa-arrow-circle-right"></i>
+                                                                </a>
+                                                            </td>
+                                                            <td class="py-2 px-4 text-center">
+                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                    style="text-decoration: none; color: inherit;">
+                                                                {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
+                                                            </a>
+
+                                                            </td>
+                                                            <td class="py-2 px-4 text-center">
+                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                    style="text-decoration: none; color: inherit;">
+                                                                {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : 'No hay datos' }}
+                                                            </a>
+
+                                                            </td>
+                                                            <td class="py-2 px-4 text-center">
+                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                    style="text-decoration: none; color: inherit;">
+                                                                {{ !empty($resultado->dir_cups) ? $resultado->dir_cups : 'No hay datos' }}
+                                                            </a>
+
+                                                            </td>
+                                                            <td class="py-2 px-4 text-center">
+                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                    style="text-decoration: none; color: inherit;">
+                                                                {{ !empty($resultado->ind_autoconsumo) ? $resultado->ind_autoconsumo : 'No hay datos' }}
+                                                            </a>
+
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                                {{-- SCRIPT PARA EL GRÁFICO DE CONSUMOS DIARIOS --}}
-                                <script>
-                                    var labels_fecha = [];
-                                    var values_ai_d = [];
-                                    console.log(@json($consumoDiario));
-                                    @foreach($consumoDiario as $resultado)
-                                        // Agregar la fecha en formato dd-mm-yy
-                                        labels_fecha.push('{{ $resultado->fec_fin }}');
-                                        // Agregar el valor de energía formateado en kWh
-                                        values_ai_d.push({{ $resultado->val_ai_d }});
-                                    @endforeach
-                                    document.addEventListener("DOMContentLoaded", function() {
-                                        var labels = labels_fecha;
-                                        var data = [{
-                                            label: 'Consumo último mes',
-                                            backgroundColor: function(context) {
-                                                var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
-                                                gradient.addColorStop(0,
-                                                    'rgba(88, 226, 194, 1)'); // Color inicial con opacidad 0.9
-                                                gradient.addColorStop(0.9,
-                                                    'rgba(27,32,38, 0.2)'); // Nuevo color en la mitad del gradiente
-                                                gradient.addColorStop(1,
-                                                    'rgba(27,32,38, 0)'); // Color final con opacidad 0 (transparente)
-                                                return gradient;
-                                            },
-                                            borderColor: 'rgba(88, 226, 194, 0.9)',
-                                            borderWidth: 1,
-                                            data: values_ai_d
-                                        }];
-                                        var ctx = document.getElementById('graficoBarrasConsumoCups').getContext('2d');
-                                        var myChart = new Chart(ctx, {
-                                            type: 'bar',
-                                            data: {
-                                                labels: labels_fecha,
-                                                datasets: data
-                                            },
-                                            options: {
-                                                responsive: true,
-                                                maintainAspectRatio: false,
-                                                scales: {
-                                                    x: {
-                                                        grid: {
-                                                            color: 'rgba(0, 0, 0, 0)' // Color transparente para desaparecer la rejilla en el eje y
-                                                        },
-                                                        ticks: {
-                                                            color: 'white' // Color blanco para las etiquetas del eje x
-                                                                ,
-                                                            font: {
-                                                                family: 'Didact Gothic', // Tipo de letra
-                                                                weight: 'normal' // Peso de la fuente
-                                                            }
-                                                        }
-                                                    },
-                                                    y: {
-                                                        grid: {
-                                                            color: 'rgba(0, 0, 0, 0)' // Color transparente para desaparecer la rejilla en el eje y
-                                                        },
-                                                        ticks: {
-                                                            color: 'white', // Color blanco para las etiquetas del eje y
-                                                            callback: function(value, index, values) {
-                                                                return value.toFixed(0) + " kWh";
-                                                            },
-                                                            font: {
-                                                                family: 'Didact Gothic', // Tipo de letra
-                                                                weight: 'normal' // Peso de la fuente
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                                plugins: {
-                                                    legend: {
-                                                        display: false // Configurar display como false para ocultar la leyenda
-                                                    },
-                                                    tooltip: {
-                                                        titleFont: {
-                                                            family: 'Didact Gothic',
-                                                            weight: 'normal'
-                                                        },
-                                                        bodyFont: {
-                                                            family: 'Didact Gothic',
-                                                            weight: 'normal'
-                                                        }
-                                                    },
-                                                    datalabels: {
-                                                        color: 'white', // Color blanco para los valores encima de las barras
-                                                        font: {
-                                                            family: 'Didact Gothic',
-                                                            weight: 'normal'
-                                                        },
-                                                        anchor: 'center', // Alinear el valor al centro de la barra
-                                                        align: 'end', // Alinear el valor al centro de la barra
-                                                        formatter: function(value, context) {
-                                                            return value + " \nkWh";
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            plugins: [ChartDataLabels]
-                                        });
-                                    });
-                                </script>
                             </div>
-                            {{-- </div> --}}
-                        </div>
-                    </div>
+                        @endif
                     @endif
-                    @endif
-
-
                 </div>
             </div>
         </div>
