@@ -407,7 +407,7 @@
                                     @foreach($consumoDiario as $resultado)
                                     console.log(@json($resultado));
                                         // Agregar la fecha en formato dd-mm-yy
-                                        labels_fecha.push('{{ $resultado->fec_fin }}');
+                                        labels_fecha.push('{{ $resultado->fec_inicio }}');
                                         // Agregar el valor de energía formateado en kWh
                                         values_ai_d.push({{ $resultado->val_ai_d }});
                                     @endforeach
@@ -507,6 +507,153 @@
                     </div>
                     @endif
                     @endif
+
+
+                    {{-- CUARTA FILA --}}
+                    <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
+                                    <div class="card text-white mb-2 col-span-1 sm:col-span-1 md:col-span-1 lg:col-span-1"
+                                        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                        <!-- Contenido de PL6 -->
+                                        <div class="container ">
+                                            <div class="table-responsive"
+                                                style="display: flex; justify-content: center;">
+                                                <div class="overflow-x-auto w-full">
+                                                    <h1 class="text-center text-2xl" style="color: white;">
+                                                        REGISTROS MENSUALES </h1>
+                                                    <div
+                                                        style="border-bottom: 3px solid transparent;
+                                                border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                    </div>
+                                                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                                                        {{-- FILTRO FECHAS --}}
+                                                        <form
+                                                            action="{{ route('detallesconsumodiariocups', ['id_cups' => $id_cups]) }}"
+                                                            method="GET"
+                                                            class="flex flex-wrap items-center justify-start gap-2 mt-6">
+                                                            {{-- FILTRO FECHAS --}}
+                                                            <input type="hidden" name="id_cups"
+                                                                value="{{ $id_cups }}">
+                                                            <div class="form-group flex items-center">
+                                                                <label for="fecha_inicio"
+                                                                    class="text-white mr-2">Fecha de
+                                                                    inicio:</label>
+                                                                <input type="date" id="fecha_inicio"
+                                                                    name="fecha_inicio"
+                                                                    class="border border-gray-400 p-2 rounded-lg text-white"
+                                                                    @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
+                                                                    max="{{ date('Y-m-d') }}"
+                                                                    style="background-color: transparent;">
+                                                            </div>
+                                                            <div class="form-group flex items-center">
+                                                                <label for="fecha_fin" class="text-white mr-2">Fecha
+                                                                    de
+                                                                    fin:</label>
+                                                                <input type="date" id="fecha_fin" name="fecha_fin"
+                                                                    class="border border-slate-900 p-2 rounded-lg text-white"
+                                                                    @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
+                                                                    max="{{ date('Y-m-d') }}"
+                                                                    style="background-color: transparent;">
+                                                            </div>
+                                                            <button type="submit"
+                                                                class="btn btn-outline-info mb-3 text-white"
+                                                                style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                                                onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                                                onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Filtrar</button>
+                                                        </form>
+                                                    </div>
+                                                    <div class="container">
+                                                        @if (count($consumosTotalesDiarios) > 0)
+                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                                <table id="testTableEventos"
+                                                                    class="w-full text-white text-center  ">
+                                                                    <thead style="border-bottom: 1px solid #ffffff;">
+                                                                        <tr>
+                                                                            <th class="mt-0 text-xl  text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                CONTADOR</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                FECHA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                PERIODO</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                VAL AI D</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                VAL AE D</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                VAL R1 D</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                VAL R2 D</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                VAL R3 D</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194)">
+                                                                                VAL R4 D</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach ($consumosTotalesDiarios as $resultado)
+                                                                            <tr class="highlight-row ">
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->fec_consumo) ? $resultado->fec_consumo : 'No hay datos' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->cod_periodotarifa) ? $resultado->cod_periodotarifa : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->val_ai_d) ? $resultado->val_ai_d : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->val_ae_d) ? $resultado->val_ae_d : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->val_r1_d) ? $resultado->val_r1_d : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->val_r2_d) ? $resultado->val_r2_d : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->val_r3_d) ? $resultado->val_r3_d : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->val_r4_d) ? $resultado->val_r4_d : '0' }}
+                                                                                </td>
+                                                                            </tr>
+                                                                        @endforeach
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        @else
+                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                                <p class="mt-0 text-xl  text-center"
+                                                                    style="color:rgb(88,226,194)">No
+                                                                    hay datos
+                                                                </p>
+                                                            </div>
+                                                        @endif
+                                                        <!-- Contenedor del botón de descarga -->
+                                                        <div class="text-right mt-4">
+                                                            <input type="button"
+                                                                onclick="tableToExcel('testTableEventos', 'W3C Example Table')"
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                                
 
 
                 </div>

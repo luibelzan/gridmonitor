@@ -561,6 +561,7 @@ class CupsController extends Controller
             if ((!is_null($id_cups) && $id_cups !== '')) {
                 $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
                 $consumoDiario = $this->getConsumoDiario($id_cups, $connection, $request);
+                $consumosTotalesDiarios = $this->getConsumosTotalesDiarios($id_cups, $connection, $request);
             } else {
                 // Si no hay valores de búsqueda, no hacer consulta
                 $consumoDiario = [];
@@ -576,6 +577,7 @@ class CupsController extends Controller
                 'nom_cups' => $nom_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
                 'consumoDiario' => $consumoDiario,
+                'consumosTotalesDiarios' => $consumosTotalesDiarios,
             ]);
         }
     }
@@ -1984,30 +1986,72 @@ class CupsController extends Controller
         if (Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
             if ($id_cups) {
                 $consumoDiario = DB::connection($connection)->select("
-                WITH fechas AS (
+                WITH meses AS (
                     SELECT generate_series(
-                        CURRENT_DATE - INTERVAL '1 month',  -- Hace exactamente un mes
-                        CURRENT_DATE,                      -- Hoy
+                        (SELECT MAX(fec_fin) FROM core.t_consumos_diarios) - INTERVAL '1 month',
+                        (SELECT MAX(fec_fin) FROM core.t_consumos_diarios),
                         INTERVAL '1 day'
-                    )::date AS dia
+                    )::date AS mes
                 )
                 SELECT 
-                    f.dia AS fec_fin,
-                    c.fec_consumo,
+					TO_CHAR(c.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
+                    TO_CHAR(m.mes, 'DD/MM/YYYY') AS fec_fin,
                     COALESCE(c.val_ai_d, 0) AS val_ai_d,
                     COALESCE(c.val_ae_d, 0) AS val_ae_d
-                FROM fechas f
-                LEFT JOIN core.t_consumos_totales_diarios c 
-                    ON c.fec_consumo = f.dia
-                    AND c.cod_contrato = '1'
-                    AND c.cod_periodotarifa = '0'
-                    AND c.id_cups = :id_cups
-                ORDER BY f.dia ASC;
+                FROM meses m
+                LEFT JOIN core.t_consumos_diarios c 
+                    ON c.fec_fin = m.mes
+                    AND c.id_cups LIKE :id_cups
+                ORDER BY m.mes ASC;
 
 
                 ", bindings: ['id_cups' => "%$id_cups%"]);
 
                 return $consumoDiario ?: [];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        }
+    }
+
+    public function getConsumosTotalesDiarios($id_cups, $connection, Request $request) {
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if(Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
+            if($id_cups) {
+                $query = "
+                    SELECT id_cups, TO_CHAR(fec_consumo, 'DD/MM/YYYY') as fec_consumo,
+                    cod_periodotarifa, val_ai_d, val_ae_d, val_r1_d, val_r2_d, val_r3_d, val_r4_d
+                    FROM core.t_consumos_totales_diarios
+                    WHERE id_cups LIKE :id_cups";
+
+                    if($fecha_fin) {
+                        $query .= "
+                            AND fec_consumo::DATE <= :fecha_fin";
+                            $params = ['id_cups' => "%$id_cups%", 'fecha_fin' => $fecha_fin];
+                    } else if($fecha_inicio) {
+                        $query .= "
+                            AND fec_consumo::DATE >= :fecha_inicio
+                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio];
+                    } else if($fecha_fin && $fecha_inicio) {
+                        $query .= "
+                        AND fec_consumo::DATE <= :fecha_fin
+                        AND fec_consumo::DATE >= :fecha_inicio
+                        ORDER BY fec_consumo::DATE ASC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                    } 
+                    else {
+                        $query .= "
+                            ORDER BY fec_consumo::DATE DESC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%"];
+                    }
+
+                    $consumosTotalesDiarios = DB::connection($connection)->select($query, $params);
+
+                    return $consumosTotalesDiarios ?: [];
             } else {
                 return ['message' => 'No hay datos'];
             }
