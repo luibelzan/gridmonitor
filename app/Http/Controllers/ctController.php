@@ -2936,27 +2936,26 @@ public function consultaVeintidos($id_ct, $connection)
                         LEFT JOIN (
                             SELECT id_cups, COUNT(fec_evento) AS apagones
                             FROM core.v_apagones
-                            WHERE 1 = 1"; // Iniciar con WHERE siempre verdadero para facilitar construcción de condiciones adicionales
+                            WHERE 1 = 1 "; // Iniciar con WHERE siempre verdadero para facilitar construcción de condiciones adicionales
 
 
 
 
                 // Añadir filtro de fecha por defecto (últimos 30 días) si no se especifica en el formulario
-                if ($fecha_inicio) {
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
+                        AND fec_evento <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
+                } else if($fecha_fin) {
+                    $query .= "AND fec_evento <= :fecha_fin";
+                    $params['fecha_fin'] = $fecha_fin;
                 } else {
                     $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
                 }
-
-
-
-
-                if ($fecha_fin) {
-                    $query .= " AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                }
-
 
 
 
@@ -2966,24 +2965,24 @@ public function consultaVeintidos($id_ct, $connection)
                         LEFT JOIN (
                             SELECT id_cups, COUNT(fec_evento) AS sobrevoltajes
                             FROM core.v_sobre_voltajes
-                            WHERE 1 = 1";
+                            WHERE 1 = 1 ";
 
 
 
 
-                if ($fecha_inicio) {
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fec_evento >= :fecha_inicio
+                            AND fec_evento <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
+                } else if($fecha_fin) {
+                    $query .= "AND fec_evento <= :fecha_fin";
+                    $params['fecha_fin'] = $fecha_fin;
                 } else {
                     $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                if ($fecha_fin) {
-                    $query .= " AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
                 }
 
 
@@ -2995,24 +2994,21 @@ public function consultaVeintidos($id_ct, $connection)
                         LEFT JOIN (
                             SELECT id_cups, COUNT(fec_evento) AS sub_voltajes
                             FROM core.v_sub_voltajes
-                            WHERE 1 = 1";
+                            WHERE 1 = 1 ";
 
-
-
-
-                if ($fecha_inicio) {
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fec_evento >= :fecha_inicio
+                        AND fec_evento <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
+                } else if($fecha_fin) {
+                    $query .= "AND fec_evento <= :fecha_fin";
+                    $params['fecha_fin'] = $fecha_fin;
                 } else {
                     $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                if ($fecha_fin) {
-                    $query .= " AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
                 }
 
 
@@ -3024,24 +3020,24 @@ public function consultaVeintidos($id_ct, $connection)
                         LEFT JOIN (
                             SELECT id_cups, COUNT(fec_evento) AS micro_cortes
                             FROM core.v_micro_cortes
-                            WHERE 1 = 1";
+                            WHERE 1 = 1 ";
 
 
 
 
-                if ($fecha_inicio) {
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fec_evento >= :fecha_inicio
+                        AND fec_evento <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
+                } else if($fecha_fin) {
+                    $query .= "AND fec_evento <= :fecha_fin";
+                    $params['fecha_fin'] = $fecha_fin;
                 } else {
                     $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                if ($fecha_fin) {
-                    $query .= " AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
                 }
 
 
@@ -3059,7 +3055,7 @@ public function consultaVeintidos($id_ct, $connection)
 
                 // Ejecutar la consulta
                 $resultadosQ38 = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ38);
+                //dd($query);
                 return $resultadosQ38 ?: ['message' => 'No hay datos'];
             } else {
                 // Una de las tablas no existe, retornar un mensaje específico 
