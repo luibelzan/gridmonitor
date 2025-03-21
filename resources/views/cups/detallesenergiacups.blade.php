@@ -947,7 +947,7 @@
                                         var values_volt1 = [];
                                         @foreach ($resultadosQ23cups as $key => $resultado)
                                             // Agregar la fecha y hora como etiquetas del eje x
-                                            var dateTime = '{{ $resultado->fec_lectura }} {{ $resultado->hor_lectura }}';
+                                            var dateTime = '{{ $resultado->fec_lectura_texto }} {{ $resultado->hor_lectura }}';
                                             labels_volt1.push(dateTime);
                                             // Agregar el valor de 'tension' como valor del eje y
                                             values_volt1.push({{ $resultado->tension }});
