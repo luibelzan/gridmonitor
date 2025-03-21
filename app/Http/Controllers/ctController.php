@@ -2779,110 +2779,148 @@ public function consultaVeintidos($id_ct, $connection)
 
     // REPORTES CALIDAD
     public function consultaTreintaySiete(Request $request, $connection)
-    {
-        try {
-            if (
-                Schema::connection($connection)->hasTable('t_ct') &&
-                Schema::connection($connection)->hasTable('t_cups')
-            ) {
+{
+    try {
+        if (
+            Schema::connection($connection)->hasTable('t_ct') &&
+            Schema::connection($connection)->hasTable('t_cups')
+        ) {
+            // Obtener las fechas de inicio y fin del request
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
 
+            // Inicializar el array de parámetros
+            $params = [];
 
+            // Construir la consulta SQL con las fechas
+            $query = "
+                SELECT
+                    t.nom_ct,
+                    c.id_cups,
+                    c.nom_cups,
+                    c.dir_cups,
+                    TO_CHAR(MAX(COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento)), 'DD/MM/YYYY') AS fecha,
+                    COALESCE(p.apagones, 0) AS apagones,
+                    COALESCE(s.sobrevoltajes, 0) AS sobrevoltajes,
+                    COALESCE(a.sub_voltajes, 0) AS sub_voltajes,
+                    COALESCE(m.micro_cortes, 0) AS micro_cortes
+                FROM core.t_cups c
+                JOIN core.t_ct t ON c.id_ct = t.id_ct
+                LEFT JOIN (
+                    SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS apagones
+                    FROM core.v_apagones
+                    WHERE 1=1 ";
 
-
-                // Obtener las fechas de inicio y fin del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-
-
-
-
-                // Inicializar el array de parámetros
-                $params = [];
-
-
-
-
-                // Construir la consulta SQL con las fechas
-                $query = "
-                    SELECT
-                        t.nom_ct,
-                        c.id_cups,
-                        c.nom_cups,
-                        c.dir_cups,
-                        TO_CHAR(MAX(COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento)), 'DD/MM/YYYY') AS fecha,
-                        COALESCE(p.apagones, 0) AS apagones,
-                        COALESCE(s.sobrevoltajes, 0) AS sobrevoltajes,
-                        COALESCE(a.sub_voltajes, 0) AS sub_voltajes,
-                        COALESCE(m.micro_cortes, 0) AS micro_cortes
-                    FROM core.t_cups c
-                    JOIN core.t_ct t ON c.id_ct = t.id_ct
-                    LEFT JOIN (
-                        SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS apagones
-                        FROM core.v_apagones
-                        GROUP BY id_cups
-                    ) p ON c.id_cups = p.id_cups
-                    LEFT JOIN (
-                        SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sobrevoltajes
-                        FROM core.v_sobre_voltajes
-                        GROUP BY id_cups
-                    ) s ON c.id_cups = s.id_cups
-                    LEFT JOIN (
-                        SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sub_voltajes
-                        FROM core.v_sub_voltajes
-                        GROUP BY id_cups
-                    ) a ON c.id_cups = a.id_cups
-                    LEFT JOIN (
-                        SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS micro_cortes
-                        FROM core.v_micro_cortes
-                        GROUP BY id_cups
-                    ) m ON c.id_cups = m.id_cups
-                    WHERE 1=1
-                ";
-
-
-
-
-                // Añadir condiciones de fecha si están presentes
-                if ($fecha_inicio) {
-                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } else {
-                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                if ($fecha_fin) {
-                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                }
-
-
-
-
-                // Añadir la cláusula GROUP BY
-                $query .= "
-                    GROUP BY c.id_cups, t.nom_ct, c.nom_cups, p.apagones, s.sobrevoltajes, a.sub_voltajes, m.micro_cortes
-                    ORDER BY MAX(COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento)) DESC
-                ";
-
-
-
-
-                // Ejecutar la consulta
-                $resultadosQ37 = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ37);
-                return $resultadosQ37 ?: ['message' => 'No hay datos'];
+            // Agregar filtro de fechas para apagones
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "AND fec_evento >= :fecha_inicio
+                            AND fec_evento <= :fecha_fin ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else if ($fecha_inicio) {
+                $query .= " AND fec_evento >= :fecha_inicio ";
+                $params['fecha_inicio'] = $fecha_inicio;
+            } else if ($fecha_fin) {
+                $query .= " AND fec_evento <= :fecha_fin ";
+                $params['fecha_fin'] = $fecha_fin;
             } else {
-                // Una de las tablas no existe, retornar un mensaje específico 
-                return ['message' => 'No hay datos'];
+                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
             }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'No hay datos'];
+
+            $query .= "GROUP BY id_cups) p ON c.id_cups = p.id_cups";
+
+            // Hacer lo mismo para las otras subconsultas (sobrevoltajes, sub_voltajes, micro_cortes)
+            $query .= "
+                LEFT JOIN (
+                    SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sobrevoltajes
+                    FROM core.v_sobre_voltajes
+                    WHERE 1=1 ";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "AND fec_evento >= :fecha_inicio
+                            AND fec_evento <= :fecha_fin ";
+            } else if ($fecha_inicio) {
+                $query .= " AND fec_evento >= :fecha_inicio ";
+            } else if ($fecha_fin) {
+                $query .= " AND fec_evento <= :fecha_fin ";
+            } else {
+                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+            }
+
+            $query .= "GROUP BY id_cups) s ON c.id_cups = s.id_cups";
+
+            $query .= "
+                LEFT JOIN (
+                    SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sub_voltajes
+                    FROM core.v_sub_voltajes
+                    WHERE 1=1 ";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "AND fec_evento >= :fecha_inicio
+                            AND fec_evento <= :fecha_fin ";
+            } else if ($fecha_inicio) {
+                $query .= " AND fec_evento >= :fecha_inicio ";
+            } else if ($fecha_fin) {
+                $query .= " AND fec_evento <= :fecha_fin ";
+            } else {
+                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+            }
+
+            $query .= "GROUP BY id_cups) a ON c.id_cups = a.id_cups";
+
+            $query .= "
+                LEFT JOIN (
+                    SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS micro_cortes
+                    FROM core.v_micro_cortes
+                    WHERE 1=1 ";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "AND fec_evento >= :fecha_inicio
+                            AND fec_evento <= :fecha_fin ";
+            } else if ($fecha_inicio) {
+                $query .= " AND fec_evento >= :fecha_inicio ";
+            } else if ($fecha_fin) {
+                $query .= " AND fec_evento <= :fecha_fin ";
+            } else {
+                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+            }
+
+            $query .= "GROUP BY id_cups) m ON c.id_cups = m.id_cups";
+
+            // Filtro de fechas en la consulta principal
+            $query .= " WHERE 1=1 ";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio
+                            AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else if ($fecha_inicio) {
+                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio ";
+                $params['fecha_inicio'] = $fecha_inicio;
+            } else if ($fecha_fin) {
+                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= NOW() - INTERVAL '30 days' ";
+            }
+
+            // Añadir la cláusula GROUP BY y ORDER BY
+            $query .= "
+                GROUP BY c.id_cups, t.nom_ct, c.nom_cups, p.apagones, s.sobrevoltajes, a.sub_voltajes, m.micro_cortes
+                ORDER BY MAX(COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento)) DESC
+            ";
+
+            // Ejecutar la consulta
+            $resultadosQ37 = DB::connection($connection)->select($query, $params);
+            //dd($resultadosQ37);  // Para depurar la consulta generada
+            return $resultadosQ37 ?: ['message' => 'No hay datos'];
         }
+    } catch (\Exception $e) {
+        return ['error' => $e->getMessage()];
     }
+}
+
 
 
 
