@@ -1862,7 +1862,7 @@ class CupsController extends Controller
                 $resultadosQ23cups = DB::connection($connection)
                     ->select("
                     SELECT 
-                        TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura,  -- Formatea la fecha
+                        TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura_texto,  -- Formatea la fecha como texto
                         hor_lectura, 
                         l1v AS tension
                     FROM (
@@ -1876,7 +1876,8 @@ class CupsController extends Controller
                         ORDER BY fec_lectura DESC, hor_lectura DESC  -- Limita a los 100 más recientes
                         LIMIT 100
                     ) AS subquery
-                    ORDER BY fec_lectura ASC, hor_lectura ASC;", ['id_cups' => $id_cups]);
+                    ORDER BY fec_lectura::DATE ASC, hor_lectura ASC;
+", ['id_cups' => $id_cups]);
                 // dd($resultadosQ23cups);
                 return $resultadosQ23cups ?: [];
             }
