@@ -75,7 +75,7 @@ Route::get('/reportes', [ctController::class, 'reportes'])->name('reportes');
 Route::get('/reportescalidad', [ctController::class, 'reportescalidad'])->name('reportescalidad');
 Route::get('/reportesinventario', [ctController::class, 'reportesinventario'])->name('reportesinventario');
 Route::get('/reportescurvashorarias', [ctController::class, 'reportescurvashorarias'])->name('reportescurvashorarias');
-
+Route::get('/reporteseventos', [ctController::class, 'reporteseventos'])->name('reporteseventos');
 
 //*********************************
 //***********PUNTO FRONTERA*********
