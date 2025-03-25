@@ -797,6 +797,9 @@
                                                                             <tr>
                                                                                 <th class="mt-0 text-xl  text-center"
                                                                                     style="color:rgb(88,226,194)">
+                                                                                    ID CUP</th>
+                                                                                <th class="mt-0 text-xl  text-center"
+                                                                                    style="color:rgb(88,226,194)">
                                                                                     CONTADOR</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
@@ -818,6 +821,9 @@
                                                                         <tbody>
                                                                             @foreach ($reporteseventos as $resultado)
                                                                                 <tr class="highlight-row ">
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                                                    </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
                                                                                     </td>
