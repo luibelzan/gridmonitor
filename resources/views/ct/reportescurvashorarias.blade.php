@@ -358,6 +358,8 @@
                             active-color="rgb(88, 226, 194)">Inventario</a>
                         <a href="{{ route('reportescurvashorarias') }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194)">Control</a>
+                        <a href="{{ route('reporteseventos') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Eventos</a>
                         <span class="nav-indicator"></span>
                     </nav>
                     <h1 class="text-center text-3xl w-full" style="color: white;">REPORTES DE CONTROL</h1>
