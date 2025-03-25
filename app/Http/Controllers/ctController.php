@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 
 
@@ -4501,6 +4503,7 @@ public function consultaVeintidos($id_ct, $connection)
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
                 $descripcion = $request->input('descripcion');
+                
     
                 $params = [];
                 $query = "
@@ -4547,9 +4550,19 @@ public function consultaVeintidos($id_ct, $connection)
     
                 // Ejecutar la consulta con los parámetros correctos
                 $reporteseventos = DB::connection($connection)->select($query, $params);
-    
-                // Depuración: Ver la consulta generada
-                //dd($query, $params);
+                
+                $reporteseventosCollection = new Collection($reporteseventos);
+                // Obtener la página actual
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 10; // Número de elementos por página
+                $currentItems = $reporteseventosCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                $reporteseventos = new LengthAwarePaginator($currentItems, count($reporteseventosCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
     
                 return $reporteseventos ?: ['message' => 'No hay datos'];
             } else {
