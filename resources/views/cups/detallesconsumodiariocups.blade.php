@@ -519,7 +519,7 @@
                                                 style="display: flex; justify-content: center;">
                                                 <div class="overflow-x-auto w-full">
                                                     <h1 class="text-center text-2xl" style="color: white;">
-                                                        REGISTROS MENSUALES </h1>
+                                                        REGISTROS DIARIOS </h1>
                                                     <div
                                                         style="border-bottom: 3px solid transparent;
                                                 border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
