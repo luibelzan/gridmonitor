@@ -753,6 +753,49 @@ class ctController extends Controller
         }
     }
 
+    public function reporteseventos(Request $request) {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            // Si no está autenticado, redirigir a la página de inicio de sesión
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+
+
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'reporteseventos');
+
+
+
+
+        // Obtener la conexión dinámica
+        $connection = User::conexion();
+
+
+
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es PostgreSQL, retornar una vista específica para admin
+            return view('admin/admin');
+        } else {
+            // Obtener los datos de todos los CTs
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_balance')->get();
+
+            $reporteseventos = $this->getAllReportesEventos($request, $connection);
+            $numeroeventos = $this->getNumEventos($request, $connection);
+            //$eventosByDescription = $this-> getEventosByDescription($request, $connection);
+
+            // Pasar los datos de los CTs y los resultados de las consultas a la vista
+            return view('reportes/reporteseventos', [
+                'ct_info' => $ct_info,
+                'reporteseventos' => $reporteseventos,
+                'numeroeventos' => $numeroeventos,
+                //'eventosByDescription'=> $eventosByDescription,
+
+            ]);
+    }
+}
 
 
     //CONSULTAS -------------------------------------------
@@ -4387,10 +4430,136 @@ public function consultaVeintidos($id_ct, $connection)
             return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
-    
-    
-    
 
+
+
+    public function getNumEventos(Request $request, $connection) {
+        try {
+            // Verificar que las tablas existen
+            if (
+                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
+                Schema::connection($connection)->hasTable('t_cups')
+            ) {
+                // Obtener las fechas de inicio y fin del request, si están presentes
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $descripcion = $request->input('descripcion');
+
+                $params = [];
+    
+                // Construir la consulta SQL
+                $query = "
+                    SELECT COUNT(*) as total_eventos
+                    FROM core.t_eventos_contador
+                    JOIN core.t_descripcion_eventos_contador 
+                        ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+                        AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+                    WHERE 1=1 
+                ";
+
+                // Agregar filtro por descripción si existe
+                if (!empty($descripcion)) {
+                    $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion ";
+                    $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
+                } 
+                if($fecha_inicio) {
+                    $query .= "
+                        AND t_eventos_contador.fec_evento >= :fecha_inicio ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                }
+                if($fecha_fin) {
+                    $query .= "
+                    AND t_eventos_contador.fec_evento <= :fecha_fin ;";   
+                    $params['fecha_fin'] = $fecha_fin;   
+                } 
+    
+                // Ejecutar la consulta con los parámetros
+                $numeroeventos = DB::connection($connection)->select($query, $params);
+                //dd($query);
+                // Retornar los resultados, o un mensaje si no hay datos
+                return $numeroeventos ?: ['message' => 'No hay datos'];
+            } else {
+                // Si alguna tabla no existe, retornar un mensaje de error
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+
+
+    public function getAllReportesEventos(Request $request, $connection) {
+        try {
+            // Verificar que las tablas existen
+            if (
+                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
+                Schema::connection($connection)->hasTable('t_cups')
+            ) {
+                // Obtener los parámetros del request
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $descripcion = $request->input('descripcion');
+    
+                $params = [];
+                $query = "
+                    SELECT
+                        t_eventos_contador.id_cups,
+                        t_eventos_contador.id_cnt,
+                        TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
+                        t_eventos_contador.hor_evento,
+                        t_eventos_contador.txt_adicionales_1,
+                        t_eventos_contador.txt_adicionales_2,
+                        t_descripcion_eventos_contador.des_evento_contador
+                    FROM core.t_eventos_contador
+                    JOIN core.t_descripcion_eventos_contador 
+                        ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+                        AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+                    WHERE 1=1 
+                ";
+    
+                // Agregar filtro por descripción si existe
+                if (!empty($descripcion)) {
+                    $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion";
+                    $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
+                }
+    
+                // Agregar filtros de fecha
+                if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+                    $query .= " AND t_eventos_contador.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } elseif (!empty($fecha_inicio)) {
+                    $query .= " AND t_eventos_contador.fec_evento >= :fecha_inicio";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } elseif (!empty($fecha_fin)) {
+                    $query .= " AND t_eventos_contador.fec_evento <= :fecha_fin";
+                    $params['fecha_fin'] = $fecha_fin;
+                }
+                
+                if(empty($fecha_fin) && empty($fecha_inicio)) {
+                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 100;";
+                } else {
+                    // Agregar orden y límite
+                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
+                }
+    
+                // Ejecutar la consulta con los parámetros correctos
+                $reporteseventos = DB::connection($connection)->select($query, $params);
+    
+                // Depuración: Ver la consulta generada
+                //dd($query, $params);
+    
+                return $reporteseventos ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+    
     
     
 
