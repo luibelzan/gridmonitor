@@ -648,9 +648,6 @@
                 content: contenido
             });
         });
-
-        console.log(@json($reporteseventos));
-        console.log(@json($numeroeventos));
     </script>
     <title>Eventos</title>
 </head>
@@ -843,6 +840,10 @@
                                                                             @endforeach
                                                                         </tbody>
                                                                     </table>
+                                                                </div>
+                                                                {{-- Paginación --}}
+                                                                <div class="mt-4 flex justify-center">
+                                                                    {{ $reporteseventos->links() }}
                                                                 </div>
                                                             @else
                                                                 <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
