@@ -797,7 +797,7 @@
                                                                             <tr>
                                                                                 <th class="mt-0 text-xl  text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    ID CUP</th>
+                                                                                    ID CUPS</th>
                                                                                 <th class="mt-0 text-xl  text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     CONTADOR</th>
