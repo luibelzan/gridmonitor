@@ -304,7 +304,7 @@
                             active-color="rgb(88, 226, 194">Información</a>
                         <a href="{{ route('detallescurvashorariascups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Curvas Horarias</a>
-                        <a href="{{ route('consumodiariocups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                        <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Consumos Diarios</a>
                         <a href="{{ route('detallesenergiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194">Calidad Energía</a>
