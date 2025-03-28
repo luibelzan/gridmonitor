@@ -787,6 +787,7 @@
             link.click();
             document.body.removeChild(link);
         }
+        console.log(@json($sumBalances));
     </script>
 
 
@@ -1416,13 +1417,100 @@
                                         </div>
 
 
+                                        {{-- TERCERA FILA --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                                            <div class="card text-white  mb-2"
+                                                style="
+                                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                <div class="overflow-x-auto">
+
+
+                                                    <div class="container">
+                                                        <h1 class="text-center text-3xl w-full" style="color: white;">DETALLES CONSUMOS POR CUPS</h1>
+                                                        <h1 class="text-center text-3xl w-full" style="color: white;">
+                                                            @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
+                                                                Del
+                                                                {{ \Carbon\Carbon::parse(request()->query('fecha_inicio'))->format('d/m/Y') }}
+                                                                al
+                                                                {{ \Carbon\Carbon::parse(request()->query('fecha_fin'))->format('d/m/Y') }}
+                                                            @else
+                                                                {{ !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : 'No hay datos' }}
+                                                            @endif
+                                                        </h1>
+                                                        @if (count($sumBalances) > 0)
+                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                                <table id="testTableBalancesCt"
+                                                                    class="w-full text-white text-center">
+                                                                    <thead style="border-bottom: 1px solid #ffffff;">
+                                                                        <tr>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                CUPS</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                CONTADOR</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                NOMBRE</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                ENERGIA IMPORTADA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                ENERGIA EXPORTADA</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @foreach ($sumBalances as $resultado)
+                                                                            <tr class="highlight-row ">
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->total_val_ai_d) ? $resultado->total_val_ai_d : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->total_val_ae_d) ? $resultado->total_val_ae_d : '0' }}
+                                                                                </td>
+                                                                            </tr>
+                                                                        @endforeach
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        @else
+                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                                <p class="mt-0 text-xl  text-center"
+                                                                    style="color:rgb(88,226,194)">No hay
+                                                                    datos
+                                                                </p>
+                                                            </div>
+                                                        @endif
+                                                        <!-- Contenedor del botón de descarga -->
+                                                        <div class="text-right mt-4">
+                                                            <input type="button"
+                                                                onclick="tableToExcel('testTableBalancesCt', 'W3C Example Table')"
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
 
 
 
 
 
-                                        {{-- tercera FILA --}}
+
+
+                                        {{-- CUARTA FILA --}}
                                         <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
                                             <div class="card text-white  mb-2"
                                                 style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">

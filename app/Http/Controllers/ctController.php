@@ -460,12 +460,12 @@ class ctController extends Controller
 
 
 
-
             $resultadosQ25 = $this->consultaVeintiCinco($id_ct, $connection, $request);
             $resultadosQ2 = $this->consultaDos($id_ct, $connection);
             $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
+            $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
             $resultadosQ27 = $this->consultaVeintiSiete($id_ct, $connection, $request);
-
+            $sumBalances = $this->getSumBalances($id_ct, $request, $connection, $fecha);
 
 
 
@@ -482,6 +482,7 @@ class ctController extends Controller
                 'resultadosQ27' => $resultadosQ27,
                 'selected_ct' => $id_ct,
                 'id_ct' => $id_ct,
+                'sumBalances' => $sumBalances,
             ]);
         }
     }
@@ -4569,6 +4570,52 @@ public function consultaVeintidos($id_ct, $connection)
                 return ['message' => 'No hay datos'];
             }
         } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+
+    public function getSumBalances($id_ct, Request $request, $connection, $fecha) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_cups') &&
+                Schema::connection($connection)->hasTable('t_consumos_diarios')) {
+                    $fecha_inicio = $request->input('fecha_inicio');
+                    $fecha_fin = $request->input('fecha_fin');
+
+                    $params = [];
+                    $query = "
+                    SELECT 
+                        c.nom_cups,
+                        c.id_cnt,
+                        d.id_cups,
+                        SUM(d.val_ai_d) AS total_val_ai_d,
+                        SUM(d.val_ae_d) AS total_val_ae_d
+                    FROM core.t_consumos_diarios d
+                    JOIN core.t_cups c ON d.id_cups = c.id_cups
+                    WHERE c.id_ct = :id_ct
+                    ";
+
+                    $params['id_ct'] = $id_ct;
+
+                    if($fecha_inicio && $fecha_fin) {
+                        $query .= " AND d.fec_inicio >= :fecha_inicio
+                        AND d.fec_inicio <= :fecha_fin ";
+                        $params['fecha_inicio'] = $fecha_inicio;
+                        $params['fecha_fin'] = $fecha_fin;
+                    } else {
+                        $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+                        $query .= " AND d.fec_inicio = :fecha ";
+                        $params['fecha'] = $fecha;
+                    }
+
+                    $query .= "GROUP BY d.id_cups, c.id_cnt, c.nom_cups
+                    ORDER BY d.id_cups;";
+
+                    $sumBalances = DB::connection($connection)->select($query, $params);
+
+                    return $sumBalances ?: ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
             return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
