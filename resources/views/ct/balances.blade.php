@@ -1465,19 +1465,34 @@
                                                                         @foreach ($sumBalances as $resultado)
                                                                             <tr class="highlight-row ">
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                                                    <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                                    style="text-decoration: none; color: inherit;">
+                                                                                    {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}</a>
                                                                                 </td>
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : '0' }}
+                                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                                    style="text-decoration: none; color: inherit;">
+                                                                                    {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : '0' }}</a>
                                                                                 </td>
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : '0' }}
+                                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                                    style="text-decoration: none; color: inherit;">
+                                                                                    {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : '0' }}</a>
                                                                                 </td>
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->total_val_ai_d) ? $resultado->total_val_ai_d : '0' }}
+                                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                                    style="text-decoration: none; color: inherit;">
+                                                                                    {{ !empty($resultado->total_val_ai_d) ? $resultado->total_val_ai_d : '0' }}</a>
                                                                                 </td>
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->total_val_ae_d) ? $resultado->total_val_ae_d : '0' }}
+                                                                                <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}"
+                                                                                    data-id="{{ $resultado->id_cups }}"
+                                                                                    style="text-decoration: none; color: inherit;">
+                                                                                    {{ !empty($resultado->total_val_ae_d) ? $resultado->total_val_ae_d : '0' }}</a>
                                                                                 </td>
                                                                             </tr>
                                                                         @endforeach
