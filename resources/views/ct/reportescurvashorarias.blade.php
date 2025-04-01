@@ -419,35 +419,62 @@
                                              border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-2">
-                                        {{-- FILTRO FECHAS --}}
-                                        <form action="{{ route('reportescurvashorarias') }}"
-                                            method="GET" class="flex flex-wrap items-center justify-start gap-2 mt-6 ml-6">
-                                            {{-- FILTRO FECHAS --}}
+                                    <div class="grid grid-cols-1 gap-6 mb-2">
+                                    {{-- FILTRO FECHAS --}}
+                                    <form action="{{ route('reportescurvashorarias') }}" method="GET" class="flex flex-col gap-4 p-4">
+                                        <div class="flex flex-nowrap md:grid-cols-2 gap-4 items-center">
+                                            {{-- Fecha inicio --}}
                                             <div class="form-group flex items-center">
-                                                <label for="fecha_inicio" class="text-white mr-2">Fecha de
-                                                    inicio:</label>
+                                                <label for="fecha_inicio" class="text-white mr-2">Fecha de inicio:</label>
                                                 <input type="date" id="fecha_inicio" name="fecha_inicio"
                                                     class="border border-gray-400 p-2 rounded-lg text-white"
                                                     @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
                                                     max="{{ date('Y-m-d') }}" style="background-color: transparent;">
                                             </div>
+                                            {{-- Fecha fin --}}
                                             <div class="form-group flex items-center">
-                                                <label for="fecha_fin" class="text-white mr-2">Fecha de
-                                                    fin:</label>
+                                                <label for="fecha_fin" class="text-white mr-2">Fecha de fin:</label>
                                                 <input type="date" id="fecha_fin" name="fecha_fin"
-                                                    class="border border-slate-900 p-2 rounded-lg text-white"
+                                                    class="border border-gray-400 p-2 rounded-lg text-white"
                                                     @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
                                                     max="{{ date('Y-m-d') }}" style="background-color: transparent;">
-                                            </div> {{-- BUSCADOR --}}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
+                                            {{-- Buscador por CT --}}
                                             <div class="form-group">
-                                                
-                                            </div> <button type="submit" class="btn btn-outline-info mb-3 text-white"
+                                                <input type='text' name='ct' placeholder='Buscar por CT'
+                                                    class='border p-2 rounded-md w-full text-white'
+                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                    @if (isset($_GET['ct'])) value="{{ $_GET['ct'] }}" @endif>
+                                            </div>
+                                            {{-- Buscador por CUPS --}}
+                                            <div class="form-group">
+                                                <input type='text' name='cups' placeholder='Buscar por CUPS'
+                                                    class='border p-2 rounded-md w-full text-white'
+                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                    @if (isset($_GET['cups'])) value="{{ $_GET['cups'] }}" @endif>
+                                            </div>
+                                            {{-- Buscador por Nombre --}}
+                                            <div class="form-group">
+                                                <input type='text' name='nombre' placeholder='Buscar por Nombre'
+                                                    class='border p-2 rounded-md w-full text-white'
+                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                    @if (isset($_GET['nombre'])) value="{{ $_GET['nombre'] }}" @endif>
+                                            </div>
+
+                                            <div class="form-group">
+                                            <button type="submit" class="btn btn-outline-info text-white px-4 py-2 rounded-lg"
                                                 style="background-color: transparent; border-color: rgb(255, 255, 255);"
                                                 onmouseover="this.style.borderColor='rgb(88,226,194)'"
                                                 onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Buscar</button>
-                                        </form>
-                                    </div>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                </div>
+
 
 
                                     <!-- Cuadrado para Contadores no leídos -->
