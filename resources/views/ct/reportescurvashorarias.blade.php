@@ -315,6 +315,7 @@
             link.click();
             document.body.removeChild(link);
         }
+        console.log(@json($resultadosQ58));
     </script>
     <title>Reportes CT</title>
 </head>
@@ -444,24 +445,24 @@
                                         <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
                                             {{-- Buscador por CT --}}
                                             <div class="form-group">
-                                                <input type='text' name='ct' placeholder='Buscar por CT'
+                                                <input type='text' name='id_ct' placeholder='Buscar por CT'
                                                     class='border p-2 rounded-md w-full text-white'
                                                     style='background-color: transparent; border-color: rgb(255, 255, 255);'
-                                                    @if (isset($_GET['ct'])) value="{{ $_GET['ct'] }}" @endif>
+                                                    @if (isset($_GET['id_ct'])) value="{{ $_GET['id_ct'] }}" @endif>
                                             </div>
                                             {{-- Buscador por CUPS --}}
                                             <div class="form-group">
-                                                <input type='text' name='cups' placeholder='Buscar por CUPS'
+                                                <input type='text' name='id_cups' placeholder='Buscar por CUPS'
                                                     class='border p-2 rounded-md w-full text-white'
                                                     style='background-color: transparent; border-color: rgb(255, 255, 255);'
-                                                    @if (isset($_GET['cups'])) value="{{ $_GET['cups'] }}" @endif>
+                                                    @if (isset($_GET['id_cups'])) value="{{ $_GET['id_cups'] }}" @endif>
                                             </div>
                                             {{-- Buscador por Nombre --}}
                                             <div class="form-group">
-                                                <input type='text' name='nombre' placeholder='Buscar por Nombre'
+                                                <input type='text' name='nom_cups' placeholder='Buscar por Nombre'
                                                     class='border p-2 rounded-md w-full text-white'
                                                     style='background-color: transparent; border-color: rgb(255, 255, 255);'
-                                                    @if (isset($_GET['nombre'])) value="{{ $_GET['nombre'] }}" @endif>
+                                                    @if (isset($_GET['nom_cups'])) value="{{ $_GET['nom_cups'] }}" @endif>
                                             </div>
 
                                             <div class="form-group">
