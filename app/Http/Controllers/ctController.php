@@ -4350,6 +4350,9 @@ public function consultaVeintidos($id_ct, $connection)
                 // Obtener las fechas de inicio y fin del request, si están presentes
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
+                $id_cups = $request->input('id_cups');
+                $nom_cups = $request->input('nom_cups');
     
                 // Si no hay fechas, establecer fechas predeterminadas (últimos 30 días)
                 if (!$fecha_inicio || !$fecha_fin) {
@@ -4360,7 +4363,7 @@ public function consultaVeintidos($id_ct, $connection)
                 // Inicializar array de parámetros
                 $params = [
                     'fecha_inicio' => $fecha_inicio,
-                    'fecha_fin' => $fecha_fin
+                    'fecha_fin' => $fecha_fin,
                 ];
     
                 // Construir la consulta SQL
@@ -4379,13 +4382,28 @@ public function consultaVeintidos($id_ct, $connection)
                             core.t_cups cups
                         JOIN
                             core.t_ct ct ON cups.id_ct = ct.id_ct
-                        WHERE 1 = 1
+                        WHERE 1 = 1 
+                        ";
+
+                if($id_cups) {
+                    $query .= " AND LOWER(cups.id_cups) = LOWER(:id_cups) ";
+                    $params['id_cups'] = $id_cups;
+                } else if($id_ct) {
+                    $query .= " AND LOWER(cups.id_ct) = LOWER(:id_ct) ";
+                    $params['id_ct'] = $id_ct;
+                } else if($nom_cups) {
+                    $nom_cups = $nom_cups ? (string) $nom_cups : null;
+                    $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
+                    $params['nom_cups'] = $nom_cups;
+                }
+                            
+                $query .= "
                     ),
                     consumos_data AS (
                         SELECT
                             id_cups,
-                            MIN(fec_inicio) AS fec_inicio,  -- Fecha de inicio más antigua
-                            MAX(fec_fin) AS fec_fin,         -- Fecha de fin más reciente
+                            MIN(fec_inicio) AS fec_inicio,
+                            MAX(fec_fin) AS fec_fin,
                             COUNT(hor_fin) AS curvas_leidas,
                             ROUND(SUM(val_ai_h) / 1000, 2) AS total_curva_imp,
                             ROUND(SUM(val_ae_h) / 1000, 2) AS total_curva_exp,
@@ -4405,8 +4423,8 @@ public function consultaVeintidos($id_ct, $connection)
                         cd.id_cnt,
                         cd.ind_autoconsumo,
                         cd.nom_ct,
-                        TO_CHAR(co.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,  -- Formatear la fecha de inicio
-                        TO_CHAR(co.fec_fin, 'DD/MM/YYYY') AS fec_fin,        -- Formatear la fecha de fin
+                        TO_CHAR(co.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
+                        TO_CHAR(co.fec_fin, 'DD/MM/YYYY') AS fec_fin,
                         co.total_curva_imp,
                         co.total_curva_exp,
                         co.curvas_leidas,
@@ -4416,7 +4434,8 @@ public function consultaVeintidos($id_ct, $connection)
                     LEFT JOIN
                         consumos_data co ON cd.id_cups = co.id_cups
                     ORDER BY
-                        cd.id_cups ASC
+                        cd.id_cups ASC;
+
                 ";
     
                 // Ejecutar la consulta con los parámetros
