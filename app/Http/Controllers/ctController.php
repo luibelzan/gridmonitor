@@ -4387,14 +4387,14 @@ public function consultaVeintidos($id_ct, $connection)
 
                 if($id_cups) {
                     $query .= " AND LOWER(cups.id_cups) = LOWER(:id_cups) ";
-                    $params['id_cups'] = $id_cups;
+                    $params['id_cups'] = "%{$id_cups}%";
                 } else if($id_ct) {
                     $query .= " AND LOWER(cups.id_ct) = LOWER(:id_ct) ";
-                    $params['id_ct'] = $id_ct;
+                    $params['id_ct'] = "%{$id_ct}%";
                 } else if($nom_cups) {
                     $nom_cups = $nom_cups ? (string) $nom_cups : null;
                     $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
-                    $params['nom_cups'] = $nom_cups;
+                    $params['nom_cups'] = "%{$nom_cups}%";
                 }
                             
                 $query .= "
@@ -4439,10 +4439,24 @@ public function consultaVeintidos($id_ct, $connection)
                 ";
     
                 // Ejecutar la consulta con los parámetros
-                $resultadosQ58 = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ58);
-                // Retornar los resultados, o un mensaje si no hay datos
+                $res = DB::connection($connection)->select($query, $params);
+                
+                $resCollection = new Collection($res);
+                // Obtener la página actual
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 10; // Número de elementos por página
+                $currentItems = $resCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                $resultadosQ58 = new LengthAwarePaginator($currentItems, count($resCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                //dd($resultadosQ58 instanceof LengthAwarePaginator);
+            
                 return $resultadosQ58 ?: ['message' => 'No hay datos'];
+                
             } else {
                 // Si alguna tabla no existe, retornar un mensaje de error
                 return ['message' => 'No hay datos'];
