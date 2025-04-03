@@ -282,40 +282,56 @@
         }
     </style>
     <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function tableToExcel(tableID, worksheetName, allData) {
+    var table = document.getElementById(tableID);
+    var data = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
+               'xmlns:x="urn:schemas-microsoft-com:office:excel" ' +
+               'xmlns="http://www.w3.org/TR/REC-html40">' +
+               '<head><meta charset="UTF-8"></head><body><table border="1">';
+
+    // Encabezados de la tabla
+    var headers = [];
+    if (table.rows.length > 0) {
+        var headerCells = table.rows[0].cells;
+        for (var i = 0; i < headerCells.length; i++) {
+            headers.push(headerCells[i].innerText);
         }
-        console.log(@json($resultadosQ58));
+        data += "<tr><th>" + headers.join("</th><th>") + "</th></tr>";
+    }
+
+    // Si hay datos externos (allData), los usamos en lugar de la tabla visible
+    if (allData && allData.length > 0) {
+        allData.forEach(row => {
+            data += "<tr><td>" + Object.values(row).join("</td><td>") + "</td></tr>";
+        });
+    } else {
+        // Exportar solo la tabla visible
+        for (var i = 1; i < table.rows.length; i++) { // Saltamos la fila de encabezado
+            var rowData = [];
+            for (var j = 0; j < table.rows[i].cells.length; j++) {
+                rowData.push(table.rows[i].cells[j].innerText);
+            }
+            data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
+        }
+    }
+
+    data += "</table></body></html>";
+
+    // Crear un archivo Excel con formato correcto
+    var blob = new Blob([data], { type: "application/vnd.ms-excel;charset=UTF-8" });
+    var link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "exportacion_excel.xls";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+    var datosPaginados = @json($exportCurvasHorarias); 
+
+    // Llamar a la función con datos completos
+    function exportarExcel() {
+        tableToExcel('testTableCurvashorarias', 'W3C Example Table', datosPaginados);
+    }
     </script>
     <title>Reportes CT</title>
 </head>
@@ -575,7 +591,7 @@
                                     <!-- Contenedor del botón de descarga -->
                                     <div class="text-right mt-4">
                                         <input type="button"
-                                            onclick="tableToExcel('testTableCurvashorarias', 'W3C Example Table')"
+                                            onclick="exportarExcel()"
                                             style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
                                     </div>
                                 </div>
