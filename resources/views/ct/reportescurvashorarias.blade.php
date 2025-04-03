@@ -289,27 +289,51 @@
                'xmlns="http://www.w3.org/TR/REC-html40">' +
                '<head><meta charset="UTF-8"></head><body><table border="1">';
 
-    // Encabezados de la tabla
+    // ** Mapeo entre los encabezados de la tabla y las claves de allData **
+    var columnMapping = {
+        "Contador": "id_cnt",
+        "CT": "nom_ct",
+        "CUPS": "id_cups",
+        "Nombre": "nom_cups",
+        "Dirección CUPS": "dir_cups",
+        "Autoconsumo": "ind_autoconsumo",
+        "Nº de horas leídas": "curvas_leidas",
+        "Nº de horas sin consumo": "curvas_sin_consumo",
+        "Fecha Inicio": "fec_inicio",
+        "Fecha Fin": "fec_fin",
+        "Energía Exportada (kwh-)": "total_curva_exp",
+        "Energía Importada (kwh+)": "total_curva_imp"
+    };
+
+    // ** Extraer los encabezados de la tabla HTML **
     var headers = [];
     if (table.rows.length > 0) {
         var headerCells = table.rows[0].cells;
         for (var i = 0; i < headerCells.length; i++) {
-            headers.push(headerCells[i].innerText);
+            headers.push(headerCells[i].innerText.trim());
         }
         data += "<tr><th>" + headers.join("</th><th>") + "</th></tr>";
     }
 
-    // Si hay datos externos (allData), los usamos en lugar de la tabla visible
-    if (allData && allData.length > 0) {
+    console.log("Encabezados extraídos:", headers);
+    console.log("Datos a exportar:", allData);
+
+    // ** Si allData tiene datos, lo usamos con el mapeo adecuado **
+    if (Array.isArray(allData) && allData.length > 0) {
         allData.forEach(row => {
-            data += "<tr><td>" + Object.values(row).join("</td><td>") + "</td></tr>";
+            var rowData = [];
+            headers.forEach(header => {
+                let key = columnMapping[header]; // Buscar la clave asociada en allData
+                rowData.push(key && row[key] !== null ? row[key] : ''); // Si la clave existe, usar el valor; si es null, dejar vacío
+            });
+            data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
         });
     } else {
-        // Exportar solo la tabla visible
-        for (var i = 1; i < table.rows.length; i++) { // Saltamos la fila de encabezado
+        // ** Si no hay datos en allData, exportamos la tabla visible **
+        for (var i = 1; i < table.rows.length; i++) { // Omitimos la primera fila (encabezado)
             var rowData = [];
             for (var j = 0; j < table.rows[i].cells.length; j++) {
-                rowData.push(table.rows[i].cells[j].innerText);
+                rowData.push(table.rows[i].cells[j].innerText.trim());
             }
             data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
         }
@@ -317,7 +341,7 @@
 
     data += "</table></body></html>";
 
-    // Crear un archivo Excel con formato correcto
+    // ** Crear el archivo Excel **
     var blob = new Blob([data], { type: "application/vnd.ms-excel;charset=UTF-8" });
     var link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -326,8 +350,10 @@
     link.click();
     document.body.removeChild(link);
 }
-    var datosPaginados = @json($exportCurvasHorarias); 
 
+
+    var datosPaginados = @json($exportCurvasHorarias); 
+    console.log(@json($exportCurvasHorarias));
     // Llamar a la función con datos completos
     function exportarExcel() {
         tableToExcel('testTableCurvashorarias', 'W3C Example Table', datosPaginados);
