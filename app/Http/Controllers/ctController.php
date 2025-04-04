@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\CurvasHorariasExport;
 
 
 
@@ -4351,7 +4353,7 @@ public function consultaVeintidos($id_ct, $connection)
                 // Obtener las fechas de inicio y fin del request, si están presentes
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
-                $id_ct = $request->input('id_ct');
+                $nom_ct = $request->input('nom_ct');
                 $id_cups = $request->input('id_cups');
                 $nom_cups = $request->input('nom_cups');
     
@@ -4387,11 +4389,11 @@ public function consultaVeintidos($id_ct, $connection)
                         ";
 
                 if($id_cups) {
-                    $query .= " AND LOWER(cups.id_cups) = LOWER(:id_cups) ";
+                    $query .= " AND LOWER(cups.id_cups) LIKE LOWER('%' ||:id_cups || '%') ";
                     $params['id_cups'] = "%{$id_cups}%";
-                } else if($id_ct) {
-                    $query .= " AND LOWER(cups.id_ct) = LOWER(:id_ct) ";
-                    $params['id_ct'] = "%{$id_ct}%";
+                } else if($nom_ct) {
+                    $query .= " AND LOWER(ct.nom_ct) LIKE LOWER('%' || :nom_ct || '%') ";
+                    $params['nom_ct'] = "%{$nom_ct}%";
                 } else if($nom_cups) {
                     $nom_cups = $nom_cups ? (string) $nom_cups : null;
                     $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
@@ -4468,10 +4470,13 @@ public function consultaVeintidos($id_ct, $connection)
         }
     }
 
-    public function exportCurvasHorarias(Request $request, $connection) // reportes curvas horarias
+    public function exportCurvasHorarias(Request $request) // reportes curvas horarias
     {
         try {
-            // Verificar que las tablas existen
+            
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+
             if (
                 Schema::connection($connection)->hasTable('t_consumos_horarios') &&
                 Schema::connection($connection)->hasTable('t_cups')
@@ -4567,10 +4572,14 @@ public function consultaVeintidos($id_ct, $connection)
 
                 ";
     
-                // Ejecutar la consulta con los parámetros
                 $exportCurvasHorarias = DB::connection($connection)->select($query, $params);
-            
-                return $exportCurvasHorarias ?: ['message' => 'No hay datos'];
+
+            // Devuelve el archivo Excel si los datos existen
+            if ($exportCurvasHorarias) {
+                return Excel::download(new CurvasHorariasExport($exportCurvasHorarias), 'curvas_horarias.xlsx');
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            }
                 
             } else {
                 // Si alguna tabla no existe, retornar un mensaje de error

@@ -76,7 +76,7 @@ Route::get('/reportescalidad', [ctController::class, 'reportescalidad'])->name('
 Route::get('/reportesinventario', [ctController::class, 'reportesinventario'])->name('reportesinventario');
 Route::get('/reportescurvashorarias', [ctController::class, 'reportescurvashorarias'])->name('reportescurvashorarias');
 Route::get('/reporteseventos', [ctController::class, 'reporteseventos'])->name('reporteseventos');
-
+Route::get('/exportar-excel', [ctController::class, 'exportCurvasHorarias'])->name('exportar.excel');
 //*********************************
 //***********PUNTO FRONTERA*********
 //*********************************
