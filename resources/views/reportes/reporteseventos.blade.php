@@ -598,40 +598,38 @@
     </style>
 
 <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
+    document.addEventListener("DOMContentLoaded", function () {
+        var exportButton = document.getElementById('exportarExcel');
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', function () {
+                // Obtener los valores de los filtros
+                var descripcion = document.querySelector('input[name="descripcion"]').value;
+                var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+                var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+                // Construir la URL con todos los parámetros
+                var url = "{{ route('exportar.eventos') }}?";
+
+                // Añadir los parámetros solo si están presentes
+                if (descripcion) {
+                    url += "descripcion=" + encodeURIComponent(descripcion) + "&";
                 }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                if (fecInicio) {
+                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+                }
+                if (fecFin) {
+                    url += "fecha_fin=" + encodeURIComponent(fecFin);
+                }
+
+                // Redirigir al servidor con la URL construida
+                window.location.href = url;
+            });
+        } else {
+            console.error("El botón exportarExcel no existe en el DOM.");
         }
-    </script>
+    });
+</script>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
@@ -676,17 +674,18 @@
                 <!-- Content -->
                 <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-1 gap-4 mt-16 ml-14">
                     {{-- Botones de arriba --}}
-                    <nav class="nav mb-12 ">
-                        <a href="{{ route('dashboardct') }}" class="nav-item "
-                            active-color="rgb(88, 226, 194">Dashboard</a>
-                        <a href="{{ route('detallesinformacioncups') }}" class="nav-item "
-                            active-color="rgb(88, 226, 194">Información</a>
-                        <a href="{{ route('detallescurvashorariascups') }}" class="nav-item"
-                            active-color="rgb(88, 226, 194">Curvas Horarias</a>
-                        <a href="{{ route('detallesenergiacups') }}" class="nav-item"
-                            active-color="rgb(88, 226, 194">Calidad Energía</a>
-                        <a href="{{ route('detalleseventoscups') }}" class="nav-item is-active"
-                            active-color="rgb(88, 226, 194">Eventos</a> <span class="nav-indicator is-active"></span>
+                    <nav id="barraNavegacion" class="nav mb-12">
+                        <a href="{{ route('reportes') }}" class="nav-item " active-color="rgb(88, 226, 194)">Lecturas /
+                            Señal PLC</a>
+                        <a href="{{ route('reportescalidad') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Calidad</a>
+                        <a href="{{ route('reportesinventario') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Inventario</a>
+                        <a href="{{ route('reportescurvashorarias') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Control</a>
+                        <a href="{{ route('reporteseventos') }}" class="nav-item is-active"
+                            active-color="rgb(88, 226, 194)">Eventos</a>
+                        <span class="nav-indicator"></span>
                     </nav>
                         <h1 class="text-center text-3xl w-full" style="color: white;">EVENTOS</h1>
                             <div
@@ -860,9 +859,8 @@
                                                             @endif
                                                             <!-- Contenedor del botón de descarga -->
                                                             <div class="text-right mt-4">
-                                                                <input type="button"
-                                                                    onclick="tableToExcel('testTableEventosCups', 'W3C Example Table')"
-                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                                <button id="exportarExcel" style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                                   </button>
                                                             </div>
                                                         </div>
                                                     </div>
