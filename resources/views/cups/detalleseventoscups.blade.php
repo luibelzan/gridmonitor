@@ -913,6 +913,11 @@
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
+                                                                <div class="pagination-container mt-4 flex justify-center items-center">
+                                                                    <div class="pagination">
+                                                                        {{ $resultadosQ6cups->links() }}
+                                                                    </div>
+                                                                </div>
                                                             @else
                                                                 <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
                                                                     <p class="mt-0 text-xl  text-center"
