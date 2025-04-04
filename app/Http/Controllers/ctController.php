@@ -4808,11 +4808,12 @@ public function consultaVeintidos($id_ct, $connection)
 
     public function getSumBalances($id_ct, Request $request, $connection, $fecha) {
         try {
-            if(Schema::connection($connection)->hasTable('t_cups') &&
+            if($this->validarFecha($fecha)) {
+                if(Schema::connection($connection)->hasTable('t_cups') &&
                 Schema::connection($connection)->hasTable('t_consumos_diarios')) {
                     $fecha_inicio = $request->input('fecha_inicio');
                     $fecha_fin = $request->input('fecha_fin');
-
+    
                     $params = [];
                     $query = "
                     SELECT 
@@ -4825,12 +4826,11 @@ public function consultaVeintidos($id_ct, $connection)
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
                     ";
-
+    
                     $params['id_ct'] = $id_ct;
-
-                    if($fecha_inicio && $fecha_fin) {
-                        $query .= " AND d.fec_inicio >= :fecha_inicio
-                        AND d.fec_inicio <= :fecha_fin ";
+    
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= " AND d.fec_inicio >= :fecha_inicio AND d.fec_inicio <= :fecha_fin ";
                         $params['fecha_inicio'] = $fecha_inicio;
                         $params['fecha_fin'] = $fecha_fin;
                     } else {
@@ -4838,16 +4838,34 @@ public function consultaVeintidos($id_ct, $connection)
                         $query .= " AND d.fec_inicio = :fecha ";
                         $params['fecha'] = $fecha;
                     }
-
-                    $query .= "GROUP BY d.id_cups, c.id_cnt, c.nom_cups
-                    ORDER BY d.id_cups;";
-
+    
+                    $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+    
                     $sumBalances = DB::connection($connection)->select($query, $params);
-
-                    return $sumBalances ?: ['message' => 'No hay datos'];
+    
+                    // Return an empty array if no data is found
+                    return !empty($sumBalances) ? $sumBalances : [];
+                }
             }
-        } catch(\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+        } catch (\Exception $e) {
+            return []; // Return an empty array instead of a string on error
+        }
+    
+        return []; // Default return an empty array
+    }
+    
+    
+
+    function validarFecha($fecha) {
+        try {
+            // Intentar crear la fecha con el formato esperado
+            Carbon::createFromFormat('d/m/Y', $fecha);
+    
+            // Si no hay error, la fecha es válida
+            return true;
+        } catch (\Exception $e) {
+            // Si hay un error, la fecha es inválida
+            return false;
         }
     }
     
