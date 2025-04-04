@@ -1143,10 +1143,14 @@ class CupsController extends Controller
                     $params = ['id_cups' => "%$id_cups%"];
                 }
                 $resultadosQ5cups = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ5cups);
-
-
-
+                $resultadosQ5cupsCollection = new Collection($resultadosQ5cups);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosQ5cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                $resultadosQ5cups = new LengthAwarePaginator($currentItems, count($resultadosQ5cupsCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
 
                 return $resultadosQ5cups ?: [];
             }
@@ -1217,9 +1221,17 @@ class CupsController extends Controller
 
 
                 $resultadosQ6cups = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ6cups);
+                $resultadosQ6cupsCollection = new Collection($resultadosQ6cups);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $resultadosQ6cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
+                // Crear paginador manualmente
+                $resultadosQ6cups = new LengthAwarePaginator($currentItems, count($resultadosQ6cupsCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
 
 
                 return $resultadosQ6cups ?: [];
@@ -1504,7 +1516,17 @@ class CupsController extends Controller
 
 
                 $resultadosQ11cups = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ11cups);
+                $resultadosQ11cupsCollection = new Collection($resultadosQ11cups);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $resultadosQ11cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                $resultadosQ11cups = new LengthAwarePaginator($currentItems, count($resultadosQ11cupsCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
 
 
                 return $resultadosQ11cups ?: [];
@@ -2062,6 +2084,17 @@ class CupsController extends Controller
                     }
 
                     $consumosTotalesDiarios = DB::connection($connection)->select($query, $params);
+                    $consumosTotalesDiariosCollection = new Collection($consumosTotalesDiarios);
+                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                    $perPage = 100; // Número de elementos por página
+                    $currentItems = $consumosTotalesDiariosCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                    $consumosTotalesDiarios = new LengthAwarePaginator($currentItems, count($consumosTotalesDiariosCollection), $perPage, $currentPage, [
+                        'path' => request()->url(),
+                        'query' => request()->query()
+                    ]);
 
                     return $consumosTotalesDiarios ?: [];
             } else {
