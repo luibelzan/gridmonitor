@@ -281,84 +281,53 @@
             }
         }
     </style>
-    <script>
-        function tableToExcel(tableID, worksheetName, allData) {
-    var table = document.getElementById(tableID);
-    var data = '<html xmlns:o="urn:schemas-microsoft-com:office:office" ' +
-               'xmlns:x="urn:schemas-microsoft-com:office:excel" ' +
-               'xmlns="http://www.w3.org/TR/REC-html40">' +
-               '<head><meta charset="UTF-8"></head><body><table border="1">';
+    @php
+                        $connection = session()->get('connection');
+                    @endphp
 
-    // ** Mapeo entre los encabezados de la tabla y las claves de allData **
-    var columnMapping = {
-        "Contador": "id_cnt",
-        "CT": "nom_ct",
-        "CUPS": "id_cups",
-        "Nombre": "nom_cups",
-        "Dirección CUPS": "dir_cups",
-        "Autoconsumo": "ind_autoconsumo",
-        "Nº de horas leídas": "curvas_leidas",
-        "Nº de horas sin consumo": "curvas_sin_consumo",
-        "Fecha Inicio": "fec_inicio",
-        "Fecha Fin": "fec_fin",
-        "Energía Exportada (kwh-)": "total_curva_exp",
-        "Energía Importada (kwh+)": "total_curva_imp"
-    };
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var exportButton = document.getElementById('exportarExcel');
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', function () {
+                // Obtener los valores de los filtros
+                var nomCups = document.querySelector('input[name="nom_cups"]').value;
+                var idCups = document.querySelector('input[name="id_cups"]').value;
+                var nomCt = document.querySelector('input[name="nom_ct"]').value;
+                var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+                var fecFin = document.querySelector('input[name="fecha_fin"]').value;
 
-    // ** Extraer los encabezados de la tabla HTML **
-    var headers = [];
-    if (table.rows.length > 0) {
-        var headerCells = table.rows[0].cells;
-        for (var i = 0; i < headerCells.length; i++) {
-            headers.push(headerCells[i].innerText.trim());
-        }
-        data += "<tr><th>" + headers.join("</th><th>") + "</th></tr>";
-    }
+                // Construir la URL con todos los parámetros
+                var url = "{{ route('exportar.excel') }}?";
 
-    console.log("Encabezados extraídos:", headers);
-    console.log("Datos a exportar:", allData);
+                // Añadir los parámetros solo si están presentes
+                if (nomCups) {
+                    url += "nom_cups=" + encodeURIComponent(nomCups) + "&";
+                }
+                if (idCups) {
+                    url += "id_cups=" + encodeURIComponent(idCups) + "&";
+                }
+                if (nomCt) {
+                    url += "nom_ct=" + encodeURIComponent(nomCt) + "&";
+                }
+                if (fecInicio) {
+                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+                }
+                if (fecFin) {
+                    url += "fecha_fin=" + encodeURIComponent(fecFin);
+                }
 
-    // ** Si allData tiene datos, lo usamos con el mapeo adecuado **
-    if (Array.isArray(allData) && allData.length > 0) {
-        allData.forEach(row => {
-            var rowData = [];
-            headers.forEach(header => {
-                let key = columnMapping[header]; // Buscar la clave asociada en allData
-                rowData.push(key && row[key] !== null ? row[key] : ''); // Si la clave existe, usar el valor; si es null, dejar vacío
+                // Redirigir al servidor con la URL construida
+                window.location.href = url;
             });
-            data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-        });
-    } else {
-        // ** Si no hay datos en allData, exportamos la tabla visible **
-        for (var i = 1; i < table.rows.length; i++) { // Omitimos la primera fila (encabezado)
-            var rowData = [];
-            for (var j = 0; j < table.rows[i].cells.length; j++) {
-                rowData.push(table.rows[i].cells[j].innerText.trim());
-            }
-            data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
+        } else {
+            console.error("El botón exportarExcel no existe en el DOM.");
         }
-    }
+    });
+    console.log(@json($resultadosQ58));
+</script>
 
-    data += "</table></body></html>";
-
-    // ** Crear el archivo Excel **
-    var blob = new Blob([data], { type: "application/vnd.ms-excel;charset=UTF-8" });
-    var link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "exportacion_excel.xls";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-
-    var datosPaginados = @json($exportCurvasHorarias); 
-    console.log(@json($exportCurvasHorarias));
-    // Llamar a la función con datos completos
-    function exportarExcel() {
-        tableToExcel('testTableCurvashorarias', 'W3C Example Table', datosPaginados);
-    }
-    </script>
     <title>Reportes CT</title>
 </head>
 
@@ -487,10 +456,10 @@
                                         <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
                                             {{-- Buscador por CT --}}
                                             <div class="form-group">
-                                                <input type='text' name='id_ct' placeholder='Buscar por CT'
+                                                <input type='text' name='nom_ct' placeholder='Buscar por CT'
                                                     class='border p-2 rounded-md w-full text-white'
                                                     style='background-color: transparent; border-color: rgb(255, 255, 255);'
-                                                    @if (isset($_GET['id_ct'])) value="{{ $_GET['id_ct'] }}" @endif>
+                                                    @if (isset($_GET['nom_ct'])) value="{{ $_GET['nom_ct'] }}" @endif>
                                             </div>
                                             {{-- Buscador por CUPS --}}
                                             <div class="form-group">
@@ -595,13 +564,13 @@
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->ind_autoconsumo) ? $resultado->ind_autoconsumo : 'No hay datos' }}
                                                             </td>
-
-
+                                                            
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
+                                        
                                         <div class="pagination-container mt-4 flex justify-center items-center">
                                             <div class="pagination">
                                                 {{ $resultadosQ58->links() }}
@@ -616,9 +585,7 @@
                                     @endif
                                     <!-- Contenedor del botón de descarga -->
                                     <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="exportarExcel()"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        <button id="exportarExcel" class="btn btn-success">Exportar a Excel</button>
                                     </div>
                                 </div>
                             </div>
