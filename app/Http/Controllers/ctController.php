@@ -24,6 +24,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CurvasHorariasExport;
+use App\Exports\ReportesEventosExport;
 
 
 
@@ -4700,7 +4701,7 @@ public function consultaVeintidos($id_ct, $connection)
                 }
                 
                 if(empty($fecha_fin) && empty($fecha_inicio)) {
-                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 100;";
+                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 500;";
                 } else {
                     // Agregar orden y límite
                     $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
@@ -4712,7 +4713,7 @@ public function consultaVeintidos($id_ct, $connection)
                 $reporteseventosCollection = new Collection($reporteseventos);
                 // Obtener la página actual
                 $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                $perPage = 10; // Número de elementos por página
+                $perPage = 100; // Número de elementos por página
                 $currentItems = $reporteseventosCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
@@ -4723,6 +4724,79 @@ public function consultaVeintidos($id_ct, $connection)
                 ]);
     
                 return $reporteseventos ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    public function exportReportesEventos(Request $request) {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            if (
+                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
+                Schema::connection($connection)->hasTable('t_cups')
+            ) {
+                // Obtener los parámetros del request
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $descripcion = $request->input('descripcion');
+                
+    
+                $params = [];
+                $query = "
+                    SELECT
+                        t_eventos_contador.id_cups,
+                        t_eventos_contador.id_cnt,
+                        TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
+                        t_eventos_contador.hor_evento,
+                        t_eventos_contador.txt_adicionales_1,
+                        t_eventos_contador.txt_adicionales_2,
+                        t_descripcion_eventos_contador.des_evento_contador
+                    FROM core.t_eventos_contador
+                    JOIN core.t_descripcion_eventos_contador 
+                        ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+                        AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+                    WHERE 1=1 
+                ";
+    
+                // Agregar filtro por descripción si existe
+                if (!empty($descripcion)) {
+                    $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion";
+                    $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
+                }
+    
+                // Agregar filtros de fecha
+                if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+                    $query .= " AND t_eventos_contador.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } elseif (!empty($fecha_inicio)) {
+                    $query .= " AND t_eventos_contador.fec_evento >= :fecha_inicio";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } elseif (!empty($fecha_fin)) {
+                    $query .= " AND t_eventos_contador.fec_evento <= :fecha_fin";
+                    $params['fecha_fin'] = $fecha_fin;
+                }
+                
+                if(empty($fecha_fin) && empty($fecha_inicio)) {
+                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 500;";
+                } else {
+                    // Agregar orden y límite
+                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
+                }
+    
+                // Ejecutar la consulta con los parámetros correctos
+                $exportreporteseventos = DB::connection($connection)->select($query, $params);
+                
+                if($exportreporteseventos) {
+                    return Excel::download(new ReportesEventosExport($exportreporteseventos), 'reportes_eventos.xlsx');
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }    
             } else {
                 return ['message' => 'No hay datos'];
             }

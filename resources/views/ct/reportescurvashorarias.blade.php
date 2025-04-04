@@ -325,7 +325,6 @@
             console.error("El botón exportarExcel no existe en el DOM.");
         }
     });
-    console.log(@json($resultadosQ58));
 </script>
 
     <title>Reportes CT</title>
@@ -585,7 +584,8 @@
                                     @endif
                                     <!-- Contenedor del botón de descarga -->
                                     <div class="text-right mt-4">
-                                        <button id="exportarExcel" class="btn btn-success">Exportar a Excel</button>
+                                        <button id="exportarExcel" style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                            </button>
                                     </div>
                                 </div>
                             </div>
