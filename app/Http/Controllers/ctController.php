@@ -711,19 +711,11 @@ class ctController extends Controller
             return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
         }
 
-
-
-
         // Guardar el nombre de la vista actual en la sesión
         Session::put('vista_actual', 'reportescurvashorarias');
 
-
-
-
         // Obtener la conexión dinámica
         $connection = User::conexion();
-
-
 
 
         if ($connection == 'pgsql') {
@@ -733,18 +725,9 @@ class ctController extends Controller
             // Obtener los datos de todos los CTs
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_balance')->get();
 
-
-
-
             // Obtener resultados de las consultas
             $resultadosQ58 = $this->consultaCincuentayOcho($request, $connection);
             $exportCurvasHorarias = $this->exportCurvasHorarias($request, $connection);
-
-
-
-
-
-
 
 
             // Pasar los datos de los CTs y los resultados de las consultas a la vista
@@ -752,10 +735,6 @@ class ctController extends Controller
                 'ct_info' => $ct_info,
                 'resultadosQ58' => $resultadosQ58,
                 'exportCurvasHorarias' => $exportCurvasHorarias,
-                
-
-
-
             ]);
         }
     }
