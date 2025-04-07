@@ -1890,8 +1890,17 @@ public function consultaVeintidos($id_ct, $connection)
 
 
                 $resultadosQ23 = DB::connection($connection)->select($query, $params);
+                $resultadosQ23Collection = new Collection($resultadosQ23);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $resultadosQ23Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
+                // Crear paginador manualmente
+                $resultadosQ23 = new LengthAwarePaginator($currentItems, count($resultadosQ23Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
 
 
                 return $resultadosQ23 ?: ['message' => 'No hay datos'];
