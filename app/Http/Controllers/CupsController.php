@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 
 
 
+use App\Exports\RegistrosMensualesExport;
 use App\Models\Ct;
 use App\Models\Cups;
 use App\Models\User;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 
 
@@ -159,6 +162,7 @@ class CupsController extends Controller
                 $resultadosQ4cups = $this->consultaCuatroCups($id_cups, $connection, $request);
                 $resultadosQ5cups = $this->consultaCincoCups($id_cups, $connection, $request);
                 $resultadosQ27cups = $this->consultaVeintisieteCups($id_cups, $connection, $request);
+                $exportRegistrosMensuales = $this->exportRegistrosMensuales($request);
             } else {
                 // De lo contrario, obtener todos los resultados
                 $resultadosQ1cups = [];
@@ -167,6 +171,7 @@ class CupsController extends Controller
                 $resultadosQ4cups = [];
                 $resultadosQ5cups = [];
                 $resultadosQ27cups = [];
+                $exportRegistrosMensuales = [];
             }
 
 
@@ -184,6 +189,7 @@ class CupsController extends Controller
                 'resultadosQ4cups' => $resultadosQ4cups,
                 'resultadosQ5cups' => $resultadosQ5cups,
                 'resultadosQ27cups' => $resultadosQ27cups,
+                'exportRegistrosMensuales' => $exportRegistrosMensuales,
 
 
             ]);
@@ -1154,6 +1160,57 @@ class CupsController extends Controller
 
                 return $resultadosQ5cups ?: [];
             }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+
+    public function exportRegistrosMensuales(Request $request) //Registros mensuales
+    {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+
+        if (Schema::connection($connection)->hasTable('t_consumos_totales_mensuales')) {
+                $query = "
+            SELECT id_cups, TO_CHAR(fec_consumo, 'DD/MM/YYYY') as fec_consumo,
+            cod_periodotarifa, val_ai_m, val_ae_m, val_r1_m, val_r2_m, val_r3_m, val_r4_m
+            FROM core.t_consumos_totales_mensuales
+            WHERE id_cups LIKE :id_cups";
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+            AND fec_consumo::DATE >= :fecha_inicio
+            AND fec_consumo::DATE <= :fecha_fin          
+            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                } else {
+                    $query .= "
+            ORDER BY fec_consumo::DATE DESC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%"];
+                }
+                $exportRegistrosMensuales = DB::connection($connection)->select($query, $params);
+                
+                if($exportRegistrosMensuales) {
+                    return Excel::download(new RegistrosMensualesExport($exportRegistrosMensuales), 'registros_mensuales.xlsx');
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
+            
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
             return ['message' => 'No hay datos'];
