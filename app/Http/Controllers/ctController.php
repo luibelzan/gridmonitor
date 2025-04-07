@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 
 
 
+use App\Exports\SumBalancesExport;
 use App\Models\ConsumoDiario;
 use App\Models\Ct;
 use App\Models\Cups;
@@ -468,8 +469,8 @@ class ctController extends Controller
             $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
             $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
             $resultadosQ27 = $this->consultaVeintiSiete($id_ct, $connection, $request);
-            $sumBalances = $this->getSumBalances($id_ct, $request, $connection, $fecha);
-
+            $sumBalances = $this->getSumBalances($id_ct, $request, $connection);
+            $exportSumBalances = $this->exportSumBalances($request);
 
 
 
@@ -486,6 +487,7 @@ class ctController extends Controller
                 'selected_ct' => $id_ct,
                 'id_ct' => $id_ct,
                 'sumBalances' => $sumBalances,
+                'exportSumBalances' => $exportSumBalances,
             ]);
         }
     }
@@ -4794,13 +4796,78 @@ public function consultaVeintidos($id_ct, $connection)
     }
 
 
-    public function getSumBalances($id_ct, Request $request, $connection, $fecha) {
+    public function getSumBalances($id_ct, Request $request, $connection) {
         try {
-            if($this->validarFecha($fecha)) {
                 if(Schema::connection($connection)->hasTable('t_cups') &&
                 Schema::connection($connection)->hasTable('t_consumos_diarios')) {
                     $fecha_inicio = $request->input('fecha_inicio');
                     $fecha_fin = $request->input('fecha_fin');
+                    $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
+                    $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
+                    
+                    $params = [];
+                    $query = "
+                    SELECT 
+                        c.nom_cups,
+                        c.id_cnt,
+                        d.id_cups,
+                        SUM(d.val_ai_d) AS total_val_ai_d,
+                        SUM(d.val_ae_d) AS total_val_ae_d
+                    FROM core.t_consumos_diarios d
+                    JOIN core.t_cups c ON d.id_cups = c.id_cups
+                    WHERE c.id_ct = :id_ct
+                    ";
+    
+                    $params['id_ct'] = $id_ct;
+    
+                    if ($fecha) {
+                        $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+                        $query .= " AND d.fec_inicio = :fecha ";
+                        $params['fecha'] = $fecha;
+                    } else {
+                        $query .= " AND d.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin "; 
+                        $params['fecha_inicio'] = $fecha_inicio;
+                        $params['fecha_fin'] = $fecha_fin;
+                    }
+    
+                    $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+    
+                    $sumBalances = DB::connection($connection)->select($query, $params);
+    
+                    $sumBalancesCollection = new Collection($sumBalances);
+                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                    $perPage = 100; // Número de elementos por página
+                    $currentItems = $sumBalancesCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                    // Crear paginador manualmente
+                    $sumBalances = new LengthAwarePaginator($currentItems, count($sumBalancesCollection), $perPage, $currentPage, [
+                        'path' => request()->url(),
+                        'query' => request()->query()
+                    ]);
+                    // Return an empty array if no data is found
+                    //dd($query);
+                    return $sumBalances ?: ['message' => 'No hay datos'];
+                }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
+        }
+    
+        return []; // Default return an empty array
+    }
+
+
+    public function exportSumBalances(Request $request) {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+                if(Schema::connection($connection)->hasTable('t_cups') &&
+                Schema::connection($connection)->hasTable('t_consumos_diarios')) {
+                    $fecha_inicio = $request->input('fecha_inicio');
+                    $fecha_fin = $request->input('fecha_fin');
+                    $id_ct = $request->input('id_ct');
+                    $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
+                    $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
     
                     $params = [];
                     $query = "
@@ -4829,23 +4896,14 @@ public function consultaVeintidos($id_ct, $connection)
     
                     $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
     
-                    $sumBalances = DB::connection($connection)->select($query, $params);
-    
-                    $sumBalancesCollection = new Collection($sumBalances);
-                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                    $perPage = 100; // Número de elementos por página
-                    $currentItems = $sumBalancesCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
-
-
-                    // Crear paginador manualmente
-                    $sumBalances = new LengthAwarePaginator($currentItems, count($sumBalancesCollection), $perPage, $currentPage, [
-                        'path' => request()->url(),
-                        'query' => request()->query()
-                    ]);
-                    // Return an empty array if no data is found
-                    return $sumBalances ?: ['message' => 'No hay datos'];
+                    $exportSumBalances = DB::connection($connection)->select($query, $params);
+                    if($exportSumBalances) {
+                        return Excel::download(new SumBalancesExport($exportSumBalances), 'consumos_cups.xlsx');
+                    } else {
+                        return response()->json(['message' => 'No hay datos'], 404);
+                    }                    
                 }
-            }
+            
         } catch (\Exception $e) {
             return []; // Return an empty array instead of a string on error
         }
