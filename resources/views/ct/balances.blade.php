@@ -1462,25 +1462,30 @@
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-    @if (!is_array($sumBalances))
-    <tr>
-            <td class="py-2" colspan="5" style="text-align: center;">No hay datos disponibles</td>
-        </tr>
-    @else (count($sumBalances) > 0)
-        @foreach ($sumBalances as $resultado)
-            <tr class="highlight-row" 
-                onclick="window.open('{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}', '_blank');" 
-                style="cursor: pointer;">
-                <td class="py-2">{{ $resultado->id_cups ?? 'No hay datos' }}</td>
-                <td class="py-2">{{ $resultado->id_cnt ?? '0' }}</td>
-                <td class="py-2">{{ $resultado->nom_cups ?? '0' }}</td>
-                <td class="py-2">{{ $resultado->total_val_ai_d ?? '0' }}</td>
-                <td class="py-2">{{ $resultado->total_val_ae_d ?? '0' }}</td>
-            </tr>
-        @endforeach
-    @endif
-</tbody>
+                                                                        @if ($sumBalances->count() > 0)
+                                                                            @foreach ($sumBalances as $resultado)
+                                                                                <tr class="highlight-row" 
+                                                                                    onclick="window.open('{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}', '_blank');" 
+                                                                                    style="cursor: pointer;">
+                                                                                    <td class="py-2">{{ $resultado->id_cups ?? 'No hay datos' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->id_cnt ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->nom_cups ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->total_val_ai_d ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->total_val_ae_d ?? '0' }}</td>
+                                                                                </tr>
+                                                                            @endforeach
+                                                                        @else 
+                                                                            <tr>
+                                                                                <td class="py-2" colspan="5" style="text-align: center;">No hay datos disponibles</td>
+                                                                            </tr>
+                                                                        @endif
+                                                                    </tbody>
                                                                 </table>
+                                                            </div>
+                                                            <div class="pagination-container mt-4 flex justify-center items-center">
+                                                                <div class="pagination">
+                                                                    {{ $sumBalances->links() }}
+                                                                </div>
                                                             </div>
                                                         @else
                                                             <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">

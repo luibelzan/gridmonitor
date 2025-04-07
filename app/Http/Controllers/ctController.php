@@ -4843,8 +4843,19 @@ public function consultaVeintidos($id_ct, $connection)
     
                     $sumBalances = DB::connection($connection)->select($query, $params);
     
+                    $sumBalancesCollection = new Collection($sumBalances);
+                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                    $perPage = 100; // Número de elementos por página
+                    $currentItems = $sumBalancesCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                    // Crear paginador manualmente
+                    $sumBalances = new LengthAwarePaginator($currentItems, count($sumBalancesCollection), $perPage, $currentPage, [
+                        'path' => request()->url(),
+                        'query' => request()->query()
+                    ]);
                     // Return an empty array if no data is found
-                    return !empty($sumBalances) ? $sumBalances : [];
+                    return $sumBalances ?: ['message' => 'No hay datos'];
                 }
             }
         } catch (\Exception $e) {
