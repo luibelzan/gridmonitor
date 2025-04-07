@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 
 
 
+use App\Exports\EventosCTExport;
 use App\Exports\SumBalancesExport;
 use App\Models\ConsumoDiario;
 use App\Models\Ct;
@@ -1822,9 +1823,6 @@ public function consultaVeintidos($id_ct, $connection)
             $fecha_inicio = $request->input('fecha_inicio');
             $fecha_fin = $request->input('fecha_fin');
 
-
-
-
             if ($id_ct) {
                 $query = "
                 SELECT 
@@ -1865,7 +1863,7 @@ public function consultaVeintidos($id_ct, $connection)
 
 
 
-                $query .= $fecha_inicio && $fecha_fin ? ";" : " LIMIT 100;";
+                //$query .= $fecha_inicio && $fecha_fin ? ";" : " LIMIT 2000;";
 
 
 
@@ -1885,6 +1883,58 @@ public function consultaVeintidos($id_ct, $connection)
 
 
                 return $resultadosQ23 ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    public function exportEventosCT(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+            $id_ct = $request->input('id_ct');
+
+            if ($id_ct) {
+                $query = "
+                SELECT 
+                    t_eventos_concentrador.id_ct, 
+                    t_eventos_concentrador.id_cnc, 
+                    TO_CHAR(t_eventos_concentrador.fec_evento, 'DD/MM/YYYY') as fecha,
+                    t_eventos_concentrador.hor_evento,
+                    t_eventos_concentrador.txt_adicionales_1,
+                    t_eventos_concentrador.txt_adicionales_2,
+                    t_descripcion_eventos_concentrador.des_evento_dc
+                FROM core.t_eventos_concentrador, core.t_descripcion_eventos_concentrador
+                WHERE t_eventos_concentrador.grp_evento_dc = t_descripcion_eventos_concentrador.grp_evento_dc
+                AND t_eventos_concentrador.cod_evento_dc = t_descripcion_eventos_concentrador.cod_evento_dc";
+
+                $params = ['id_ct' => $id_ct];
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                AND t_eventos_concentrador.fec_evento >= :fecha_inicio
+                AND t_eventos_concentrador.fec_evento <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                }
+
+                $query .= "
+                AND t_eventos_concentrador.id_ct = :id_ct
+                ORDER BY t_eventos_concentrador.fec_evento desc, t_eventos_concentrador.hor_evento desc";
+
+
+                $exportEventosCT = DB::connection($connection)->select($query, $params);
+                if($exportEventosCT) {
+                    return Excel::download(new EventosCTExport($exportEventosCT), 'eventos_ct.xlsx');                   
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                } 
             } else {
                 return ['message' => 'No hay datos'];
             }
