@@ -257,11 +257,14 @@
                 // Obtener los valores de los filtros
                 var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
                 var fecFin = document.querySelector('input[name="fecha_fin"]').value;
-                //var idCups = document.querySelector('input[name="id_cups"]').value;
+                var idCups = document.querySelector('input[name="id_cups"]').value;
                 // Construir la URL con todos los parámetros
                 var url = "{{ route('exportar.registros') }}?";
 
                 // Añadir los parámetros solo si están presentes
+                if (idCups) {
+                    url += "id_cups=" + encodeURIComponent(idCups) + "&";
+                }
                 if (fecInicio) {
                     url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
                 }
