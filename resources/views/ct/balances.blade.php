@@ -754,40 +754,37 @@
 
 
     <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
+        document.addEventListener("DOMContentLoaded", function () {
+        var exportButton = document.getElementById('exportarExcel');
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', function () {
+                // Obtener los valores de los filtros
+                var idCt = document.querySelector('input[name="id_ct"]').value;
+                var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+                var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+                // Construir la URL con todos los parámetros
+                var url = "{{ route('exportar.balances') }}?";
+
+                // Añadir los parámetros solo si están presentes
+                if (idCt) {
+                    url += "id_ct=" + encodeURIComponent(idCt) + "&";
                 }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                if (fecInicio) {
+                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+                }
+                if (fecFin) {
+                    url += "fecha_fin=" + encodeURIComponent(fecFin);
+                }
+
+                // Redirigir al servidor con la URL construida
+                window.location.href = url;
+            });
+        } else {
+            console.error("El botón exportarExcel no existe en el DOM.");
         }
-        console.log(@json($sumBalances));
+    });
     </script>
 
 
@@ -1497,9 +1494,8 @@
                                                         @endif
                                                         <!-- Contenedor del botón de descarga -->
                                                         <div class="text-right mt-4">
-                                                            <input type="button"
-                                                                onclick="tableToExcel('testTableBalancesCt', 'W3C Example Table')"
-                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                            <button id="exportarExcel" style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                                </button>
                                                         </div>
                                                     </div>
                                                 </div>
