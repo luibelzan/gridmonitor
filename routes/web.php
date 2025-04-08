@@ -82,6 +82,7 @@ Route::get('/exportar-excel', [CupsController::class, 'exportRegistrosMensuales'
 Route::get('/exportar-excel', [CupsController::class, 'exportConsumosTotalesDiarios'])->name('exportar.registros.diarios');
 Route::get('/exportar-excel', [CtController::class, 'exportSumBalances'])->name('exportar.balances');
 Route::get('/exportar-excel', [CtController::class, 'exportEventosCT'])->name('exportar.eventos.ct');
+Route::get('/exportar-excel', [PuntoFronteraController::class, 'exportEventsPF'])->name('exportar.eventos.pf');
 
 //*********************************
 //***********PUNTO FRONTERA*********
