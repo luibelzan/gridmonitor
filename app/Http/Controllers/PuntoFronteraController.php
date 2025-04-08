@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 
@@ -887,20 +889,10 @@ class PuntoFronteraController extends Controller
     {
         if ($id_cnt) {
 
-
-
-
-
-
-
-
             // Si ha hecho una búsqueda por filtro, lo mandamos a su método
             if ($request->filled('descripcion')) {
                 return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
             }
-
-
-
 
             $query = "
         SELECT    
@@ -920,12 +912,6 @@ class PuntoFronteraController extends Controller
             AND t_dat_iec870_eventos.id_cnt = :id_cnt";
 
 
-
-
-
-
-
-
             if ($fecha_inicio && $fecha_fin) {
                 $query .= "
                 AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
@@ -939,21 +925,19 @@ class PuntoFronteraController extends Controller
             }
 
 
-
-
-
-
-
-
             $resultadosQ11pf = DB::connection($connectionpf)
                 ->select($query, $params);
+            $resultadosQ11pfCollection = new Collection($resultadosQ11pf);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 100; // Número de elementos por página
+            $currentItems = $resultadosQ11pfCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
-
-
-
-
-
+                    // Crear paginador manualmente
+            $resultadosQ11pf = new LengthAwarePaginator($currentItems, count($resultadosQ11pfCollection), $perPage, $currentPage, [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]);
 
             return $resultadosQ11pf ?: [];
         }
