@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\ConsumosTotalesDiariosExport;
 use App\Exports\CurvasHorariasCupsExport;
+use App\Exports\EventosCupsExport;
 use App\Exports\RegistrosMensualesExport;
 use App\Models\Ct;
 use App\Models\Cups;
@@ -1294,6 +1295,78 @@ class CupsController extends Controller
 
 
                 return $resultadosQ6cups ?: [];
+            }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function exportEventsCups(Request $request) //Eventos cups
+    {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+
+        if (
+            Schema::connection($connection)->hasTable('t_eventos_contador') &&
+            Schema::connection($connection)->hasTable('t_descripcion_eventos_contador')
+        ) {
+            if ($id_cups) {
+                $query = "
+            SELECT
+                t_eventos_contador.id_cups,
+                t_eventos_contador.id_cnt,
+                TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
+                t_eventos_contador.hor_evento,
+                t_eventos_contador.txt_adicionales_1,
+                t_eventos_contador.txt_adicionales_2,
+                t_descripcion_eventos_contador.des_evento_contador
+            FROM core.t_eventos_contador, core.t_descripcion_eventos_contador
+            WHERE t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+            AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+           ";
+
+
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                        AND t_eventos_contador.fec_evento >= :fecha_inicio
+                        AND t_eventos_contador.fec_evento <= :fecha_fin
+                        AND t_eventos_contador.id_cups LIKE :id_cups
+                    ORDER BY
+                        t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                } else {
+                    $query .= "
+                AND t_eventos_contador.id_cups LIKE :id_cups
+                ORDER BY
+                    t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
+                LIMIT 100;";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%"];
+                }
+
+
+
+
+                $exportEventsCups = DB::connection($connection)->select($query, $params);
+                if($exportEventsCups) {
+                    return Excel::download(new EventosCupsExport($exportEventsCups), 'eventos_cups.xlsx');
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
