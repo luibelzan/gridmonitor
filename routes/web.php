@@ -85,6 +85,7 @@ Route::get('/exportar-eventos-ct', [CtController::class, 'exportEventosCT'])->na
 Route::get('/exportar-eventos-pf', [PuntoFronteraController::class, 'exportEventsPF'])->name('exportar.eventos.pf');
 Route::get('/exportar-eventos-espontaneos', [EventosEspontaneosController::class, 'exportEventosEspontaneos'])->name('exportar.eventosespontaneos');
 Route::get('/exportar-curvas-horarias', [CupsController::class, 'exportCurvasHorarias'])->name('exportar.curvas.cups');
+Route::get('/exportar-eventos-cups', [CupsController::class, 'exportEventsCups'])->name('exportar.eventos.cups');
 
 //*********************************
 //***********PUNTO FRONTERA*********
