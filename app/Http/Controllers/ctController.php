@@ -10,6 +10,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\EventosCTExport;
 use App\Exports\ReportesCalidadExport;
+use App\Exports\ReportesInventarioExport;
 use App\Exports\SumBalancesExport;
 use App\Models\ConsumoDiario;
 use App\Models\Ct;
@@ -4422,11 +4423,52 @@ public function exportReportesCalidad(Request $request)
                     ORDER BY fec_evento::DATE DESC;  -- Ordena por la fecha original
                 ");
     
-            // Ver los resultados formateados
-            //dd($resultadosQ52);
+            $resultadosQ52Collection = new Collection($resultadosQ52);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage('page_q52');
+            $perPage = 100; // Número de elementos por página
+            $currentItems = $resultadosQ52Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                $resultadosQ52 = new LengthAwarePaginator($currentItems, count($resultadosQ52Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query(),
+                    'pageName' => 'page_q52'
+                ]);
     
             // Retorna los resultados formateados o un array vacío si no hay
             return $resultadosQ52 ?: [];
+        } catch (\Exception $e) {
+            // Captura cualquier excepción y maneja el error aquí
+            return "Error en la consulta: " . $e->getMessage();
+        }
+    }
+
+    public function exportReportesInventarioFW()
+    {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            // Realiza la consulta, seleccionando las columnas necesarias
+            // y ordenando por la fecha original
+            $exportReportesInventarioFW = DB::connection($connection)
+                ->select("
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        TO_CHAR(fec_evento::DATE, 'DD/MM/YYYY') as fec_evento,  -- Formatea la fecha
+                        hor_evento, 
+                        txt_adicionales_1, 
+                        txt_adicionales_2 
+                    FROM core.v_actualizaciones_fw
+                    ORDER BY fec_evento::DATE DESC;  -- Ordena por la fecha original
+                ");
+    
+            if($exportReportesInventarioFW) {
+                return Excel::download(new ReportesEventosExport($exportReportesInventarioFW), 'reportes_actualizaciones.xlsx');
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            }
         } catch (\Exception $e) {
             // Captura cualquier excepción y maneja el error aquí
             return "Error en la consulta: " . $e->getMessage();
@@ -4492,10 +4534,38 @@ public function exportReportesCalidad(Request $request)
                    SELECT * FROM core.v_contadores_modelos;
                 ");
 
+            $resultadosQ55Collection = new Collection($resultadosQ55);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage('page_q55');
+            $perPage = 100; // Número de elementos por página
+            $currentItems = $resultadosQ55Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
-            //dd($resultadosQ55);
-            // Verifica si hay resultados
+            $resultadosQ55 = new LengthAwarePaginator($currentItems, count($resultadosQ55Collection), $perPage, $currentPage, [
+                'path' => request()->url(),
+                'query' => request()->query(),
+                'pageName' => 'page_q55'
+            ]);
             return $resultadosQ55 ?: [];
+        } catch (\Exception $e) {
+            // Captura cualquier excepción y maneja el error aquí
+            return "Error en la consulta: " . $e->getMessage();
+        }
+    }
+
+    public function exportReportesInventario() // tabla modelos contadores
+    {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            // Realiza la consulta
+            $exportReportesInventario = DB::connection($connection)
+                ->select("
+                   SELECT * FROM core.v_contadores_modelos;
+                ");
+            if($exportReportesInventario) {
+                return Excel::download(new ReportesInventarioExport($exportReportesInventario), 'reportes_inventario.xlsx');
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            }
         } catch (\Exception $e) {
             // Captura cualquier excepción y maneja el error aquí
             return "Error en la consulta: " . $e->getMessage();
