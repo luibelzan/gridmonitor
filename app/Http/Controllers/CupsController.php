@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 
 
 use App\Exports\ConsumosTotalesDiariosExport;
+use App\Exports\CurvasHorariasCupsExport;
 use App\Exports\RegistrosMensualesExport;
 use App\Models\Ct;
 use App\Models\Cups;
@@ -1588,6 +1589,63 @@ class CupsController extends Controller
 
 
                 return $resultadosQ11cups ?: [];
+            }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function exportCurvasHorarias(Request $request) // Curva horaria
+    {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+
+        if (Schema::connection($connection)->hasTable('t_consumos_horarios')) {
+
+
+            if ($id_cups) {
+                $query = "
+            SELECT id_cups, id_cnt,
+            TO_CHAR(fec_inicio, 'DD/MM/YYYY') as fec_inicio,
+            hor_inicio,
+            TO_CHAR(fec_fin, 'DD/MM/YYYY') as fec_fin,
+            hor_fin, val_ai_h, val_ae_h, val_r1_h, val_r2_h, val_r3_h, val_r4_h
+            FROM core.t_consumos_horarios
+            where id_cups = :id_cups
+            ";
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                AND fec_inicio >= :fecha_inicio
+                AND fec_fin <= :fecha_fin
+                order by 1,3,4;";
+                    $params = [
+                        'id_cups' => $id_cups,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin' => $fecha_fin
+                    ];
+                } else {
+                    $query .= "
+                and fec_inicio >= (current_date - INTERVAL '30 days')
+                order by 1,3,4;";
+
+
+                    $params = ['id_cups' => $id_cups];
+                }
+
+
+                $exportCurvasHorarias = DB::connection($connection)->select($query, $params);
+                if($exportCurvasHorarias) {
+                    return Excel::download(new CurvasHorariasCupsExport($exportCurvasHorarias), 'curvas_horarias_cups.xlsx');                   
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                } 
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
