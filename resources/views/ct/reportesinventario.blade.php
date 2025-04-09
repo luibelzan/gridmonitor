@@ -377,40 +377,44 @@
         }
     </style>
     <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        document.addEventListener("DOMContentLoaded", function () {
+        var exportButton = document.getElementById('exportarExcel');
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', function () {
+
+                // Construir la URL con todos los parámetros
+                var url = "{{ route('exportar.reportes.actualizaciones') }}?";
+
+                // Redirigir al servidor con la URL construida
+                window.location.href = url;
+            });
+        } else {
+            console.error("El botón exportarExcel no existe en el DOM.");
         }
+    });
     </script>
+
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+        var exportButton = document.getElementById('exportarExcel2');
+        
+        if (exportButton) {
+            exportButton.addEventListener('click', function () {
+
+                // Construir la URL con todos los parámetros
+                var url = "{{ route('exportar.reportes.inventario') }}?";
+
+                // Redirigir al servidor con la URL construida
+                window.location.href = url;
+            });
+        } else {
+            console.error("El botón exportarExcel no existe en el DOM.");
+        }
+    });
+    </script>
+
+
     <title>Reportes CT</title>
 </head>
 
@@ -547,7 +551,7 @@
                                              border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                     </div>
                                     <!-- Cuadrado para Contadores no leídos -->
-                                    @if (is_array($resultadosQ52) && count($resultadosQ52) > 0)
+                                    @if (count($resultadosQ52) > 0)
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                             style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                             <table id="testTableReporteActualizaciones"
@@ -596,6 +600,11 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
+                                        </div>
+                                        <div class="pagination-container mt-4 flex justify-center items-center">
+                                            <div class="pagination">
+                                                {{ $resultadosQ52->links() }}
+                                            </div>
                                         </div>
                                     @else
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
@@ -649,9 +658,8 @@
 
                                     <!-- Contenedor del botón de descarga -->
                                     <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="tableToExcel('testTableReporteActualizaciones', 'W3C Example Table')"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        <button id="exportarExcel" style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        </button>
                                     </div>
 
 
@@ -901,7 +909,7 @@
                                          border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                 </div>
                                 <!-- Cuadrado para Contadores baja disponibilidad -->
-                                @if (is_array($resultadosQ55) && count($resultadosQ52) > 0)
+                                @if (count($resultadosQ52) > 0)
                                     <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                         style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                         <table id="testTableReporteModelo" class="w-full text-white text-center">
@@ -978,6 +986,11 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <div class="pagination-container mt-4 flex justify-center items-center">
+                                        <div class="pagination">
+                                            {{ $resultadosQ55->links() }}
+                                        </div>
+                                    </div>
                                 @else
                                     <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
                                         <p class="mt-0 text-xl  text-center" style="color:rgb(88,226,194)">No hay
@@ -986,9 +999,8 @@
                                 @endif
                                 <!-- Contenedor del botón de descarga -->
                                 <div class="text-right mt-4">
-                                    <input type="button"
-                                        onclick="tableToExcel('testTableReporteModelo', 'W3C Example Table')"
-                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                    <button id="exportarExcel2" style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                    </button>
                                 </div>
                             </div>
 
