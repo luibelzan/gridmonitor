@@ -77,12 +77,13 @@ Route::get('/reportesinventario', [ctController::class, 'reportesinventario'])->
 Route::get('/reportescurvashorarias', [ctController::class, 'reportescurvashorarias'])->name('reportescurvashorarias');
 Route::get('/reporteseventos', [ctController::class, 'reporteseventos'])->name('reporteseventos');
 Route::get('/exportar-excel', [ctController::class, 'exportCurvasHorarias'])->name('exportar.excel');
-Route::get('/exportar-excel', [ctController::class, 'exportReportesEventos'])->name('exportar.eventos');
-Route::get('/exportar-excel', [CupsController::class, 'exportRegistrosMensuales'])->name('exportar.registros');
-Route::get('/exportar-excel', [CupsController::class, 'exportConsumosTotalesDiarios'])->name('exportar.registros.diarios');
-Route::get('/exportar-excel', [CtController::class, 'exportSumBalances'])->name('exportar.balances');
-Route::get('/exportar-excel', [CtController::class, 'exportEventosCT'])->name('exportar.eventos.ct');
-Route::get('/exportar-excel', [PuntoFronteraController::class, 'exportEventsPF'])->name('exportar.eventos.pf');
+Route::get('/exportar-eventos', [ctController::class, 'exportReportesEventos'])->name('exportar.eventos');
+Route::get('/exportar-registros', [CupsController::class, 'exportRegistrosMensuales'])->name('exportar.registros');
+Route::get('/exportar-registros-diarios', [CupsController::class, 'exportConsumosTotalesDiarios'])->name('exportar.registros.diarios');
+Route::get('/exportar-balances', [CtController::class, 'exportSumBalances'])->name('exportar.balances');
+Route::get('/exportar-eventos-ct', [CtController::class, 'exportEventosCT'])->name('exportar.eventos.ct');
+Route::get('/exportar-eventos-pf', [PuntoFronteraController::class, 'exportEventsPF'])->name('exportar.eventos.pf');
+Route::get('/exportar-eventos-espontaneos', [EventosEspontaneosController::class, 'exportEventosEspontaneos'])->name('exportar.eventosespontaneos');
 
 //*********************************
 //***********PUNTO FRONTERA*********

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\EventosEspontaneosExport;
 use App\Models\Ct;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 
 
@@ -838,9 +841,110 @@ public function consultaUnoEventosEspontaneosPaginate(Request $request, $connect
             );
 
             $resultadosQ1Eventos -> setPageName('cnt_page');
-
             // Retornar los resultados o un mensaje si no hay datos
             return $resultadosQ1Eventos ?: ['message' => 'No hay datos'];
+        } else {
+            // La tabla no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    } catch (\Exception $e) {
+        // Manejo de excepciones con mensaje específico
+        return ['message' => 'No hay datos'];
+    }
+}
+
+public function exportEventosEspontaneos(Request $request)
+{
+    try {
+        // Verificar la existencia de las tablas
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        if (
+            Schema::connection($connection)->hasTable('t_ct') &&
+            Schema::connection($connection)->hasTable('s13') &&
+            Schema::connection($connection)->hasTable('t_cups') &&
+            Schema::connection($connection)->hasTable('t_descripcion_eventos_contador') &&
+            Schema::connection($connection)->hasTable('t_eventos_contador')
+        ) {
+            // Obtener las fechas de inicio y fin del request
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+
+            // Obtener los valores seleccionados de 'et' del request
+            $et_values = $request->input('et', []);
+
+            // Construir la consulta SQL base con eliminación de duplicados
+            $query = "
+                WITH eventos_ordenados AS (
+    SELECT 
+        s13.et, 
+        s13.c, 
+        s13.cnt, 
+        fecha_hora_legible,  
+        t_dec.des_evento_contador,  
+        t_cups.id_cups,
+        t_cups.dir_cups,
+        t_ct.id_ct,
+        t_ct.nom_ct,
+        t_dec.cod_gravedad_cnt AS cod_gravedad,
+        ROW_NUMBER() OVER (
+            PARTITION BY fecha_hora_legible, 
+                         t_dec.des_evento_contador,  
+                         t_cups.id_cups,
+                         t_ct.id_ct,
+                         t_dec.cod_gravedad_cnt
+            ORDER BY s13.id DESC
+        ) AS fila_ordenada
+    FROM (
+        SELECT 
+            s13.*,
+            TO_CHAR(TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS'), 
+                    'DD/MM/YYYY HH24:MI:SS') AS fecha_hora_legible
+        FROM core.s13 s13
+    ) s13
+    JOIN core.t_cups t_cups ON s13.cnt = t_cups.id_cnt  
+    JOIN core.t_ct t_ct ON t_cups.id_ct = t_ct.id_ct    
+    INNER JOIN core.t_descripcion_eventos_contador t_dec  
+        ON s13.et = t_dec.grp_evento 
+        AND s13.c = t_dec.cod_evento
+";
+
+            // Añadir el filtro de fecha_inicio si está disponible
+            if ($fecha_inicio) {
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')";
+            }
+
+            // Añadir el filtro de fecha_fin si está disponible
+            if ($fecha_fin) {
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD')";
+            }
+
+            // Filtrar por los valores de 'et' seleccionados
+            if (!empty($et_values)) {
+                $et_values = implode(',', array_map('intval', $et_values)); // Convertir a cadena de valores separados por comas
+                $query .= " AND s13.et IN ($et_values)";
+            }
+
+            // Añadir el filtro de las últimas 24 horas si no se especifica fecha
+            if (!$fecha_inicio && !$fecha_fin) {
+                $query .= " AND TO_TIMESTAMP(SUBSTRING(s13.fh, 1, 14), 'YYYYMMDDHH24MISS') >= NOW() - INTERVAL '24 hours'";
+            }
+
+            // Continuar con la consulta final
+            $query .= "
+                )
+                SELECT * 
+                FROM eventos_ordenados
+                WHERE fila_ordenada = 1
+                ORDER BY fecha_hora_legible DESC";
+
+            // Ejecutar la consulta
+            $exportEventosEspontaneos = DB::connection($connection)->select($query);
+            if($exportEventosEspontaneos) {
+                return Excel::download(new EventosEspontaneosExport($exportEventosEspontaneos), 'eventos_espontaneos.xlsx');
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            } 
         } else {
             // La tabla no existe, retornar un mensaje específico
             return ['message' => 'No hay datos'];
