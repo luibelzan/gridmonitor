@@ -646,6 +646,7 @@ class CupsController extends Controller
                 $resultadosQ9cups = $this->consultaNueveCups($id_cups, $connection, $request);
                 $resultadosQ10cups = $this->consultaDiezCups($id_cups, $connection, $request);
                 $resultadosQ11cups = $this->consultaOnceCups($id_cups, $connection, $request);
+                $resultadosQ11cupsPaginated = $this->consultaOnceCupsPaginated($id_cups, $connection, $request);
                 $resultadosQ12cups = $this->consultaDoceCups($id_cups, $connection, $request);
                 $resultadosQ13cups = $this->consultaTreceCups($id_cups, $connection, $request);
             } else {
@@ -655,6 +656,7 @@ class CupsController extends Controller
                 $resultadosQ9cups = [];
                 $resultadosQ10cups = [];
                 $resultadosQ11cups = [];
+                $resultadosQ11cupsPaginated = [];
                 $resultadosQ12cups = [];
                 $resultadosQ13cups = [];
             }
@@ -671,6 +673,7 @@ class CupsController extends Controller
                 'resultadosQ9cups' => $resultadosQ9cups,
                 'resultadosQ10cups' => $resultadosQ10cups,
                 'resultadosQ11cups' => $resultadosQ11cups,
+                'resultadosQ11cupsPaginated' => $resultadosQ11cupsPaginated,
                 'resultadosQ12cups' => $resultadosQ12cups,
                 'resultadosQ13cups' => $resultadosQ13cups,
             ]);
@@ -1604,7 +1607,6 @@ class CupsController extends Controller
         }
     }
 
-
     public function consultaOnceCups($id_cups, $connection, Request $request) // Curva horaria
     {
         $id_cups = strtoupper($request->input('id_cups'));
@@ -1648,20 +1650,73 @@ class CupsController extends Controller
 
 
                 $resultadosQ11cups = DB::connection($connection)->select($query, $params);
-                $resultadosQ11cupsCollection = new Collection($resultadosQ11cups);
+
+                return $resultadosQ11cups ?: [];
+            }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+
+    public function consultaOnceCupsPaginated($id_cups, $connection, Request $request) // Curva horaria
+    {
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+
+        if (Schema::connection($connection)->hasTable('t_consumos_horarios')) {
+
+
+            if ($id_cups) {
+                $query = "
+            SELECT id_cups, id_cnt,
+            TO_CHAR(fec_inicio, 'DD/MM/YYYY') as fec_inicio,
+            hor_inicio,
+            TO_CHAR(fec_fin, 'DD/MM/YYYY') as fec_fin,
+            hor_fin, val_ai_h, val_ae_h, val_r1_h, val_r2_h, val_r3_h, val_r4_h
+            FROM core.t_consumos_horarios
+            where id_cups = :id_cups
+            ";
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                AND fec_inicio >= :fecha_inicio
+                AND fec_fin <= :fecha_fin
+                order by 1,3,4;";
+                    $params = [
+                        'id_cups' => $id_cups,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin' => $fecha_fin
+                    ];
+                } else {
+                    $query .= "
+                and fec_inicio >= (current_date - INTERVAL '30 days')
+                order by 1,3,4;";
+
+
+                    $params = ['id_cups' => $id_cups];
+                }
+
+
+                $resultadosQ11cupsPaginated = DB::connection($connection)->select($query, $params);
+                $resultadosQ11cupsCollection = new Collection($resultadosQ11cupsPaginated);
                 $currentPage = LengthAwarePaginator::resolveCurrentPage();
                 $perPage = 100; // Número de elementos por página
                 $currentItems = $resultadosQ11cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
                 // Crear paginador manualmente
-                $resultadosQ11cups = new LengthAwarePaginator($currentItems, count($resultadosQ11cupsCollection), $perPage, $currentPage, [
+                $resultadosQ11cupsPaginated = new LengthAwarePaginator($currentItems, count($resultadosQ11cupsCollection), $perPage, $currentPage, [
                     'path' => request()->url(),
                     'query' => request()->query()
                 ]);
 
 
-                return $resultadosQ11cups ?: [];
+                return $resultadosQ11cupsPaginated ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
