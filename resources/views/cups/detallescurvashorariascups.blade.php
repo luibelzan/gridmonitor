@@ -1137,7 +1137,7 @@
                                                             border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                                     </div>
                                     <div class="container">
-                                    @if ($resultadosQ11cups instanceof \Illuminate\Pagination\LengthAwarePaginator)
+                                    @if ($resultadosQ11cupsPaginated instanceof \Illuminate\Pagination\LengthAwarePaginator)
                                             <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                                 style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                                 <table id="testTableCurvasHorarias"
@@ -1172,7 +1172,7 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @foreach ($resultadosQ11cups as $resultado)
+                                                        @foreach ($resultadosQ11cupsPaginated as $resultado)
                                                             <tr class="highlight-row ">
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
@@ -1217,7 +1217,7 @@
                                             </div>
                                             <div class="pagination-container mt-4 flex justify-center items-center">
                                                 <div class="pagination">
-                                                    {{ $resultadosQ11cups->links() }}
+                                                    {{ $resultadosQ11cupsPaginated->links() }}
                                                 </div>
                                             </div>
                                         @else
