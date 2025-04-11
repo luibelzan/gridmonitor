@@ -18,7 +18,17 @@ class EventosCupsExport implements FromCollection, WithHeadings
     // Función que retorna los datos a exportar
     public function collection()
     {
-        return collect($this->data); // Convierte los datos en una colección
+        return collect($this->data)->map(function ($item) {
+            return [
+                'id_cups' => $item->id_cups ?? '',
+                'id_cnt' => $item->id_cnt ?? '',
+                'fecha' => $item->fecha ?? '',
+                'hor_evento' => $item->hor_evento ?? '',
+                'txt_adicionales_1' => $item->txt_adicionales_1 ?? '',
+                'txt_adicionales_2' => $item->txt_adicionales_2 ?? '',
+                'des_evento_contador' => $item->des_evento_contador ?? '',
+            ];
+        });
     }
 
     // Cabeceras de las columnas

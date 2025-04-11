@@ -18,7 +18,20 @@ class EventosEspontaneosExport implements FromCollection, WithHeadings
     // Función que retorna los datos a exportar
     public function collection()
     {
-        return collect($this->data); // Convierte los datos en una colección
+        return collect($this->data)->map(function ($item) {
+            return [
+                'et' => $item->et ?? '',
+                'c' => $item->c ?? '',
+                'cnt' => $item->cnt ?? '',
+                'fecha_hora_legible' => $item->fecha_hora_legible ?? '',
+                'des_evento_contador' => $item->des_evento_contador ?? '',
+                'id_cups' => $item->id_cups ?? '',
+                'dir_cups' => $item->dir_cups ?? '',
+                'id_ct' => $item->id_ct ?? '',
+                'nom_ct' => $item->nom_ct ?? '',
+                'cod_gravedad' => $item->cod_gravedad ?? '',
+            ];
+        });
     }
 
     // Cabeceras de las columnas
