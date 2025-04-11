@@ -18,7 +18,17 @@ class EventosCTExport implements FromCollection, WithHeadings
     // Función que retorna los datos a exportar
     public function collection()
     {
-        return collect($this->data); // Convierte los datos en una colección
+        return collect($this->data)->map(function ($item) {
+            return [
+                'id_ct' => $item->id_ct ?? '',
+                'id_cnc' => $item->id_cnc ?? '',
+                'fecha' => $item->fecha ?? '',
+                'hor_evento' => $item->hor_evento ?? '',
+                'txt_adicionales_1' => $item->txt_adicionales_1 ?? '',
+                'txt_adicionales_2' => $item->txt_adicionales_2 ?? '',
+                'des_evento_dc' => $item->des_evento_dc ?? '',
+            ];
+        });
     }
 
     // Cabeceras de las columnas
@@ -26,7 +36,7 @@ class EventosCTExport implements FromCollection, WithHeadings
     {
         return [
             'ID CT',
-            'Contador',
+            'Concentrador',
             'Fecha',
             'Hora',
             'Info adicional 1',
