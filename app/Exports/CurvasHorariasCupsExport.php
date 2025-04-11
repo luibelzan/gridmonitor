@@ -18,7 +18,22 @@ class CurvasHorariasCupsExport implements FromCollection, WithHeadings
     // Función que retorna los datos a exportar
     public function collection()
     {
-        return collect($this->data); // Convierte los datos en una colección
+        return collect($this->data)->map(function ($item) {
+            return [
+                'id_cups' => $item->id_cups ?? '',
+                'id_cnt' => $item->id_cnt ?? '',
+                'fec_inicio' => $item->fec_inicio ?? '',
+                'hor_inicio' => $item->hor_inicio ?? 0,
+                'fec_fin' => $item->fec_fin ?? 0,
+                'hor_fin' => $item->hor_fin ?? 0,
+                'val_ai_h' => strval($item->val_ai_h ?? '0'),
+                'val_ae_h' => strval($item->val_ae_h ?? '0'),
+                'val_r1_h' => strval($item->val_r1_h ?? '0'),
+                'val_r2_h' => strval($item->val_r2_h ?? '0'),
+                'val_r3_h' => strval($item->val_r3_h ?? '0'),
+                'val_r4_h' => strval($item->val_r4_h ?? '0'),
+            ];
+        });
     }
 
     // Cabeceras de las columnas
