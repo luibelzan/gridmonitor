@@ -11,6 +11,7 @@ namespace App\Http\Controllers;
 use App\Exports\EventosCTExport;
 use App\Exports\ReportesCalidadExport;
 use App\Exports\ReportesInventarioExport;
+use App\Exports\ReportesInventarioFWExport;
 use App\Exports\SumBalancesExport;
 use App\Models\ConsumoDiario;
 use App\Models\Ct;
@@ -4450,11 +4451,15 @@ public function exportReportesCalidad(Request $request)
         }
     }
 
-    public function exportReportesInventarioFW()
+    public function exportReportesInventarioFW(Request $request)
     {
         try {
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            // NUEVO: Tipo de archivo ('excel' por default)
+            $format = $request->input('format', 'excel'); 
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
             // Realiza la consulta, seleccionando las columnas necesarias
             // y ordenando por la fecha original
             $exportReportesInventarioFW = DB::connection($connection)
@@ -4471,7 +4476,7 @@ public function exportReportesCalidad(Request $request)
                 ");
     
             if($exportReportesInventarioFW) {
-                return Excel::download(new ReportesEventosExport($exportReportesInventarioFW), 'reportes_actualizaciones.xlsx');
+                return Excel::download(new ReportesInventarioFWExport($exportReportesInventarioFW), 'reportes_actualizaciones.' . $extension, $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
             }
