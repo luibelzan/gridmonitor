@@ -4562,18 +4562,22 @@ public function exportReportesCalidad(Request $request)
         }
     }
 
-    public function exportReportesInventario() // tabla modelos contadores
+    public function exportReportesInventario(Request $request) // tabla modelos contadores
     {
         try {
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            // NUEVO: Tipo de archivo ('excel' por default)
+            $format = $request->input('format', 'excel'); 
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
             // Realiza la consulta
             $exportReportesInventario = DB::connection($connection)
                 ->select("
                    SELECT * FROM core.v_contadores_modelos;
                 ");
             if($exportReportesInventario) {
-                return Excel::download(new ReportesInventarioExport($exportReportesInventario), 'reportes_inventario.xlsx');
+                return Excel::download(new ReportesInventarioExport($exportReportesInventario), 'reportes_inventario.' . $extension, $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
             }
