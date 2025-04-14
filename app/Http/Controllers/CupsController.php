@@ -24,7 +24,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Excel as ExcelFormat;
 
 
 
@@ -1181,6 +1182,11 @@ class CupsController extends Controller
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
 
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
 
         if (Schema::connection($connection)->hasTable('t_consumos_totales_mensuales')) {
                 $query = "
@@ -1212,7 +1218,7 @@ class CupsController extends Controller
                 $exportRegistrosMensuales = DB::connection($connection)->select($query, $params);
                 
                 if($exportRegistrosMensuales) {
-                    return Excel::download(new RegistrosMensualesExport($exportRegistrosMensuales), 'registros_mensuales.xlsx');
+                    return Excel::download(new RegistrosMensualesExport($exportRegistrosMensuales), 'registros_mensuales.' . $extension, $exportFormat);
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
                 }
