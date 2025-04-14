@@ -5170,6 +5170,10 @@ public function exportReportesCalidad(Request $request)
                     $id_ct = $request->input('id_ct');
                     $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
                     $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
+                    // NUEVO: Tipo de archivo ('excel' por default)
+                    $format = $request->input('format', 'excel'); 
+                    $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                    $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;   
     
                     $params = [];
                     $query = "
@@ -5200,7 +5204,7 @@ public function exportReportesCalidad(Request $request)
     
                     $exportSumBalances = DB::connection($connection)->select($query, $params);
                     if($exportSumBalances) {
-                        return Excel::download(new SumBalancesExport($exportSumBalances), 'consumos_cups.xlsx');
+                        return Excel::download(new SumBalancesExport($exportSumBalances), 'consumos_cups.' . $extension, $exportFormat);
                     } else {
                         return response()->json(['message' => 'No hay datos'], 404);
                     }                    
