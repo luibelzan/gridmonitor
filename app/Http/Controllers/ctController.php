@@ -4773,6 +4773,10 @@ public function exportReportesCalidad(Request $request)
                 $id_ct = $request->input('id_ct');
                 $id_cups = $request->input('id_cups');
                 $nom_cups = $request->input('nom_cups');
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
     
                 // Si no hay fechas, establecer fechas predeterminadas (últimos 30 días)
                 if (!$fecha_inicio || !$fecha_fin) {
@@ -4862,7 +4866,7 @@ public function exportReportesCalidad(Request $request)
 
             // Devuelve el archivo Excel si los datos existen
             if ($exportCurvasHorarias) {
-                return Excel::download(new CurvasHorariasExport($exportCurvasHorarias), 'curvas_horarias.xlsx');
+                return Excel::download(new CurvasHorariasExport($exportCurvasHorarias), 'curvas_horarias.' . $extension, $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
             }
