@@ -2364,6 +2364,10 @@ class CupsController extends Controller
         $id_cups = strtoupper($request->input('id_cups'));
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
         if(Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
             if($id_cups) {
@@ -2401,7 +2405,7 @@ class CupsController extends Controller
 
                     $exportConsumosTotalesDiarios = DB::connection($connection)->select($query, $params);
                     if($exportConsumosTotalesDiarios) {
-                        return Excel::download(new ConsumosTotalesDiariosExport($exportConsumosTotalesDiarios), 'registros_diarios.xlsx');
+                        return Excel::download(new ConsumosTotalesDiariosExport($exportConsumosTotalesDiarios), 'registros_diarios.' . $extension, $exportFormat);
                     } else {
                         return response()->json(['message' => 'No hay datos'], 404);
                     }
