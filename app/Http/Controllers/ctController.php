@@ -1903,6 +1903,10 @@ public function consultaVeintidos($id_ct, $connection)
             $fecha_inicio = $request->input('fecha_inicio');
             $fecha_fin = $request->input('fecha_fin');
             $id_ct = $request->input('id_ct');
+            // NUEVO: Tipo de archivo ('excel' por default)
+            $format = $request->input('format', 'excel'); 
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
             if ($id_ct) {
                 $query = "
@@ -1935,7 +1939,7 @@ public function consultaVeintidos($id_ct, $connection)
 
                 $exportEventosCT = DB::connection($connection)->select($query, $params);
                 if($exportEventosCT) {
-                    return Excel::download(new EventosCTExport($exportEventosCT), 'eventos_ct.xlsx');                   
+                    return Excel::download(new EventosCTExport($exportEventosCT), 'eventos_ct.' . $extension, $exportFormat);                   
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
                 } 
