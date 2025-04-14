@@ -1737,6 +1737,10 @@ class CupsController extends Controller
         $id_cups = strtoupper($request->input('id_cups'));
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
 
         if (Schema::connection($connection)->hasTable('t_consumos_horarios')) {
@@ -1776,7 +1780,7 @@ class CupsController extends Controller
 
                 $exportCurvasHorarias = DB::connection($connection)->select($query, $params);
                 if($exportCurvasHorarias) {
-                    return Excel::download(new CurvasHorariasCupsExport($exportCurvasHorarias), 'curvas_horarias_cups.xlsx');                   
+                    return Excel::download(new CurvasHorariasCupsExport($exportCurvasHorarias), 'curvas_horarias_cups.' . $extension, $exportFormat);                   
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
                 } 
