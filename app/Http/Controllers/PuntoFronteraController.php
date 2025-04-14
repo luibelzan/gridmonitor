@@ -16,7 +16,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Excel as ExcelFormat;
 
 
 
@@ -950,6 +951,10 @@ class PuntoFronteraController extends Controller
     $id_cnt = $request->input('id_cnt'); // <- lo obtienes aquí
     $fecha_inicio = $request->input('fecha_inicio');
     $fecha_fin = $request->input('fecha_fin');
+    // NUEVO: Tipo de archivo ('excel' por default)
+    $format = $request->input('format', 'excel'); 
+    $extension = $format === 'csv' ? 'csv' : 'xlsx';
+    $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
     // Obtener la conexión dinámica (esto lo puedes mover a un método privado si se repite)
     $connectionpf = User::conexionPuntoFrontera();
@@ -991,7 +996,7 @@ class PuntoFronteraController extends Controller
         ->select($query, $params);
 
     if ($exportEventsPF) {
-        return Excel::download(new EventosPFExport($exportEventsPF), 'eventos_pf.xlsx');
+        return Excel::download(new EventosPFExport($exportEventsPF), 'eventos_pf.' . $extension, $exportFormat);
     } else {
         return response()->json(['message' => 'No hay datos'], 404);
     }
