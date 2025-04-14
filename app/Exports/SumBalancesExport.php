@@ -23,8 +23,8 @@ class SumBalancesExport implements FromCollection, WithHeadings
                 'nom_cups' => $item->nom_cups ?? '',
                 'id_cnt' => $item->id_cnt ?? '',
                 'id_cups' => $item->id_cups ?? '',
-                'val_ai_d' => strval($item->val_ai_d ?? '0'),
-                'val_ae_d' => strval($item->val_ae_d ?? '0'),
+                'total_val_ai_d' => strval($item->total_val_ai_d ?? '0'),
+                'total_val_ae_d' => strval($item->total_val_ae_d ?? '0'),
             ];
         });
     }
