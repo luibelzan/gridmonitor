@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use App\Exports\CurvasHorariasExport;
 use App\Exports\ReportesEventosExport;
 
@@ -3037,6 +3038,11 @@ public function exportReportesCalidad(Request $request)
             $fecha_inicio = $request->input('fecha_inicio');
             $fecha_fin = $request->input('fecha_fin');
 
+            // NUEVO: Tipo de archivo ('excel' por default)
+            $format = $request->input('format', 'excel'); 
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
             // Inicializar el array de parámetros
             $params = [];
 
@@ -3162,7 +3168,7 @@ public function exportReportesCalidad(Request $request)
             // Ejecutar la consulta
             $exportReportesCalidad = DB::connection($connection)->select($query, $params);
             if($exportReportesCalidad) {
-                return Excel::download(new ReportesCalidadExport($exportReportesCalidad), 'reportes_calidad.xlsx');
+                return Excel::download(new ReportesCalidadExport($exportReportesCalidad), 'reportes_calidad.' . $extension, $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
             }
