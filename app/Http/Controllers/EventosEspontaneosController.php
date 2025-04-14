@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Facades\Excel;
-
+use Maatwebsite\Excel\Facades\Excel; // para Excel::download(...)
+use Maatwebsite\Excel\Excel as ExcelFormat;
 
 
 
@@ -873,6 +873,11 @@ public function exportEventosEspontaneos(Request $request)
             // Obtener los valores seleccionados de 'et' del request
             $et_values = $request->input('et', []);
 
+            // NUEVO: Tipo de archivo ('excel' por default)
+            $format = $request->input('format', 'excel'); 
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
             // Construir la consulta SQL base con eliminación de duplicados
             $query = "
                 WITH eventos_ordenados AS (
@@ -941,7 +946,8 @@ public function exportEventosEspontaneos(Request $request)
             // Ejecutar la consulta
             $exportEventosEspontaneos = DB::connection($connection)->select($query);
             if($exportEventosEspontaneos) {
-                return Excel::download(new EventosEspontaneosExport($exportEventosEspontaneos), 'eventos_espontaneos.xlsx');
+                return Excel::download(new EventosEspontaneosExport($exportEventosEspontaneos), 'eventos_espontaneos.'. $extension,
+                    $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
             } 
