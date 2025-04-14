@@ -1318,7 +1318,10 @@ class CupsController extends Controller
         $id_cups = strtoupper($request->input('id_cups'));
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
-
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
         if (
             Schema::connection($connection)->hasTable('t_eventos_contador') &&
@@ -1372,7 +1375,7 @@ class CupsController extends Controller
 
                 $exportEventsCups = DB::connection($connection)->select($query, $params);
                 if($exportEventsCups) {
-                    return Excel::download(new EventosCupsExport($exportEventsCups), 'eventos_cups.xlsx');
+                    return Excel::download(new EventosCupsExport($exportEventsCups), 'eventos_cups.' . $extension, $exportFormat);
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
                 }
