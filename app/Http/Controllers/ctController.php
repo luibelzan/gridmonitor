@@ -5033,7 +5033,10 @@ public function exportReportesCalidad(Request $request)
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
                 $descripcion = $request->input('descripcion');
-                
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
     
                 $params = [];
                 $query = "
@@ -5082,7 +5085,7 @@ public function exportReportesCalidad(Request $request)
                 $exportreporteseventos = DB::connection($connection)->select($query, $params);
                 
                 if($exportreporteseventos) {
-                    return Excel::download(new ReportesEventosExport($exportreporteseventos), 'reportes_eventos.xlsx');
+                    return Excel::download(new ReportesEventosExport($exportreporteseventos), 'reportes_eventos.' . $extension, $exportFormat);
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
                 }    
