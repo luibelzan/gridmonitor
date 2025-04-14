@@ -249,37 +249,49 @@
         }
     </style>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-        var exportButton = document.getElementById('exportarExcel');
-        
-        if (exportButton) {
-            exportButton.addEventListener('click', function () {
-                // Obtener los valores de los filtros
-                var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
-                var fecFin = document.querySelector('input[name="fecha_fin"]').value;
-                var idCups = document.querySelector('input[name="id_cups"]').value;
-                // Construir la URL con todos los parámetros
-                var url = "{{ route('exportar.registros.diarios') }}?";
+document.addEventListener("DOMContentLoaded", function () {
 
-                // Añadir los parámetros solo si están presentes
-                if (idCups) {
-                    url += "id_cups=" + encodeURIComponent(idCups) + "&";
-                }
-                if (fecInicio) {
-                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
-                }
-                if (fecFin) {
-                    url += "fecha_fin=" + encodeURIComponent(fecFin);
-                } 
+    function exportarArchivo(formato) {
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+        var idCups = document.querySelector('input[name="id_cups"]').value;
 
-                // Redirigir al servidor con la URL construida
-                window.location.href = url;
-            });
-        } else {
-            console.error("El botón exportarExcel no existe en el DOM.");
+        var url = "{{ route('exportar.registros.diarios') }}?";
+
+        if (idCups) {
+            url += "id_cups=" + encodeURIComponent(idCups) + "&";
         }
-    });
-    </script>
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+});
+</script>
+
     <title>Consumo Diario CUPS</title>
 </head>
 
@@ -643,9 +655,18 @@
                                                         @endif
                                                         <!-- Contenedor del botón de descarga -->
                                                         <div class="text-right mt-4">
-                                                            <button id="exportarExcel" style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
-                                                        </button>
-                                                    </div>
+                                                            <!-- Botón Excel -->
+                                                            <button id="exportarExcel" 
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                title="Exportar a Excel">
+                                                            </button>
+
+                                                            <!-- Botón CSV -->
+                                                            <button id="exportarCsv" 
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                title="Exportar a CSV">
+                                                            </button>
+                                                        </div>
                                                 </div>
                                             </div>
                                         </div>
