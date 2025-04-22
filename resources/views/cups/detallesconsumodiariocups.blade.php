@@ -369,8 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </form>
                         </div>
                     </div>
-                    @if (isset($id_cups) || isset($id_cnt))
-                        @if (count($resultadosQ1cups) === 0)
+                    @if (!isset($id_cups))
                             <div class="flex justify-center">
                                 <div class="alert alert-danger text-center max-w-max flex items-center space-x-2"
                                     role="alert">
@@ -383,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                     <span>No se encontró información para el CUPS proporcionado.</span>
                                 </div>
                             </div>
-                        @else
+                    @else
                             <h1 class="text-center text-3xl w-full" style="color: white;">INFORMACIÓN CUPS</h1>
                             <div
                                 style="border-bottom: 3px solid transparent;
@@ -674,7 +673,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                             </div>
                         @endif
-                    @endif
                 </div>
             </div>
         </div>
