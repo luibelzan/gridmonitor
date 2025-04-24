@@ -5243,14 +5243,14 @@ public function exportReportesCalidad(Request $request)
             Schema::connection($connection)->hasTable('t_consumos_mensual') &&
             Schema::connection($connection)->hasTable('t_consumos_horarios')) {
                 $fecha_inicio = $request->input('fecha_inicio2');
-                $fecha_fin = $request->input('fecha_fin2');
 
-                if (!$fecha_inicio || !$fecha_fin) {
+                if (!$fecha_inicio) {
                     return ['message' => 'Debe seleccionar un rango de fechas.'];
                 }
 
                 $fecha_inicio .= '-01';
-                $fecha_fin .= '-01';
+                $fecha_inicio_carbon = Carbon::parse($fecha_inicio)->startOfMonth();
+                $fecha_fin = $fecha_inicio_carbon->copy()->addMonth();
                 $inicio = Carbon::parse($fecha_inicio);
                 $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
 
@@ -5310,7 +5310,10 @@ public function exportReportesCalidad(Request $request)
                     m.suma_mensual,
                     m.num_cons_mes,
                     h.suma_horas,
-                    h.num_cons_horas
+                    h.num_cons_horas,
+                    ABS(d.suma_diarios - m.suma_mensual) AS dif_diario_mensual,
+                    ABS(d.suma_diarios - h.suma_horas) AS dif_diario_horario,
+                    ABS(m.suma_mensual - h.suma_horas) AS dif_mensual_horario
                 FROM diarios d
                 INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
                 INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
