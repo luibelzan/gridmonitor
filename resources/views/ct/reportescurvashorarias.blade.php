@@ -335,6 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+console.log(@json($diferenciaConsumo));
 </script>
 
 
@@ -638,15 +639,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                                         max="{{ date('Y-m') }}" style="background-color: transparent;">
                                                 </div>
 
-                                                {{-- Fecha fin --}}
-                                                <div class="form-group flex items-center">
-                                                    <label for="fecha_fin2" class="text-white mr-2">Fecha de fin:</label>
-                                                    <input type="month" id="fecha_fin2" name="fecha_fin2"
-                                                        class="border border-gray-400 p-2 rounded-lg text-white"
-                                                        @if (isset($_GET['fecha_fin2'])) value="{{ \Carbon\Carbon::parse($_GET['fecha_fin2'])->format('Y-m') }}" @endif
-                                                        max="{{ date('Y-m') }}" style="background-color: transparent;">
-                                                </div>
-
                                                 <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
                                                     <div class="form-group">
                                                         <button type="submit" class="btn btn-outline-info text-white px-4 py-2 rounded-lg"
@@ -679,26 +671,21 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             style="color:rgb(88,226,194)">Mensual</th>
                                                         <th class="mt-0 text-lg font-bold text-center"
                                                             style="color:rgb(88,226,194)">Num Meses</th>
-                                                             <th class="mt-0 text-lg font-bold text-center"
+                                                        <th class="mt-0 text-lg font-bold text-center"
                                                             style="color:rgb(88,226,194)">Horario</th>
-                                                             <th class="mt-0 text-lg font-bold text-center"
+                                                        <th class="mt-0 text-lg font-bold text-center"
                                                             style="color:rgb(88,226,194)">Num Horas</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Diario/Mensual</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Diario/Horario</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Horario/Mensual</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                 @foreach ($diferenciaConsumo as $resultado)
-                                                    @php
-                                                        $diario = floatval($resultado->suma_diarios ?? 0);
-                                                        $mensual = floatval($resultado->suma_mensual ?? 0);
-                                                        $horario = floatval($resultado->suma_horas ?? 0);
-
-                                                        $diff1 = abs($diario - $mensual);
-                                                        $diff2 = abs($mensual - $horario);
-                                                        $diff3 = abs($diario - $horario);
-
-                                                        $highlight = ($diff1 > 2 || $diff2 > 2 || $diff3 > 2) ? 'bg-red-500' : '';
-                                                    @endphp
-                                                    <tr class="highlight-row {{ $highlight }}">
+                                                    <tr class="highlight-row">
                                                         <td class="py-2">
                                                             {{ isset($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
                                                         </td>
@@ -723,6 +710,16 @@ document.addEventListener("DOMContentLoaded", function () {
                                                         <td class="py-2">
                                                             {{ isset($resultado->num_cons_horas) ? $resultado->num_cons_horas : '0' }}
                                                         </td>
+                                                        <td class="py-2 {{ isset($resultado->dif_diario_mensual) && $resultado->dif_diario_mensual > 10 ? 'text-red-500 font-bold' : '' }}">
+                                                            {{ isset($resultado->dif_diario_mensual) ? $resultado->dif_diario_mensual : '0' }}
+                                                        </td>
+                                                        <td class="py-2 {{ isset($resultado->dif_diario_horario) && $resultado->dif_diario_horario > 10 ? 'text-red-500 font-bold' : '' }}">
+                                                            {{ isset($resultado->dif_diario_horario) ? $resultado->dif_diario_horario : '0' }}
+                                                        </td>
+                                                        <td class="py-2 {{ isset($resultado->dif_mensual_horario) && $resultado->dif_mensual_horario > 10 ? 'text-red-500 font-bold' : '' }}">
+                                                            {{ isset($resultado->dif_mensual_horario) ? $resultado->dif_mensual_horario : '0' }}
+                                                        </td>
+
                                                     </tr>
                                                 @endforeach
                                                 </tbody>
