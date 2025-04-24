@@ -611,6 +611,154 @@ document.addEventListener("DOMContentLoaded", function () {
                             </div>
                         </div>
 
+                        {{-- PRIMERA FILA --}}
+                        <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
+
+
+                            <div class="col-span-3 md:col-span-1 lg:col-span-1">
+                                <div class="card text-white  mb-3 h-full"
+                                    style="
+                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+
+
+                                    <h1 class="text-center text-2xl w-full" style="color: white;">
+
+
+                                        DIFERENCIA DE CONSUMOS </h1>
+
+                                        <form action="{{ route('reportescurvashorarias') }}" method="GET" class="flex flex-col gap-4 p-4">
+                                            <div class="flex flex-nowrap md:grid-cols-2 gap-4 items-center">
+                                                {{-- Fecha inicio --}}
+                                                <div class="form-group flex items-center">
+                                                    <label for="fecha_inicio2" class="text-white mr-2">Fecha de inicio:</label>
+                                                    <input type="month" id="fecha_inicio2" name="fecha_inicio2"
+                                                        class="border border-gray-400 p-2 rounded-lg text-white"
+                                                        @if (isset($_GET['fecha_inicio2'])) value="{{ \Carbon\Carbon::parse($_GET['fecha_inicio2'])->format('Y-m') }}" @endif
+                                                        max="{{ date('Y-m') }}" style="background-color: transparent;">
+                                                </div>
+
+                                                {{-- Fecha fin --}}
+                                                <div class="form-group flex items-center">
+                                                    <label for="fecha_fin2" class="text-white mr-2">Fecha de fin:</label>
+                                                    <input type="month" id="fecha_fin2" name="fecha_fin2"
+                                                        class="border border-gray-400 p-2 rounded-lg text-white"
+                                                        @if (isset($_GET['fecha_fin2'])) value="{{ \Carbon\Carbon::parse($_GET['fecha_fin2'])->format('Y-m') }}" @endif
+                                                        max="{{ date('Y-m') }}" style="background-color: transparent;">
+                                                </div>
+
+                                                <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-outline-info text-white px-4 py-2 rounded-lg"
+                                                            style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                                            onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                                            onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Buscar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+
+
+
+                                        <!-- Cuadrado para Contadores no leídos -->
+                                        @if (!isset($diferenciaConsumo['message']) && count($diferenciaConsumo) > 0)
+                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                            style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                            <table id="testTableCurvashorarias" class="w-full text-white text-center">
+                                                <thead style="border-bottom: 1px solid #ffffff;">
+                                                    <tr>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">CUPS</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Contador</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Diario</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Num Dias</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Mensual</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Num Meses</th>
+                                                             <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Horario</th>
+                                                             <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Num Horas</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                @foreach ($diferenciaConsumo as $resultado)
+                                                    @php
+                                                        $diario = floatval($resultado->suma_diarios ?? 0);
+                                                        $mensual = floatval($resultado->suma_mensual ?? 0);
+                                                        $horario = floatval($resultado->suma_horas ?? 0);
+
+                                                        $diff1 = abs($diario - $mensual);
+                                                        $diff2 = abs($mensual - $horario);
+                                                        $diff3 = abs($diario - $horario);
+
+                                                        $highlight = ($diff1 > 2 || $diff2 > 2 || $diff3 > 2) ? 'bg-red-500' : '';
+                                                    @endphp
+                                                    <tr class="highlight-row {{ $highlight }}">
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->suma_diarios) ? $resultado->suma_diarios : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->num_cons_dia) ? $resultado->num_cons_dia : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->suma_mensual) ? $resultado->suma_mensual : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->num_cons_mes) ? $resultado->num_cons_mes : '0' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->suma_horas) ? $resultado->suma_horas : '0' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->num_cons_horas) ? $resultado->num_cons_horas : '0' }}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <div class="pagination-container mt-4 flex justify-center items-center">
+                                            <div class="pagination">
+                                                {{ $diferenciaConsumo->links() }}
+                                            </div>
+                                        </div>
+
+                                    @else
+                                    <div class="text-red-500 font-bold text-center my-4">
+                                        {{ $diferenciaConsumo['message'] }}
+                                    </div>
+                                    @endif
+                                    <!-- Contenedor del botón de descarga -->
+                                    <div class="text-right mt-4">
+                                        <!-- Botón Excel -->
+                                        <button id="exportarExcel" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a Excel">
+                                        </button>
+
+                                        <!-- Botón CSV -->
+                                        <button id="exportarCsv" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a CSV">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
 
                     </div>
                 </div>
