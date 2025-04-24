@@ -734,14 +734,15 @@ class ctController extends Controller
 
             // Obtener resultados de las consultas
             $resultadosQ58 = $this->consultaCincuentayOcho($request, $connection);
-            $exportCurvasHorarias = $this->exportCurvasHorarias($request, $connection);
-
+            $exportCurvasHorarias = $this->exportCurvasHorarias($request);
+            $diferenciaConsumo = $this->getDiferenciaConsumo($request, $connection);
 
             // Pasar los datos de los CTs y los resultados de las consultas a la vista
             return view('ct/reportescurvashorarias', [
                 'ct_info' => $ct_info,
                 'resultadosQ58' => $resultadosQ58,
                 'exportCurvasHorarias' => $exportCurvasHorarias,
+                'diferenciaConsumo' => $diferenciaConsumo,
             ]);
         }
     }
@@ -5233,6 +5234,121 @@ public function exportReportesCalidad(Request $request)
         } catch (\Exception $e) {
             // Si hay un error, la fecha es inválida
             return false;
+        }
+    }
+
+    public function getDiferenciaConsumo(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_consumos_diarios') &&
+            Schema::connection($connection)->hasTable('t_consumos_mensual') &&
+            Schema::connection($connection)->hasTable('t_consumos_horarios')) {
+                $fecha_inicio = $request->input('fecha_inicio2');
+                $fecha_fin = $request->input('fecha_fin2');
+
+                if (!$fecha_inicio || !$fecha_fin) {
+                    return ['message' => 'Debe seleccionar un rango de fechas.'];
+                }
+
+                $fecha_inicio .= '-01';
+                $fecha_fin .= '-01';
+                $inicio = Carbon::parse($fecha_inicio);
+                $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
+
+                // Calcular diferencias
+                $total_dias = $inicio->diffInDays($fin);
+                $total_horas = $total_dias * 24;
+
+
+                $params = [];
+                $query = "
+                WITH diarios AS (
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        SUM(val_ai_d) AS suma_diarios, 
+                        COUNT(val_ai_d) AS num_cons_dia
+                    FROM core.t_consumos_diarios
+                    WHERE fec_inicio >= :fecha_inicio 
+                        AND fec_inicio < :fecha_fin
+                        AND id_cups <> id_cnt
+                        AND val_ai_d IS NOT NULL
+                    GROUP BY id_cups, id_cnt
+                ),
+                mensuales AS (
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        SUM(val_ai_m) AS suma_mensual, 
+                        COUNT(val_ai_m) AS num_cons_mes
+                    FROM core.t_consumos_mensual
+                    WHERE fec_inicio >= :fecha_inicio 
+                        AND fec_fin <= :fecha_fin
+                        AND cod_periodotarifa = '1'
+                        AND id_cups <> id_cnt
+                        AND val_ai_m IS NOT NULL
+                    GROUP BY id_cups, id_cnt
+                ),
+                horarios AS (
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        FLOOR(SUM(val_ai_h) / 1000) AS suma_horas, 
+                        COUNT(val_ai_h) AS num_cons_horas
+                    FROM core.t_consumos_horarios
+                    WHERE fec_inicio >= :fecha_inicio
+                        AND fec_inicio < :fecha_fin 
+                        AND id_cups <> id_cnt
+                        AND val_ai_h IS NOT NULL
+                    GROUP BY id_cups, id_cnt
+                )
+
+                SELECT 
+                    d.id_cups,
+                    d.id_cnt,
+                    d.suma_diarios,
+                    d.num_cons_dia,
+                    m.suma_mensual,
+                    m.num_cons_mes,
+                    h.suma_horas,
+                    h.num_cons_horas
+                FROM diarios d
+                INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
+                INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
+                WHERE( 
+                    ABS(d.suma_diarios - m.suma_mensual) >= 2
+                    OR ABS(m.suma_mensual - h.suma_horas) >= 2
+                    OR ABS(d.suma_diarios - h.suma_horas) >= 2)
+                    AND (
+                        (d.num_cons_dia  = :total_dias)
+                        AND (h.num_cons_horas = :total_horas) 
+                    )
+                ORDER BY d.id_cups;";
+
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                    $params['total_dias'] = $total_dias;
+                    $params['total_horas'] = $total_horas;
+
+                    $diferenciaConsumo = DB::connection($connection)->select($query, $params);
+                    $diferenciaConsumoCollection = new Collection($diferenciaConsumo);
+
+                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                    $perPage = 100; // Número de elementos por página
+                    $currentItems = $diferenciaConsumoCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                    // Crear paginador manualmente
+                    $diferenciaConsumo = new LengthAwarePaginator($currentItems, count($diferenciaConsumoCollection), $perPage, $currentPage, [
+                        'path' => request()->url(),
+                        'query' => request()->query()
+                    ]);
+                    //dd($total_horas);
+                    return $diferenciaConsumo ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
         }
     }
     
