@@ -707,7 +707,7 @@
                                                                 {{ !empty($resultado->fec_lectura) ? $resultado->fec_lectura : 'No hay datos' }}
                                                             </td>
                                                             <td class="py-2">
-                                                                {{ !empty($resultado->total_ct) ? $resultado->total_ct : '0' }}
+                                                                {{ !empty($resultado->total_s02) ? $resultado->total_s02 : '0' }}
                                                                 /
                                                                 {{ !empty($resultado->lec_s02_hoy) ? $resultado->lec_s02_hoy : '0' }}
                                                             </td>
@@ -716,7 +716,7 @@
                                                                 %
                                                             </td>
                                                             <td class="py-2">
-                                                                {{ !empty($resultado->total_ct) ? $resultado->total_ct : '0' }}
+                                                                {{ !empty($resultado->total_s05) ? $resultado->total_s05 : '0' }}
                                                                 /
                                                                 {{ !empty($resultado->lec_s05_hoy) ? $resultado->lec_s05_hoy : '0' }}
                                                             </td>
@@ -725,7 +725,7 @@
                                                                 %
                                                             </td>
                                                             <td class="py-2">
-                                                                {{ !empty($resultado->total_ct) ? $resultado->total_ct : '0' }}
+                                                                {{ !empty($resultado->total_s04) ? $resultado->total_s04 : '0' }}
                                                                 /
                                                                 {{ !empty($resultado->lec_s04_hoy) ? $resultado->lec_s04_hoy : '0' }}
                                                             </td>
