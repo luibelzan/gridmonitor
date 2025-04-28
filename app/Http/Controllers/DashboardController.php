@@ -356,39 +356,58 @@ class DashboardController extends Controller
                     ->select("
                         SELECT 
                             core.t_ct.nom_ct, 
-                            COUNT(core.t_ct.id_ct) as total_ct,
-                            TO_CHAR(core.t_indices_lectura.fec_lectura, 'DD/MM/YYYY') AS fec_lectura,
-                            COUNT(CASE WHEN ind_s02 = 'S' THEN 1 END) AS Lec_s02_hoy,
-                            COUNT(CASE WHEN ind_s02 = 'N' THEN 1 END) AS No_Lec_s02_hoy,
-                            COUNT(CASE WHEN ind_s05 = 'S' THEN 1 END) AS Lec_s05_hoy,
-                            COUNT(CASE WHEN ind_s05 = 'N' THEN 1 END) AS No_Lec_s05_hoy,
-                            COUNT(CASE WHEN ind_s04 = 'S' THEN 1 END) AS Lec_s04_hoy,
-                            COUNT(CASE WHEN ind_s04 = 'N' THEN 1 END) AS No_Lec_s04_hoy,
+                            TO_CHAR(CURRENT_DATE, 'DD/MM/YYYY') AS fec_lectura,
+                            
+                            -- Contamos el total de lecturas S02, S05 y S04, tanto las exitosas (S) como las no exitosas (N)
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s02 = 'S' THEN 1 END) AS Lec_s02_hoy,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s02 = 'N' THEN 1 END) AS No_Lec_s02_hoy,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s05 = 'S' THEN 1 END) AS Lec_s05_hoy,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s05 = 'N' THEN 1 END) AS No_Lec_s05_hoy,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s04 = 'S' THEN 1 END) AS Lec_s04_hoy,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s04 = 'N' THEN 1 END) AS No_Lec_s04_hoy,
+                            -- Calculamos el total de lecturas (exitosas y no exitosas) para cada tipo de reporte (S02, S05, S04)
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND (ind_s02 = 'S' OR ind_s02 = 'N') THEN 1 END) AS total_s02,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND (ind_s05 = 'S' OR ind_s05 = 'N') THEN 1 END) AS total_s05,
+                            COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND (ind_s04 = 'S' OR ind_s04 = 'N') THEN 1 END) AS total_s04,
+
+
+                            -- Calculamos el porcentaje basado solo en las lecturas exitosas (S) / total de centros con lectura
                             CASE 
-                                WHEN COUNT(core.t_ct.id_ct) = 0 THEN 0
-                                ELSE TRUNC((COUNT(CASE WHEN ind_s02 = 'S' THEN 1 END)::float / COUNT(core.t_ct.id_ct) * 100)::numeric, 2) 
+                                WHEN COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s02 = 'S' THEN 1 END) = 0 THEN 0
+                                ELSE TRUNC(
+                                    (COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s02 = 'S' THEN 1 END)::numeric / 
+                                    COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND (ind_s02 = 'S' OR ind_s02 = 'N') THEN 1 END)) * 100, 2
+                                )
                             END AS porcentaje_s02,
+
                             CASE 
-                                WHEN COUNT(core.t_ct.id_ct) = 0 THEN 0
-                                ELSE TRUNC((COUNT(CASE WHEN ind_s05 = 'S' THEN 1 END)::float / COUNT(core.t_ct.id_ct) * 100)::numeric, 2) 
+                                WHEN COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s05 = 'S' THEN 1 END) = 0 THEN 0
+                                ELSE TRUNC(
+                                    (COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s05 = 'S' THEN 1 END)::numeric / 
+                                    COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND (ind_s05 = 'S' OR ind_s05 = 'N') THEN 1 END)) * 100, 2
+                                )
                             END AS porcentaje_s05,
+
                             CASE 
-                                WHEN COUNT(core.t_ct.id_ct) = 0 THEN 0
-                                ELSE TRUNC((COUNT(CASE WHEN ind_s04 = 'S' THEN 1 END)::float / COUNT(core.t_ct.id_ct) * 100)::numeric, 2) 
+                                WHEN COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s04 = 'S' THEN 1 END) = 0 THEN 0
+                                ELSE TRUNC(
+                                    (COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s04 = 'S' THEN 1 END)::numeric / 
+                                    COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND (ind_s04 = 'S' OR ind_s04 = 'N') THEN 1 END)) * 100, 2
+                                )
                             END AS porcentaje_s04
+
                         FROM 
-                            core.t_indices_lectura
-                        JOIN core.t_cups ON core.t_indices_lectura.id_cups = core.t_cups.id_cups
-                        JOIN core.t_ct ON core.t_cups.id_ct = core.t_ct.id_ct
-                        WHERE 
-                            core.t_indices_lectura.fec_lectura = CURRENT_DATE
-                            AND core.t_cups.cups_estado = 'A' 
+                            core.t_ct
+                        LEFT JOIN core.t_cups ON core.t_ct.id_ct = core.t_cups.id_ct 
+                            AND core.t_cups.cups_estado = 'A'
                             AND core.t_cups.ind_repetidor = 'N'
                             AND core.t_cups.tip_equipo = 'SMT'
+                        LEFT JOIN core.t_indices_lectura ON core.t_indices_lectura.id_cups = core.t_cups.id_cups
+
                         GROUP BY 
-                            core.t_ct.nom_ct, TO_CHAR(core.t_indices_lectura.fec_lectura, 'DD/MM/YYYY')
+                            core.t_ct.nom_ct
                         ORDER BY 
-                            core.t_ct.nom_ct, TO_CHAR(core.t_indices_lectura.fec_lectura, 'DD/MM/YYYY');
+                            core.t_ct.nom_ct;
 
                     ");
                 return $resultadosQ9dashboard ?: ['message' => 'No hay datos'];
