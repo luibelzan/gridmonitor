@@ -281,41 +281,64 @@
             }
         }
     </style>
-    <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    @php
+                        $connection = session()->get('connection');
+                    @endphp
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var nomCups = document.querySelector('input[name="nom_cups"]').value;
+        var idCups = document.querySelector('input[name="id_cups"]').value;
+        var nomCt = document.querySelector('input[name="nom_ct"]').value;
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+        var url = "{{ route('exportar.excel') }}?";
+
+        if (nomCups) {
+            url += "nom_cups=" + encodeURIComponent(nomCups) + "&";
         }
-    </script>
+        if (idCups) {
+            url += "id_cups=" + encodeURIComponent(idCups) + "&";
+        }
+        if (nomCt) {
+            url += "nom_ct=" + encodeURIComponent(nomCt) + "&";
+        }
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+});
+console.log(@json($diferenciaConsumo));
+</script>
+
+
     <title>Reportes CT</title>
 </head>
 
@@ -358,6 +381,8 @@
                             active-color="rgb(88, 226, 194)">Inventario</a>
                         <a href="{{ route('reportescurvashorarias') }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194)">Control</a>
+                        <a href="{{ route('reporteseventos') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Eventos</a>
                         <span class="nav-indicator"></span>
                     </nav>
                     <h1 class="text-center text-3xl w-full" style="color: white;">REPORTES DE CONTROL</h1>
@@ -417,39 +442,66 @@
                                              border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-2">
-                                        {{-- FILTRO FECHAS --}}
-                                        <form action="{{ route('reportescurvashorarias') }}"
-                                            method="GET" class="flex flex-wrap items-center justify-start gap-2 mt-6 ml-6">
-                                            {{-- FILTRO FECHAS --}}
+                                    <div class="grid grid-cols-1 gap-6 mb-2">
+                                    {{-- FILTRO FECHAS --}}
+                                    <form action="{{ route('reportescurvashorarias') }}" method="GET" class="flex flex-col gap-4 p-4">
+                                        <div class="flex flex-nowrap md:grid-cols-2 gap-4 items-center">
+                                            {{-- Fecha inicio --}}
                                             <div class="form-group flex items-center">
-                                                <label for="fecha_inicio" class="text-white mr-2">Fecha de
-                                                    inicio:</label>
+                                                <label for="fecha_inicio" class="text-white mr-2">Fecha de inicio:</label>
                                                 <input type="date" id="fecha_inicio" name="fecha_inicio"
                                                     class="border border-gray-400 p-2 rounded-lg text-white"
                                                     @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
                                                     max="{{ date('Y-m-d') }}" style="background-color: transparent;">
                                             </div>
+                                            {{-- Fecha fin --}}
                                             <div class="form-group flex items-center">
-                                                <label for="fecha_fin" class="text-white mr-2">Fecha de
-                                                    fin:</label>
+                                                <label for="fecha_fin" class="text-white mr-2">Fecha de fin:</label>
                                                 <input type="date" id="fecha_fin" name="fecha_fin"
-                                                    class="border border-slate-900 p-2 rounded-lg text-white"
+                                                    class="border border-gray-400 p-2 rounded-lg text-white"
                                                     @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
                                                     max="{{ date('Y-m-d') }}" style="background-color: transparent;">
-                                            </div> {{-- BUSCADOR --}}
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
+                                            {{-- Buscador por CT --}}
                                             <div class="form-group">
-                                                
-                                            </div> <button type="submit" class="btn btn-outline-info mb-3 text-white"
+                                                <input type='text' name='nom_ct' placeholder='Buscar por CT'
+                                                    class='border p-2 rounded-md w-full text-white'
+                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                    @if (isset($_GET['nom_ct'])) value="{{ $_GET['nom_ct'] }}" @endif>
+                                            </div>
+                                            {{-- Buscador por CUPS --}}
+                                            <div class="form-group">
+                                                <input type='text' name='id_cups' placeholder='Buscar por CUPS'
+                                                    class='border p-2 rounded-md w-full text-white'
+                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                    @if (isset($_GET['id_cups'])) value="{{ $_GET['id_cups'] }}" @endif>
+                                            </div>
+                                            {{-- Buscador por Nombre --}}
+                                            <div class="form-group">
+                                                <input type='text' name='nom_cups' placeholder='Buscar por Nombre'
+                                                    class='border p-2 rounded-md w-full text-white'
+                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                    @if (isset($_GET['nom_cups'])) value="{{ $_GET['nom_cups'] }}" @endif>
+                                            </div>
+
+                                            <div class="form-group">
+                                            <button type="submit" class="btn btn-outline-info text-white px-4 py-2 rounded-lg"
                                                 style="background-color: transparent; border-color: rgb(255, 255, 255);"
                                                 onmouseover="this.style.borderColor='rgb(88,226,194)'"
                                                 onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Buscar</button>
-                                        </form>
-                                    </div>
+                                            </div>
+
+                                        </div>
+                                    </form>
+                                </div>
+
 
 
                                     <!-- Cuadrado para Contadores no leídos -->
-                                    @if (is_array($resultadosQ58) && count($resultadosQ58) > 0)
+                                    @if ($resultadosQ58 && count($resultadosQ58) > 0)
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                             style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                             <table id="testTableCurvashorarias" class="w-full text-white text-center">
@@ -484,7 +536,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach ($resultadosQ58 as $index => $resultado)
+                                                    @foreach ($resultadosQ58 as $resultado)
                                                         <tr class="highlight-row">
                                                             <td class="py-2">{{ $loop->iteration }}</td>
                                                             <td class="py-2">
@@ -523,13 +575,19 @@
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->ind_autoconsumo) ? $resultado->ind_autoconsumo : 'No hay datos' }}
                                                             </td>
-
-
+                                                            
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
                                         </div>
+                                        
+                                        <div class="pagination-container mt-4 flex justify-center items-center">
+                                            <div class="pagination">
+                                                {{ $resultadosQ58->links() }}
+                                            </div>
+                                        </div>
+
                                     @else
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
                                             <p class="mt-0 text-xl text-center" style="color:rgb(88,226,194)">No hay
@@ -538,13 +596,165 @@
                                     @endif
                                     <!-- Contenedor del botón de descarga -->
                                     <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="tableToExcel('testTableCurvashorarias', 'W3C Example Table')"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        <!-- Botón Excel -->
+                                        <button id="exportarExcel" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a Excel">
+                                        </button>
+
+                                        <!-- Botón CSV -->
+                                        <button id="exportarCsv" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a CSV">
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+                        {{-- PRIMERA FILA --}}
+                        <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
+
+
+                            <div class="col-span-3 md:col-span-1 lg:col-span-1">
+                                <div class="card text-white  mb-3 h-full"
+                                    style="
+                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+
+
+                                    <h1 class="text-center text-2xl w-full" style="color: white;">
+
+
+                                        DIFERENCIA DE CONSUMOS </h1>
+
+                                        <form action="{{ route('reportescurvashorarias') }}" method="GET" class="flex flex-col gap-4 p-4">
+                                            <div class="flex flex-nowrap md:grid-cols-2 gap-4 items-center">
+                                                {{-- Fecha inicio --}}
+                                                <div class="form-group flex items-center">
+                                                    <label for="fecha_inicio2" class="text-white mr-2">Fecha de inicio:</label>
+                                                    <input type="month" id="fecha_inicio2" name="fecha_inicio2"
+                                                        class="border border-gray-400 p-2 rounded-lg text-white"
+                                                        @if (isset($_GET['fecha_inicio2'])) value="{{ \Carbon\Carbon::parse($_GET['fecha_inicio2'])->format('Y-m') }}" @endif
+                                                        max="{{ date('Y-m') }}" style="background-color: transparent;">
+                                                </div>
+
+                                                <div class="flex flex-cols-1 md:grid-cols-3 gap-4 items-center">
+                                                    <div class="form-group">
+                                                        <button type="submit" class="btn btn-outline-info text-white px-4 py-2 rounded-lg"
+                                                            style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                                            onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                                            onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Buscar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </form>
+
+
+
+                                        <!-- Cuadrado para Contadores no leídos -->
+                                        @if (!isset($diferenciaConsumo['message']) && count($diferenciaConsumo) > 0)
+                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                            style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                            <table id="testTableCurvashorarias" class="w-full text-white text-center">
+                                                <thead style="border-bottom: 1px solid #ffffff;">
+                                                    <tr>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">CUPS</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Contador</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Diario</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Num Dias</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Mensual</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Num Meses</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Horario</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Num Horas</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Diario/Mensual</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Diario/Horario</th>
+                                                        <th class="mt-0 text-lg font-bold text-center"
+                                                            style="color:rgb(88,226,194)">Horario/Mensual</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                @foreach ($diferenciaConsumo as $resultado)
+                                                    <tr class="highlight-row">
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->suma_diarios) ? $resultado->suma_diarios : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->num_cons_dia) ? $resultado->num_cons_dia : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->suma_mensual) ? $resultado->suma_mensual : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->num_cons_mes) ? $resultado->num_cons_mes : '0' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->suma_horas) ? $resultado->suma_horas : '0' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ isset($resultado->num_cons_horas) ? $resultado->num_cons_horas : '0' }}
+                                                        </td>
+                                                        <td class="py-2 {{ isset($resultado->dif_diario_mensual) && $resultado->dif_diario_mensual > 10 ? 'text-red-500 font-bold' : '' }}">
+                                                            {{ isset($resultado->dif_diario_mensual) ? $resultado->dif_diario_mensual : '0' }}
+                                                        </td>
+                                                        <td class="py-2 {{ isset($resultado->dif_diario_horario) && $resultado->dif_diario_horario > 10 ? 'text-red-500 font-bold' : '' }}">
+                                                            {{ isset($resultado->dif_diario_horario) ? $resultado->dif_diario_horario : '0' }}
+                                                        </td>
+                                                        <td class="py-2 {{ isset($resultado->dif_mensual_horario) && $resultado->dif_mensual_horario > 10 ? 'text-red-500 font-bold' : '' }}">
+                                                            {{ isset($resultado->dif_mensual_horario) ? $resultado->dif_mensual_horario : '0' }}
+                                                        </td>
+
+                                                    </tr>
+                                                @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        
+                                        <div class="pagination-container mt-4 flex justify-center items-center">
+                                            <div class="pagination">
+                                                {{ $diferenciaConsumo->links() }}
+                                            </div>
+                                        </div>
+
+                                    @else
+                                    <div class="text-red-500 font-bold text-center my-4">
+                                        {{ $diferenciaConsumo['message'] }}
+                                    </div>
+                                    @endif
+                                    <!-- Contenedor del botón de descarga -->
+                                    <div class="text-right mt-4">
+                                        <!-- Botón Excel -->
+                                        <button id="exportarExcel" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a Excel">
+                                        </button>
+
+                                        <!-- Botón CSV -->
+                                        <button id="exportarCsv" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a CSV">
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
 
 
                     </div>

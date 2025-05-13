@@ -8,6 +8,10 @@ namespace App\Http\Controllers;
 
 
 
+use App\Exports\ConsumosTotalesDiariosExport;
+use App\Exports\CurvasHorariasCupsExport;
+use App\Exports\EventosCupsExport;
+use App\Exports\RegistrosMensualesExport;
 use App\Models\Ct;
 use App\Models\Cups;
 use App\Models\User;
@@ -20,6 +24,9 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Excel as ExcelFormat;
+
 
 
 
@@ -57,7 +64,7 @@ class CupsController extends Controller
             $id_cnt = strtoupper($id_cnt);
         }
 
-        if(!is_null($nom_cups)) {
+        if (!is_null($nom_cups)) {
             $nom_cups = strtoupper($nom_cups);
         }
 
@@ -159,6 +166,7 @@ class CupsController extends Controller
                 $resultadosQ4cups = $this->consultaCuatroCups($id_cups, $connection, $request);
                 $resultadosQ5cups = $this->consultaCincoCups($id_cups, $connection, $request);
                 $resultadosQ27cups = $this->consultaVeintisieteCups($id_cups, $connection, $request);
+                $exportRegistrosMensuales = $this->exportRegistrosMensuales($request);
             } else {
                 // De lo contrario, obtener todos los resultados
                 $resultadosQ1cups = [];
@@ -167,6 +175,7 @@ class CupsController extends Controller
                 $resultadosQ4cups = [];
                 $resultadosQ5cups = [];
                 $resultadosQ27cups = [];
+                $exportRegistrosMensuales = [];
             }
 
 
@@ -184,6 +193,7 @@ class CupsController extends Controller
                 'resultadosQ4cups' => $resultadosQ4cups,
                 'resultadosQ5cups' => $resultadosQ5cups,
                 'resultadosQ27cups' => $resultadosQ27cups,
+                'exportRegistrosMensuales' => $exportRegistrosMensuales,
 
 
             ]);
@@ -220,8 +230,8 @@ class CupsController extends Controller
             $id_cnt = strtoupper($id_cnt);
         }
 
-         // Convertir a mayúsculas si no es nulo
-         if (!is_null($nom_cups)) {
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($nom_cups)) {
             $nom_cups = strtoupper($nom_cups);
         }
 
@@ -426,6 +436,162 @@ class CupsController extends Controller
         }
     }
 
+    public function consumodiariocups(Request $request) {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            // Si no está autenticado, redirigir a la página de inicio de sesión
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+
+        // Obtener el valor de id_cups
+        $id_cups = $request->input('id_cups');
+        $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
+
+
+
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($id_cups)) {
+            $id_cups = strtoupper($id_cups);
+        }
+
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($id_cnt)) {
+            $id_cnt = strtoupper($id_cnt);
+        }
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
+        }
+
+
+        // Guardar el id_cups en la sesión
+        Session::put('id_cups', $id_cups);
+        Session::put('id_cnt', $id_cnt);
+        Session::put('nom_cups', $nom_cups);
+
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'consumodiariocups');
+
+
+        // Obtener la conexión dinámica
+        $connection = User::conexion();
+
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin');
+        } else {
+            // Obtener los datos de todos los CTs
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
+
+
+            // Realizar la consulta por ID de CUPS o ID de CNT si hay valores
+            if ((!is_null($id_cups) && $id_cups !== '') || (!is_null($id_cnt) && $id_cnt !== '')) {
+                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
+            } else {
+                // Si no hay valores de búsqueda, no hacer consulta
+                $resultadosQ1cups = [];
+            }
+
+
+            // Pasar los datos de los CTs a la vista
+            return view('cups/consumodiariocups', [
+                'ct_info' => $ct_info,
+                'id_cups' => $id_cups,
+                'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
+                'resultadosQ1cups' => $resultadosQ1cups,
+            ]);
+        }
+    }
+
+    public function detallesconsumodiariocups(Request $request)
+    {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            // Si no está autenticado, redirigir a la página de inicio de sesión
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+
+        // Obtener el valor de id_cups
+        $id_cups = $request->input('id_cups');
+        $id_cnt = $request->input('id_cnt'); // Obtener el id_cnt
+        $nom_cups = $request->input('nom_cups');
+
+
+
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($id_cups)) {
+            $id_cups = strtoupper($id_cups);
+        }
+
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($id_cnt)) {
+            $id_cnt = strtoupper($id_cnt);
+        }
+
+        // Convertir a mayúsculas si no es nulo
+        if (!is_null($nom_cups)) {
+            $nom_cups = strtoupper($nom_cups);
+        }
+
+
+        // Guardar el id_cups en la sesión
+        Session::put('id_cups', $id_cups);
+        Session::put('id_cnt', $id_cnt);
+        Session::put('nom_cups', $nom_cups);
+
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'detallesconsumodiariocups');
+
+
+        // Obtener la conexión dinámica
+        $connection = User::conexion();
+
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin');
+        } else {
+            // Obtener los datos de todos los CTs
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
+
+
+            // Realizar la consulta por ID de CUPS o ID de CNT si hay valores
+            if ((!is_null($id_cups) && $id_cups !== '')) {
+                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
+                $consumoDiario = $this->getConsumoDiario($id_cups, $connection, $request);
+                $consumosTotalesDiarios = $this->getConsumosTotalesDiarios($id_cups, $connection, $request);
+            } else {
+                // Si no hay valores de búsqueda, no hacer consulta
+                $consumoDiario = [];
+                $resultadosQ1cups = [];
+            }
+
+
+            // Pasar los datos de los CTs a la vista
+            return view('cups/detallesconsumodiariocups', [
+                'ct_info' => $ct_info,
+                'id_cups' => $id_cups,
+                'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
+                'nom_cups' => $nom_cups,
+                'resultadosQ1cups' => $resultadosQ1cups,
+                'consumoDiario' => $consumoDiario,
+                'consumosTotalesDiarios' => $consumosTotalesDiarios,
+            ]);
+        }
+    }
+
 
 
 
@@ -481,6 +647,7 @@ class CupsController extends Controller
                 $resultadosQ9cups = $this->consultaNueveCups($id_cups, $connection, $request);
                 $resultadosQ10cups = $this->consultaDiezCups($id_cups, $connection, $request);
                 $resultadosQ11cups = $this->consultaOnceCups($id_cups, $connection, $request);
+                $resultadosQ11cupsPaginated = $this->consultaOnceCupsPaginated($id_cups, $connection, $request);
                 $resultadosQ12cups = $this->consultaDoceCups($id_cups, $connection, $request);
                 $resultadosQ13cups = $this->consultaTreceCups($id_cups, $connection, $request);
             } else {
@@ -490,6 +657,7 @@ class CupsController extends Controller
                 $resultadosQ9cups = [];
                 $resultadosQ10cups = [];
                 $resultadosQ11cups = [];
+                $resultadosQ11cupsPaginated = [];
                 $resultadosQ12cups = [];
                 $resultadosQ13cups = [];
             }
@@ -506,6 +674,7 @@ class CupsController extends Controller
                 'resultadosQ9cups' => $resultadosQ9cups,
                 'resultadosQ10cups' => $resultadosQ10cups,
                 'resultadosQ11cups' => $resultadosQ11cups,
+                'resultadosQ11cupsPaginated' => $resultadosQ11cupsPaginated,
                 'resultadosQ12cups' => $resultadosQ12cups,
                 'resultadosQ13cups' => $resultadosQ13cups,
             ]);
@@ -710,7 +879,7 @@ class CupsController extends Controller
                 $id_cnt = strtoupper($id_cnt);
             }
 
-            if(!is_null($nom_cups)) {
+            if (!is_null($nom_cups)) {
                 $nom_cups = strtoupper($nom_cups);
             }
 
@@ -760,7 +929,7 @@ class CupsController extends Controller
             }
 
             // Añadir condición por nom_cups si está presente
-            if(!is_null($nom_cups) && $nom_cups !== '') {
+            if (!is_null($nom_cups) && $nom_cups !== '') {
                 $query .= ' AND cups.nom_cups LIKE :nom_cups';
                 $bindings['nom_cups'] = "%$nom_cups%";
             }
@@ -793,7 +962,8 @@ class CupsController extends Controller
 
             // Crear paginador manualmente
             $resultadosQ1cups = new LengthAwarePaginator($currentItems, count($resultadosQ1Collection), $perPage, $currentPage, [
-                'path' => request()->url(), 'query' => request()->query()
+                'path' => request()->url(),
+                'query' => request()->query()
             ]);
 
             return $resultadosQ1cups ?: [];
@@ -830,7 +1000,7 @@ class CupsController extends Controller
 
 
                 // Verificar si se encontraron resultados en la primera consulta
-                if (!empty($resultadosQ1cups)) {
+                if (!empty($resultadosQ1cups) && isset($resultadosQ1cups[0]) && $resultadosQ1cups[0] !== null) {
                     $id_cnt = $resultadosQ1cups[0]->id_cnt;
 
 
@@ -878,21 +1048,30 @@ class CupsController extends Controller
             if ($id_cups) {
                 $resultadosQ3cups = DB::connection($connection)
                     ->select("
+                WITH meses AS (
+                    SELECT generate_series(
+                        date_trunc('month', (SELECT MAX(fec_fin) FROM core.t_consumos_mensual)) - INTERVAL '11 months',
+                        date_trunc('month', (SELECT MAX(fec_fin) FROM core.t_consumos_mensual)),
+                        INTERVAL '1 month'
+                    )::date AS mes
+                )
                 SELECT 
-                TO_CHAR(fec_fin, 'MM/YYYY') AS fec_fin, 
-                TO_CHAR(fec_inicio, 'MM/YYYY') AS fec_inicio,
-                val_ai_m, val_ae_m
-                FROM core.t_consumos_mensual
-                WHERE cod_contrato = '1'
-                AND cod_periodotarifa = '0'
-                AND fec_fin >= (SELECT MAX(fec_inicio) - INTERVAL '11 months' FROM core.t_consumos_mensual)
-                and id_cups LIKE :id_cups
-                ORDER BY fec_fin::date ASC;
-            ", ['id_cups' => "%$id_cups%"]);
+                    TO_CHAR(m.mes, 'MM/YYYY') AS fec_fin,
+                    TO_CHAR(c.fec_inicio, 'MM/YYYY') AS fec_inicio,
+                    COALESCE(c.val_ai_m, 0) AS val_ai_m,
+                    COALESCE(c.val_ae_m, 0) AS val_ae_m
+                FROM meses m
+                LEFT JOIN core.t_consumos_mensual c 
+                    ON date_trunc('month', c.fec_fin) = m.mes
+                    AND c.cod_contrato = '1'
+                    AND c.cod_periodotarifa = '0'
+                    AND c.id_cups LIKE :id_cups
+                ORDER BY m.mes ASC;
+            ", bindings: ['id_cups' => "%$id_cups%"]);
 
 
                 // dd($resultadosQ3cups);
-                return $resultadosQ3cups  ?: [];
+                return $resultadosQ3cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -924,7 +1103,7 @@ class CupsController extends Controller
 
 
                 // dd($resultadosQ4cups);
-                return $resultadosQ4cups  ?: [];
+                return $resultadosQ4cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -977,13 +1156,73 @@ class CupsController extends Controller
                     $params = ['id_cups' => "%$id_cups%"];
                 }
                 $resultadosQ5cups = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ5cups);
-
-
-
+                $resultadosQ5cupsCollection = new Collection($resultadosQ5cups);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosQ5cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                $resultadosQ5cups = new LengthAwarePaginator($currentItems, count($resultadosQ5cupsCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
 
                 return $resultadosQ5cups ?: [];
             }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+
+    public function exportRegistrosMensuales(Request $request) //Registros mensuales
+    {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+
+        if (Schema::connection($connection)->hasTable('t_consumos_totales_mensuales')) {
+                $query = "
+            SELECT id_cups, TO_CHAR(fec_consumo, 'DD/MM/YYYY') as fec_consumo,
+            cod_periodotarifa, val_ai_m, val_ae_m, val_r1_m, val_r2_m, val_r3_m, val_r4_m
+            FROM core.t_consumos_totales_mensuales
+            WHERE id_cups LIKE :id_cups";
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+            AND fec_consumo::DATE >= :fecha_inicio
+            AND fec_consumo::DATE <= :fecha_fin          
+            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                } else {
+                    $query .= "
+            ORDER BY fec_consumo::DATE DESC, hor_consumo ASC, cod_contrato ASC, cod_periodotarifa ASC";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%"];
+                }
+                $exportRegistrosMensuales = DB::connection($connection)->select($query, $params);
+                
+                if($exportRegistrosMensuales) {
+                    return Excel::download(new RegistrosMensualesExport($exportRegistrosMensuales), 'registros_mensuales.' . $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
+            
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
             return ['message' => 'No hay datos'];
@@ -1051,12 +1290,95 @@ class CupsController extends Controller
 
 
                 $resultadosQ6cups = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ6cups);
+                $resultadosQ6cupsCollection = new Collection($resultadosQ6cups);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $resultadosQ6cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
+                // Crear paginador manualmente
+                $resultadosQ6cups = new LengthAwarePaginator($currentItems, count($resultadosQ6cupsCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
 
 
                 return $resultadosQ6cups ?: [];
+            }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function exportEventsCups(Request $request) //Eventos cups
+    {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+        if (
+            Schema::connection($connection)->hasTable('t_eventos_contador') &&
+            Schema::connection($connection)->hasTable('t_descripcion_eventos_contador')
+        ) {
+            if ($id_cups) {
+                $query = "
+            SELECT
+                t_eventos_contador.id_cups,
+                t_eventos_contador.id_cnt,
+                TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
+                t_eventos_contador.hor_evento,
+                t_eventos_contador.txt_adicionales_1,
+                t_eventos_contador.txt_adicionales_2,
+                t_descripcion_eventos_contador.des_evento_contador
+            FROM core.t_eventos_contador, core.t_descripcion_eventos_contador
+            WHERE t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+            AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+           ";
+
+
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                        AND t_eventos_contador.fec_evento >= :fecha_inicio
+                        AND t_eventos_contador.fec_evento <= :fecha_fin
+                        AND t_eventos_contador.id_cups LIKE :id_cups
+                    ORDER BY
+                        t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                } else {
+                    $query .= "
+                AND t_eventos_contador.id_cups LIKE :id_cups
+                ORDER BY
+                    t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
+                LIMIT 100;";
+
+
+
+
+                    $params = ['id_cups' => "%$id_cups%"];
+                }
+
+
+
+
+                $exportEventsCups = DB::connection($connection)->select($query, $params);
+                if($exportEventsCups) {
+                    return Excel::download(new EventosCupsExport($exportEventsCups), 'eventos_cups.' . $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1086,7 +1408,7 @@ class CupsController extends Controller
 
 
                 // dd($resultadosSumaEventos);
-                return $resultadosSumaEventos  ?: [];
+                return $resultadosSumaEventos ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1128,7 +1450,7 @@ class CupsController extends Controller
 
 
                 // dd($resultadosQ7cups);
-                return $resultadosQ7cups  ?: [];
+                return $resultadosQ7cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1294,7 +1616,6 @@ class CupsController extends Controller
         }
     }
 
-
     public function consultaOnceCups($id_cups, $connection, Request $request) // Curva horaria
     {
         $id_cups = strtoupper($request->input('id_cups'));
@@ -1338,10 +1659,134 @@ class CupsController extends Controller
 
 
                 $resultadosQ11cups = DB::connection($connection)->select($query, $params);
-                // dd($resultadosQ11cups);
-
 
                 return $resultadosQ11cups ?: [];
+            }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+
+    public function consultaOnceCupsPaginated($id_cups, $connection, Request $request) // Curva horaria
+    {
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+
+        if (Schema::connection($connection)->hasTable('t_consumos_horarios')) {
+
+
+            if ($id_cups) {
+                $query = "
+            SELECT id_cups, id_cnt,
+            TO_CHAR(fec_inicio, 'DD/MM/YYYY') as fec_inicio,
+            hor_inicio,
+            TO_CHAR(fec_fin, 'DD/MM/YYYY') as fec_fin,
+            hor_fin, val_ai_h, val_ae_h, val_r1_h, val_r2_h, val_r3_h, val_r4_h
+            FROM core.t_consumos_horarios
+            where id_cups = :id_cups
+            ";
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                AND fec_inicio >= :fecha_inicio
+                AND fec_fin <= :fecha_fin
+                order by 1,3,4;";
+                    $params = [
+                        'id_cups' => $id_cups,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin' => $fecha_fin
+                    ];
+                } else {
+                    $query .= "
+                and fec_inicio >= (current_date - INTERVAL '30 days')
+                order by 1,3,4;";
+
+
+                    $params = ['id_cups' => $id_cups];
+                }
+
+
+                $resultadosQ11cupsPaginated = DB::connection($connection)->select($query, $params);
+                $resultadosQ11cupsCollection = new Collection($resultadosQ11cupsPaginated);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $resultadosQ11cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                $resultadosQ11cupsPaginated = new LengthAwarePaginator($currentItems, count($resultadosQ11cupsCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+
+
+                return $resultadosQ11cupsPaginated ?: [];
+            }
+        } else {
+            // Una de las tablas no existe, retornar un mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function exportCurvasHorarias(Request $request) // Curva horaria
+    {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+
+        if (Schema::connection($connection)->hasTable('t_consumos_horarios')) {
+
+
+            if ($id_cups) {
+                $query = "
+            SELECT id_cups, id_cnt,
+            TO_CHAR(fec_inicio, 'DD/MM/YYYY') as fec_inicio,
+            hor_inicio,
+            TO_CHAR(fec_fin, 'DD/MM/YYYY') as fec_fin,
+            hor_fin, val_ai_h, val_ae_h, val_r1_h, val_r2_h, val_r3_h, val_r4_h
+            FROM core.t_consumos_horarios
+            where id_cups = :id_cups
+            ";
+
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                AND fec_inicio >= :fecha_inicio
+                AND fec_fin <= :fecha_fin
+                order by 1,3,4;";
+                    $params = [
+                        'id_cups' => $id_cups,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin' => $fecha_fin
+                    ];
+                } else {
+                    $query .= "
+                and fec_inicio >= (current_date - INTERVAL '30 days')
+                order by 1,3,4;";
+
+
+                    $params = ['id_cups' => $id_cups];
+                }
+
+
+                $exportCurvasHorarias = DB::connection($connection)->select($query, $params);
+                if($exportCurvasHorarias) {
+                    return Excel::download(new CurvasHorariasCupsExport($exportCurvasHorarias), 'curvas_horarias_cups.' . $extension, $exportFormat);                   
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                } 
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1465,7 +1910,7 @@ class CupsController extends Controller
                 where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
             // dd($resultadosQ14cups);
-            return $resultadosQ14cups  ?: [];
+            return $resultadosQ14cups ?: [];
         }
     }
 
@@ -1483,7 +1928,7 @@ class CupsController extends Controller
                 where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
             // dd($resultadosQ15cups);
-            return $resultadosQ15cups  ?: [];
+            return $resultadosQ15cups ?: [];
         }
     }
 
@@ -1501,7 +1946,7 @@ class CupsController extends Controller
                 where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
             // dd($resultadosQ16cups);
-            return $resultadosQ16cups  ?: [];
+            return $resultadosQ16cups ?: [];
         }
     }
 
@@ -1519,7 +1964,7 @@ class CupsController extends Controller
                 where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
             // dd($resultadosQ17cups);
-            return $resultadosQ17cups  ?: [];
+            return $resultadosQ17cups ?: [];
         }
     }
 
@@ -1537,7 +1982,7 @@ class CupsController extends Controller
                 where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
             // dd($resultadosQ18cups);
-            return $resultadosQ18cups  ?: [];
+            return $resultadosQ18cups ?: [];
         }
     }
 
@@ -1695,15 +2140,25 @@ class CupsController extends Controller
             if ($id_cups) {
                 $resultadosQ23cups = DB::connection($connection)
                     ->select("
-                SELECT TO_CHAR(fec_lectura, 'DD/MM/YYYY') as fec_lectura, hor_lectura, l1v as tension
-                FROM core.t_valores_instantaneos
-                where id_cups = :id_cups
-                AND fec_lectura <= (SELECT MAX(fec_lectura) FROM core.t_valores_instantaneos)
-                order by 1,2
-                LIMIT 100
-            ", ['id_cups' => $id_cups]);
+                    SELECT 
+                        TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura_texto,  -- Formatea la fecha como texto
+                        hor_lectura, 
+                        l1v AS tension
+                    FROM (
+                        SELECT 
+                            fec_lectura,
+                            hor_lectura, 
+                            l1v 
+                        FROM core.t_valores_instantaneos
+                        WHERE id_cups = :id_cups
+                            AND fec_lectura <= (SELECT MAX(fec_lectura) FROM core.t_valores_instantaneos)
+                        ORDER BY fec_lectura DESC, hor_lectura DESC  -- Limita a los 100 más recientes
+                        LIMIT 100
+                    ) AS subquery
+                    ORDER BY fec_lectura::DATE ASC, hor_lectura ASC;
+", ['id_cups' => $id_cups]);
                 // dd($resultadosQ23cups);
-                return $resultadosQ23cups  ?: [];
+                return $resultadosQ23cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1726,7 +2181,7 @@ class CupsController extends Controller
                     where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
                 // dd($resultadosQ24cups);
-                return $resultadosQ24cups  ?: [];
+                return $resultadosQ24cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1749,7 +2204,7 @@ class CupsController extends Controller
                     where id_cups = :id_cups
             ", ['id_cups' => $id_cups]);
                 // dd($resultadosQ24cups);
-                return $resultadosQ25cups  ?: [];
+                return $resultadosQ25cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
@@ -1771,7 +2226,7 @@ class CupsController extends Controller
                 where id_cups =  :id_cups
             ", ['id_cups' => $id_cups]);
             // dd($resultadosQ26cups);
-            return $resultadosQ26cups  ?: [];
+            return $resultadosQ26cups ?: [];
         }
     }
 
@@ -1805,11 +2260,161 @@ class CupsController extends Controller
 
 
                 // dd($resultadosQ27cups);
-                return $resultadosQ27cups  ?: [];
+                return $resultadosQ27cups ?: [];
             }
         } else {
             // Una de las tablas no existe, retornar un mensaje específico
             return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getConsumoDiario($id_cups, $connection, Request $request)
+    {
+        $id_cups = strtoupper(($request->input('id_cups')));
+
+        if (Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
+            if ($id_cups) {
+                $consumoDiario = DB::connection($connection)->select("
+                WITH meses AS (
+                    SELECT generate_series(
+                        (SELECT MAX(fec_fin) FROM core.t_consumos_diarios) - INTERVAL '1 month',
+                        (SELECT MAX(fec_fin) FROM core.t_consumos_diarios),
+                        INTERVAL '1 day'
+                    )::date AS mes
+                )
+                SELECT 
+					TO_CHAR(c.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
+                    TO_CHAR(m.mes, 'DD/MM/YYYY') AS fec_fin,
+                    COALESCE(c.val_ai_d, 0) AS val_ai_d,
+                    COALESCE(c.val_ae_d, 0) AS val_ae_d
+                FROM meses m
+                LEFT JOIN core.t_consumos_diarios c 
+                    ON c.fec_fin = m.mes
+                    AND c.id_cups LIKE :id_cups
+                ORDER BY m.mes ASC;
+
+
+                ", bindings: ['id_cups' => "%$id_cups%"]);
+
+                return $consumoDiario ?: [];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        }
+    }
+
+    public function getConsumosTotalesDiarios($id_cups, $connection, Request $request) {
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if(Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
+            if($id_cups) {
+                $query = "
+                    SELECT id_cups, TO_CHAR(fec_consumo, 'DD/MM/YYYY') as fec_consumo,
+                    cod_periodotarifa, val_ai_d, val_ae_d, val_r1_d, val_r2_d, val_r3_d, val_r4_d
+                    FROM core.t_consumos_totales_diarios
+                    WHERE id_cups LIKE :id_cups";
+
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= "
+                            AND fec_consumo::DATE <= :fecha_fin
+                            AND fec_consumo::DATE >= :fecha_inicio
+                            ORDER BY id_cups ASC, fec_consumo::DATE ASC, hor_consumo ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                    
+                    } else if ($fecha_fin) {
+                        $query .= "
+                            AND fec_consumo::DATE <= :fecha_fin
+                            ORDER BY id_cups ASC, fec_consumo::DATE ASC, hor_consumo ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_fin' => $fecha_fin];
+                    
+                    } else if ($fecha_inicio) {
+                        $query .= "
+                            AND fec_consumo::DATE >= :fecha_inicio
+                            ORDER BY id_cups ASC, fec_consumo::DATE ASC, hor_consumo ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio];
+                    
+                    } else {
+                        $query .= "
+                            AND fec_consumo >= CURRENT_DATE - INTERVAL '1 month'
+                            ORDER BY id_cups ASC, fec_consumo::DATE ASC, hor_consumo ASC, cod_periodotarifa ASC";
+                        $params = ['id_cups' => "%$id_cups%"];
+                    }                    
+                    $consumosTotalesDiarios = DB::connection($connection)->select($query, $params);
+                    $consumosTotalesDiariosCollection = new Collection($consumosTotalesDiarios);
+                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                    $perPage = 100; // Número de elementos por página
+                    $currentItems = $consumosTotalesDiariosCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                    $consumosTotalesDiarios = new LengthAwarePaginator($currentItems, count($consumosTotalesDiariosCollection), $perPage, $currentPage, [
+                        'path' => request()->url(),
+                        'query' => request()->query()
+                    ]);
+
+                    return $consumosTotalesDiarios ?: [];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        }
+    }
+
+    public function exportConsumosTotalesDiarios(Request $request) {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+        $id_cups = strtoupper($request->input('id_cups'));
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+        // NUEVO: Tipo de archivo ('excel' por default)
+        $format = $request->input('format', 'excel'); 
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+        if(Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
+            if($id_cups) {
+                $query = "
+                    SELECT id_cups, TO_CHAR(fec_consumo, 'DD/MM/YYYY') as fec_consumo,
+                    cod_periodotarifa, val_ai_d, val_ae_d, val_r1_d, val_r2_d, val_r3_d, val_r4_d
+                    FROM core.t_consumos_totales_diarios
+                    WHERE id_cups LIKE :id_cups";
+
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= "
+                            AND fec_consumo::DATE <= :fecha_fin
+                            AND fec_consumo::DATE >= :fecha_inicio
+                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                    
+                    } else if ($fecha_fin) {
+                        $query .= "
+                            AND fec_consumo::DATE <= :fecha_fin
+                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_fin' => $fecha_fin];
+                    
+                    } else if ($fecha_inicio) {
+                        $query .= "
+                            AND fec_consumo::DATE >= :fecha_inicio
+                            ORDER BY fec_consumo::DATE ASC, hor_consumo ASC";
+                        $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio];
+                    
+                    } else {
+                        $query .= "
+                            AND fec_consumo >= CURRENT_DATE - INTERVAL '1 month'
+                            ORDER BY fec_consumo::DATE DESC, hor_consumo ASC";
+                        $params = ['id_cups' => "%$id_cups%"];
+                    }                    
+
+                    $exportConsumosTotalesDiarios = DB::connection($connection)->select($query, $params);
+                    if($exportConsumosTotalesDiarios) {
+                        return Excel::download(new ConsumosTotalesDiariosExport($exportConsumosTotalesDiarios), 'registros_diarios.' . $extension, $exportFormat);
+                    } else {
+                        return response()->json(['message' => 'No hay datos'], 404);
+                    }
+            } else {
+                return ['message' => 'No hay datos'];
+            }
         }
     }
 }

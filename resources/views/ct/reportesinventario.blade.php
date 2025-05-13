@@ -377,40 +377,72 @@
         }
     </style>
     <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var url = "{{ route('exportar.reportes.actualizaciones') }}?";
+
+        // Añadir el formato (excel o csv)
+        url += "format=" + formato;
+
+        // Redirigir al servidor con la URL construida
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var url = "{{ route('exportar.reportes.inventario') }}?";
+
+        // Añadir el formato (excel o csv)
+        url += "format=" + formato;
+
+        // Redirigir al servidor con la URL construida
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel2');
+    var exportCsvBtn = document.getElementById('exportarCsv2');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel2 no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+});
+</script>
+
+
+
     <title>Reportes CT</title>
 </head>
 
@@ -455,8 +487,10 @@
                             active-color="rgb(88, 226, 194)">Calidad</a>
                         <a href="{{ route('reportesinventario') }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194)">Inventario</a>
-                            <a href="{{ route('reportescurvashorarias') }}" class="nav-item"
+                        <a href="{{ route('reportescurvashorarias') }}" class="nav-item"
                             active-color="rgb(88, 226, 194)">Control</a>
+                        <a href="{{ route('reporteseventos') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Eventos</a>
                         <span class="nav-indicator"></span>
                     </nav>
                     <h1 class="text-center text-3xl w-full" style="color: white;">REPORTES INVENTARIO</h1>
@@ -545,7 +579,7 @@
                                              border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                     </div>
                                     <!-- Cuadrado para Contadores no leídos -->
-                                    @if (is_array($resultadosQ52) && count($resultadosQ52) > 0)
+                                    @if (count($resultadosQ52) > 0)
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                             style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                             <table id="testTableReporteActualizaciones"
@@ -594,6 +628,11 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
+                                        </div>
+                                        <div class="pagination-container mt-4 flex justify-center items-center">
+                                            <div class="pagination">
+                                                {{ $resultadosQ52->links() }}
+                                            </div>
                                         </div>
                                     @else
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
@@ -647,9 +686,17 @@
 
                                     <!-- Contenedor del botón de descarga -->
                                     <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="tableToExcel('testTableReporteActualizaciones', 'W3C Example Table')"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        <!-- Botón Excel -->
+                                        <button id="exportarExcel" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a Excel">
+                                        </button>
+
+                                        <!-- Botón CSV -->
+                                        <button id="exportarCsv" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a CSV">
+                                        </button>
                                     </div>
 
 
@@ -899,7 +946,7 @@
                                          border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                 </div>
                                 <!-- Cuadrado para Contadores baja disponibilidad -->
-                                @if (is_array($resultadosQ55) && count($resultadosQ52) > 0)
+                                @if (count($resultadosQ52) > 0)
                                     <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                         style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                         <table id="testTableReporteModelo" class="w-full text-white text-center">
@@ -976,6 +1023,11 @@
                                             </tbody>
                                         </table>
                                     </div>
+                                    <div class="pagination-container mt-4 flex justify-center items-center">
+                                        <div class="pagination">
+                                            {{ $resultadosQ55->links() }}
+                                        </div>
+                                    </div>
                                 @else
                                     <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
                                         <p class="mt-0 text-xl  text-center" style="color:rgb(88,226,194)">No hay
@@ -984,9 +1036,17 @@
                                 @endif
                                 <!-- Contenedor del botón de descarga -->
                                 <div class="text-right mt-4">
-                                    <input type="button"
-                                        onclick="tableToExcel('testTableReporteModelo', 'W3C Example Table')"
-                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        <!-- Botón Excel -->
+                                        <button id="exportarExcel2" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a Excel">
+                                        </button>
+
+                                        <!-- Botón CSV -->
+                                        <button id="exportarCsv2" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a CSV">
+                                        </button>
                                 </div>
                             </div>
 
