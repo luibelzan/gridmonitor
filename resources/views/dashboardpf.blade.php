@@ -376,19 +376,19 @@
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Descripción</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Clave</th>
+                                                        style="color:rgb(88,226,194)">T.I</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Intensidad <br> trafos</th>
+                                                        style="color:rgb(88,226,194)">T.T</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Tensión <br> trafos</th>
+                                                        style="color:rgb(88,226,194)">Tipo P.M</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Tipo punto <br> de medida</th>
-                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Tipo de <br> conexión</th>
+                                                        style="color:rgb(88,226,194)">Conexión</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Cierre</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Última Curva</th>
+                                                        style="color:rgb(88,226,194)">Última Curva (60 minutos)</th>
+                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                        style="color:rgb(88,226,194)">Última Curva (15 minutos)</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Evento</th>
                                                 </tr>
@@ -413,9 +413,6 @@
                                                             {{ !empty($resultado->Descripcion) ? $resultado->Descripcion : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ !empty($resultado->Clave) ? $resultado->Clave : 'No hay datos' }}
-                                                        </td>
-                                                        <td class="py-2">
                                                             {{ !empty($resultado->Trafos_Intensidad) ? $resultado->Trafos_Intensidad : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
@@ -432,6 +429,9 @@
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultima_curva) ? $resultado->fecha_ultima_curva : 'No hay datos' }}
+                                                        </td>
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->fecha_ultima_curva_15) ? $resultado->fecha_ultima_curva_15 : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultimo_evento) ? $resultado->fecha_ultimo_evento : 'No hay datos' }}

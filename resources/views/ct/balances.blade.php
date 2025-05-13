@@ -753,41 +753,50 @@
 
 
 
-    <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var idCt = document.querySelector('input[name="id_ct"]').value;
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+        var url = "{{ route('exportar.balances') }}?";
+
+        if (idCt) {
+            url += "id_ct=" + encodeURIComponent(idCt) + "&";
         }
-    </script>
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+});
+</script>
+
 
 
 
@@ -1416,13 +1425,111 @@
                                         </div>
 
 
+                                        {{-- TERCERA FILA --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                                            <div class="card text-white  mb-2"
+                                                style="
+                                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                <div class="overflow-x-auto">
+
+
+                                                    <div class="container">
+                                                        <h1 class="text-center text-3xl w-full" style="color: white;">DETALLES CONSUMOS POR CUPS</h1>
+                                                        <h1 class="text-center text-3xl w-full" style="color: white;">
+                                                            @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
+                                                                Del
+                                                                {{ \Carbon\Carbon::parse(request()->query('fecha_inicio'))->format('d/m/Y') }}
+                                                                al
+                                                                {{ \Carbon\Carbon::parse(request()->query('fecha_fin'))->format('d/m/Y') }}
+                                                            @else
+                                                                {{ !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : 'No hay datos' }}
+                                                            @endif
+                                                        </h1>
+                                                        @if (count($sumBalances) > 0)
+                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                                <table id="testTableBalancesCt"
+                                                                    class="w-full text-white text-center">
+                                                                    <thead style="border-bottom: 1px solid #ffffff;">
+                                                                        <tr>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                CUPS</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                CONTADOR</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                NOMBRE</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                ENERGIA IMPORTADA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                ENERGIA EXPORTADA</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        @if ($sumBalances->count() > 0)
+                                                                            @foreach ($sumBalances as $resultado)
+                                                                                <tr class="highlight-row" 
+                                                                                    onclick="window.open('{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}', '_blank');" 
+                                                                                    style="cursor: pointer;">
+                                                                                    <td class="py-2">{{ $resultado->id_cups ?? 'No hay datos' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->id_cnt ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->nom_cups ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->total_val_ai_d ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->total_val_ae_d ?? '0' }}</td>
+                                                                                </tr>
+                                                                            @endforeach
+                                                                        @else 
+                                                                            <tr>
+                                                                                <td class="py-2" colspan="5" style="text-align: center;">No hay datos disponibles</td>
+                                                                            </tr>
+                                                                        @endif
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                            <div class="pagination-container mt-4 flex justify-center items-center">
+                                                                <div class="pagination">
+                                                                    {{ $sumBalances->links() }}
+                                                                </div>
+                                                            </div>
+                                                        @else
+                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                                <p class="mt-0 text-xl  text-center"
+                                                                    style="color:rgb(88,226,194)">No hay
+                                                                    datos
+                                                                </p>
+                                                            </div>
+                                                        @endif
+                                                        <!-- Contenedor del botón de descarga -->
+                                                        <div class="text-right mt-4">
+                                                            <!-- Botón Excel -->
+                                                            <button id="exportarExcel" 
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                title="Exportar a Excel">
+                                                            </button>
+
+                                                            <!-- Botón CSV -->
+                                                            <button id="exportarCsv" 
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                title="Exportar a CSV">
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
 
 
 
 
 
-                                        {{-- tercera FILA --}}
+
+
+                                        {{-- CUARTA FILA --}}
                                         <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
                                             <div class="card text-white  mb-2"
                                                 style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
