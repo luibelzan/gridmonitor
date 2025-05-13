@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Nodels\Ct;
+use App\Models\Ct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
@@ -62,6 +62,41 @@ class SupervisionAvanzadaController extends Controller {
 
 
             
+        }
+    }
+
+    public function fasessabt(Request $request) {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            // Si no está autenticado, redirigir a la página de inicio de sesión
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+        $id_ct = $request->input('id_ct');
+
+        // Guardar el id_ct en la sesión
+        Session::put('id_ct', $id_ct);
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'informacionct');
+
+        // Obtener la conexión dinámica
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin/admin');
+        } else {
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
+
+            $fasessabt = $this->getFasesSABT($id_ct, $connection);
+
+            //$cups_info = $this->getCupsInfo($request, $id_ct, $connection);
+
+            return view('supervisionavanzada/fasessabt', [
+                'fasessabt' => $fasessabt,
+                'ct_info' => $ct_info,
+            ]);
         }
     }
 
@@ -275,6 +310,23 @@ class SupervisionAvanzadaController extends Controller {
             }
         } catch(\Exception $e) {
 
+        }
+    }
+
+    public function getFasesSABT($id_ct, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_cups')) {
+                 $fasessabt = DB::connection($connection)->select("
+                 SELECT * FROM core.t_cups 
+                 WHERE id_ct = :id_ct", ['id_ct' => $id_ct]);
+
+                 return $fasessabt ?: ['message' => 'No hay datos'];
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
     }
 

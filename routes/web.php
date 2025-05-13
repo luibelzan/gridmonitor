@@ -157,6 +157,7 @@ Route::get('/eventos/actualizar', [EventosEspontaneosController::class, 'actuali
 
 //SUPERVISION AVANZADA ----------------------------
 Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'supervisionavanzada'])->name('supervisionavanzada');
+Route::get('/fasessabt', [SupervisionAvanzadaController::class, 'fasessabt'])->name('fasessabt');
 
 
 
