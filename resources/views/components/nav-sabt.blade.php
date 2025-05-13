@@ -96,5 +96,7 @@
         active-color="rgb(88, 226, 194)">Dashboard</a>
     <a href="{{ route('supervisionavanzada') }}" class="nav-item {{ Request::is('supervisionavanzada') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Información</a>
+    <a href="{{ route('supervisionavanzada') }}" class="nav-item {{ Request::is('supervisionavanzada') ? 'is-active' : '' }}"
+        active-color="rgb(88, 226, 194)">Fases</a>
     <span class="nav-indicator"></span>
 </nav>
