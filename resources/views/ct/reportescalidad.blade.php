@@ -1036,6 +1036,43 @@
 
         }
     </style>
+
+    <script>
+        function tableToExcel(tableID, worksheetName) {
+            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
+            var data = "<table border='1'>";
+            for (var i = 0; i < table.rows.length; i++) {
+                var rowData = [];
+                for (var j = 0; j < table.rows[i].cells.length; j++) {
+                    rowData.push(table.rows[i].cells[j].innerText);
+                }
+                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
+            }
+            data += "</table>"; // Convertir a formato Excel y descargar
+            var uri = 'data:application/vnd.ms-excel;base64,';
+            var template =
+                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
+            var base64 = function(s) {
+                return window.btoa(unescape(encodeURIComponent(s)))
+            };
+            var format = function(s, c) {
+                return s.replace(/{(\w+)}/g, function(m, p) {
+                    return c[p];
+                })
+            };
+            var excelData = format(template, {
+                worksheet: worksheetName,
+                table: data
+            }); // Crear un enlace temporal y descargar el archivo Excel
+            var link = document.createElement("a");
+            link.href = uri + base64(excelData);
+            link.download = "exportacion_excel.xls";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+    
     <script>
 document.addEventListener("DOMContentLoaded", function () {
 
