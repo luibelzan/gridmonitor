@@ -78,7 +78,7 @@ class SupervisionAvanzadaController extends Controller {
         Session::put('id_ct', $id_ct);
 
         // Guardar el nombre de la vista actual en la sesión
-        Session::put('vista_actual', 'informacionct');
+        Session::put('vista_actual', 'fasessabt');
 
         // Obtener la conexión dinámica
         $connection = User::conexion();
@@ -90,15 +90,48 @@ class SupervisionAvanzadaController extends Controller {
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
 
             $fasessabt = $this->getFasesSABT($id_ct, $connection);
+            $tramos = $this->getTramos($request, $connection);
 
             //$cups_info = $this->getCupsInfo($request, $id_ct, $connection);
 
             return view('supervisionavanzada/fasessabt', [
                 'fasessabt' => $fasessabt,
                 'ct_info' => $ct_info,
+                'tramos' => $tramos,
             ]);
         }
     }
+
+    public function calidadsabt(Request $request) {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            // Si no está autenticado, redirigir a la página de inicio de sesión
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+        $id_ct = $request->input('id_ct');
+
+        // Guardar el id_ct en la sesión
+        Session::put('id_ct', $id_ct);
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'calidadsabt');
+
+        // Obtener la conexión dinámica
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin/admin');
+        } else {
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
+
+            return view('supervisionavanzada/calidadsabt', [
+                
+            ]);
+        }
+    }
+
 
     public function getAllS64(Request $request, $connection) {
         try {
@@ -327,6 +360,160 @@ class SupervisionAvanzadaController extends Controller {
             }
         } catch(\Exception $e) {
             return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getDistorsionesArmonicasMayor8(Request $request, $connection) { //KP1 1.1
+        try {
+            if(Schema::connection($connection)->hasTable('t_s96') &&
+            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
+                $query = "
+                SELECT
+                    COUNT(CASE WHEN s96.hr_thd >= 8 THEN 1 END) AS count_hr_thd_ge_8,
+                    COUNT(CASE WHEN s96.hs_thd >= 8 THEN 1 END) AS count_hs_thd_ge_8,
+                    COUNT(CASE WHEN s96.ht_thd >= 8 THEN 1 END) AS count_ht_thd_ge_8
+                FROM core.t_s96 AS s96
+                INNER JOIN core.t_equipos_sabt AS eq ON s96.rtu_id = eq.id_equipo
+                WHERE eq.tip_equipo = 'RTU'
+                AND eq.id_ct = 'CT-95';
+                ";
+
+                $distorsionesArmonicasMayor8 = DB::connection($connection)->select($query);
+
+                return $distorsionesArmonicasMayor8 ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getTHDMayor8(Request $request, $connection) { //KPI 1.2
+        try {
+            if(Schema::connection($connection)->hasTable('t_s96') &&
+            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
+                $query = "
+                SELECT  s96.fh,s96.hr_thd, s96.hs_thd, s96.ht_thd
+                    FROM core.t_s96 AS s96
+                    INNER JOIN core.t_equipos_sabt AS eq ON s96.rtu_id = eq.id_equipo
+                    WHERE eq.tip_equipo = 'RTU'
+                    AND eq.id_ct = 'CT-95'
+                    AND (s96.ht_thd >=1  OR s96.hs_thd >=1  OR s96.ht_thd >=1)
+                ";
+
+                $THDMayor8 = DB::connection($connection)->select($query);
+
+                return $THDMayor8 ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getAverageFlickersPerFase(Request $request, $connection) { //KPI 2.1
+        try {
+            if(Schema::connection($connection)->hasTable('t_s94') &&
+            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
+                $query = "
+                    SELECT  avg(s94.fr), avg(s94.fs), avg(s94.ft)
+                    FROM core.t_s94 AS s94
+                    INNER JOIN core.t_equipos_sabt AS eq ON s94.rtu_id = eq.id_equipo
+                    WHERE eq.tip_equipo = 'RTU'
+                    AND eq.id_ct = 'CT-95'
+                    AND (s94.fr <> 0 OR s94.fs <> 0 OR s94.ft <> 0)
+                ";
+
+                $flickersPerFase = DB::connection($connection)->select($query);
+
+                return $flickersPerFase ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getFlickersPerFaseMayor1(Request $request, $connection) { //KPI 2.2
+        try {
+            if(Schema::connection($connection)->hasTable('t_s94') && 
+            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
+                $query = "
+                SELECT  fh,s94.fr, s94.fs, s94.ft
+                FROM core.t_s94 AS s94
+                INNER JOIN core.t_equipos_sabt AS eq ON s94.rtu_id = eq.id_equipo
+                WHERE eq.tip_equipo = 'RTU'
+                AND eq.id_ct = 'CT-95'
+                AND (s94.fr >=1  OR s94.fs >=1  OR s94.ft >=1)
+                ";
+
+                $flickersPerFaseMayor1 = DB::connection($connection)->select($query);
+
+                return $flickersPerFaseMayor1 ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getNumDesbalancesTension(Request $request, $connection) { //KPI 3.1
+        try {
+            if(Schema::connection($connection)->hasTable('t_s95') &&
+            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
+                $query = "
+                SELECT count(s95.vu)
+                FROM core.t_s95 AS s95
+                INNER JOIN core.t_equipos_sabt AS eq ON s95.rtu_id = eq.id_equipo
+                WHERE eq.tip_equipo = 'RTU'
+                AND eq.id_ct = 'CT-95'
+                AND s95.vu >= 3 
+                ";
+
+                $desbalancesTension = DB::connection($connection)->select($query);
+
+                return $desbalancesTension ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getDetailsDesbalancesTension(Request $request, $connection) { //KPI 3.2
+
+    }
+
+    public function getNumVariacionesTension(Request $request, $connection) { //KPI 4.1
+
+    }
+
+    public function getDetailsVariacionesPerFase(Request $request, $connection) { //KPI 4.2
+
+    }
+
+    Public function getTramos(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_tramos')) {
+                $query = "
+                SELECT *
+                FROM core.t_tramos
+                
+                ";
+
+                $tramos = DB::connection($connection)->select($query);
+
+                return $tramos ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
         }
     }
 
