@@ -277,7 +277,7 @@
                             {{-- Cuadro 3 --}}
                             <div class="card text-white mb-2 col-span-1"
                                 style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                <h1 class="text-center text-xl" style="color: white;">CURVAS HORARIAS LEÍDAS</h1>
+                                <h1 class="text-center text-xl" style="color: white;">CURVAS LEÍDAS</h1>
                                 <div
                                     style="border-bottom: 3px solid transparent; border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                 </div>
@@ -300,7 +300,7 @@
                             {{-- Cuadro 4 --}}
                             <div class="card text-white mb-2 col-span-1"
                                 style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                <h1 class="text-center text-xl" style="color: white;">CURVAS HORARIAS INVÁLIDAS</h1>
+                                <h1 class="text-center text-xl" style="color: white;">CURVAS INVÁLIDAS</h1>
                                 <div
                                     style="border-bottom: 3px solid transparent; border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                 </div>
@@ -386,8 +386,6 @@
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Cierre</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Última Curva (60 minutos)</th>
-                                                    <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Última Curva (15 minutos)</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">Último Evento</th>
@@ -426,9 +424,6 @@
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultima_cierre) ? $resultado->fecha_ultima_cierre : 'No hay datos' }}
-                                                        </td>
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->fecha_ultima_curva) ? $resultado->fecha_ultima_curva : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultima_curva_15) ? $resultado->fecha_ultima_curva_15 : 'No hay datos' }}

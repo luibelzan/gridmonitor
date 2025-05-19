@@ -602,11 +602,11 @@ class DashboardController extends Controller
         try {
             $resultadosQ15dashboard = DB::connection($connectionpf)
                 ->select("
-                 SELECT count(t_dat_iec870_load_profile_2.fh) as leidas
-                FROM reader.t_dat_iec870_load_profile_2, t_meter_params_iec870
-                Where t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt and
+                 SELECT count(t_dat_iec870_load_profile_1.fh) as leidas
+                FROM reader.t_dat_iec870_load_profile_1, t_meter_params_iec870
+                Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group
-                and month(t_dat_iec870_load_profile_2.fh) = month(current_date)
+                and month(t_dat_iec870_load_profile_1.fh) = month(current_date)
                     ");
 
             // dd($cod_id_group);
@@ -626,12 +626,12 @@ class DashboardController extends Controller
         try {
             $resultadosQ16dashboard = DB::connection($connectionpf)
                 ->select("
-                 SELECT count(t_dat_iec870_load_profile_2.fh)  as invalidas
-                FROM reader.t_dat_iec870_load_profile_2,t_meter_params_iec870
-                Where t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt and
+                 SELECT count(t_dat_iec870_load_profile_1.fh)  as invalidas
+                FROM reader.t_dat_iec870_load_profile_1,t_meter_params_iec870
+                Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group
-                and month(t_dat_iec870_load_profile_2.fh) = month(current_date) and
-                t_dat_iec870_load_profile_2.e_act_imp_cualif > 0
+                and month(t_dat_iec870_load_profile_1.fh) = month(current_date) and
+                t_dat_iec870_load_profile_1.e_act_imp_cualif > 0
                     ");
 
             // dd($cod_id_group);
