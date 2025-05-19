@@ -779,13 +779,10 @@
                                                                     values_curvascuartihorarias_Exportada_A.push({{ $resultado->Energia_Activa_Exportada_A }}); // Recolectar los datos de Energia_Activa_Exportada_A
                                                                 @endforeach
                                                             
-                                                                var sortedData = labels_curvascuartihorarias.slice().sort();
-                                                                var filteredLabels = [sortedData[0]];
-                                                                for (var i = 1; i < sortedData.length; i++) {
-                                                                    if (sortedData[i] !== sortedData[i - 1]) {
-                                                                        filteredLabels.push(sortedData[i]);
-                                                                    }
-                                                                }
+                                                                var filteredLabels = labels_curvascuartihorarias.filter(function(item, pos, self) {
+                                                                    return self.indexOf(item) === pos;
+                                                                });
+
                                                             
                                                                 var myChartLineCurvasHorarias;
                                                             
@@ -900,7 +897,7 @@
                                                                                         labels: data.labels_curvascuartihorarias.map(label => {
                                                                                             const timeWithoutSeconds = label.replace(/\:\d\d$/, 'h');
                                                                                             return timeWithoutSeconds;
-                                                                                        }).sort(),
+                                                                                        }),
                                                                                         grid: {
                                                                                             color: '#666'
                                                                                         },
