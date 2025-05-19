@@ -530,12 +530,8 @@
                             active-color="rgb(88, 226, 194">Dashboard</a>
                         <a href="{{ route('informacionpf', ['id_cnt' => $id_cnt]) }}" class="nav-item  "
                             active-color="rgb(88, 226, 194">Información</a>
-                        <a href="{{ route('curvashorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
-                            active-color="rgb(88, 226, 194">Curvas horarias</a>
-                        @if ($id_cnt && !empty($mostrarcurvascuartihorarias) && $mostrarcurvascuartihorarias[0]->curva_1 == 1)
-                            <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}"
-                                class="nav-item is-active" active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
-                        @endif
+                        <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}"
+                            class="nav-item is-active" active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
                         <a href="{{ route('eventospf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Eventos</a> 
                         <a href="{{ route('reportespf') }}" class="nav-item"

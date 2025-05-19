@@ -589,10 +589,10 @@ class PuntoFronteraController extends Controller
         if ($id_cnt) {
             $resultadosQ3pf = DB::connection($connectionpf)
                 ->select('
-                SELECT MAX(id) as max_id, DATE_FORMAT(t_dat_iec870_load_profile_2.fh, "%d/%m/%Y %H:%i:%s") as fecha_ultima_curva
-                FROM t_dat_iec870_load_profile_2, t_meter_params_iec870
+                SELECT MAX(id) as max_id, DATE_FORMAT(t_dat_iec870_load_profile_1.fh, "%d/%m/%Y %H:%i:%s") as fecha_ultima_curva
+                FROM t_dat_iec870_load_profile_1, t_meter_params_iec870
                 WHERE t_meter_params_iec870.id_cnt = :id_cnt
-                AND t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
+                AND t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
                 GROUP BY 2
                 ORDER BY 1 DESC
                 LIMIT 1
