@@ -586,6 +586,28 @@
                                                         var capasSobretensiones = markersSobretensiones;
                                                         map.addLayer(capasSobretensiones);
 
+                                                        //TRAMOS
+                                                        // Añadir líneas desde tramos
+                                                        var tramos = @json($tramos);
+                                                        tramos.forEach(tramo => {
+                                                            if (
+                                                                tramo.lat_inicio && tramo.lon_inicio &&
+                                                                tramo.lat_fin && tramo.lon_fin
+                                                            ) {
+                                                                const latlngs = [
+                                                                    [parseFloat(tramo.lat_inicio), parseFloat(tramo.lon_inicio)],
+                                                                    [parseFloat(tramo.lat_fin), parseFloat(tramo.lon_fin)]
+                                                                ];
+
+                                                                L.polyline(latlngs, {
+                                                                    color: 'red',      // Cambia el color si lo deseas
+                                                                    weight: 3,         // Grosor de la línea
+                                                                    opacity: 0.8       // Opacidad
+                                                                }).addTo(map);
+                                                            }
+                                                        });
+
+
 
                                                         var baseLayers = {
                                                             "Google Maps": googleMaps,
