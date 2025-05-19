@@ -1437,13 +1437,13 @@ class PuntoFronteraController extends Controller
                 $query .= "
                 AND t_dat_iec870_load_profile_1.fh >= :fecha_inicio
                 AND t_dat_iec870_load_profile_1.fh <= :fecha_fin
-                ORDER BY t_dat_iec870_load_profile_1.fh DESC
+                ORDER BY t_dat_iec870_load_profile_1.fh ASC
                 ";
                 $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
             } else {
                 $query .= "
                 ORDER BY t_dat_iec870_load_profile_1.fh DESC
-                LIMIT 168";
+                LIMIT 2880";
                 $params = ['id_cnt' => $id_cnt];
             }
 
@@ -1452,7 +1452,10 @@ class PuntoFronteraController extends Controller
 
             $resultadosQ20pf = DB::connection($connectionpf)->select($query, $params);
 
-
+            // Invertir resultados para orden ascendente si no hay fechas
+            if (!$fecha_inicio && !$fecha_fin) {
+                $resultadosQ20pf = array_reverse($resultadosQ20pf);
+            }
 
 
             // dd($resultadosQ20pf);
