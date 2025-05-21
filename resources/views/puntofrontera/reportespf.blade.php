@@ -826,7 +826,7 @@
                             active-color="rgb(88, 226, 194">Dashboard</a>
                         <a href="{{ route('informacionpf') }}" class="nav-item  "
                             active-color="rgb(88, 226, 194">Información</a>
-                        <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
+                        <a href="{{ route('curvascuartihorariaspf') }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
                         <a href="{{ route('eventospf') }}" class="nav-item " active-color="rgb(88, 226, 194">Eventos</a>
                         <span class="nav-indicator"></span>

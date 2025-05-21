@@ -4370,6 +4370,7 @@ public function exportReportesCalidad(Request $request)
                         tc.dir_cups,
                         tc.nom_cups,
                         tc.id_cnt,
+                        ct.nom_ct,
                         TO_CHAR(MAX(vi.fec_lectura), 'DD/MM/YYYY') as fec_lectura,
                         ROUND(AVG(vi.L1v)) AS round,
                         MAX(vi.L1v) AS max,
@@ -4378,6 +4379,8 @@ public function exportReportesCalidad(Request $request)
                     FROM core.t_valores_instantaneos vi
                     JOIN core.t_cups tc 
                         ON vi.id_cups = tc.id_cups
+                    JOIN core.t_ct ct
+                        ON tc.id_ct = ct.id_ct
                     WHERE 1 = 1
                 ";
     
@@ -4396,7 +4399,7 @@ public function exportReportesCalidad(Request $request)
     
                 // Agrupar por id_cups y los datos necesarios
                 $query .= "
-                    GROUP BY vi.id_cups, tc.dir_cups, tc.nom_cups, tc.id_cnt
+                    GROUP BY vi.id_cups, tc.dir_cups, tc.nom_cups, tc.id_cnt, ct.nom_ct
                 ";
     
                 // Ejecutar la consulta
