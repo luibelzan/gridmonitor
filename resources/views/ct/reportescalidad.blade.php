@@ -3121,6 +3121,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 style="color:rgb(88,226,194); padding: 0 8px;">Nombre
                                                             </th>
                                                             <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 0 8px;">Nombre CT
+                                                            </th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 0 8px;">
                                                                 Dirección
                                                             </th>
@@ -3193,6 +3196,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->dir_cups) ? $resultado->dir_cups : 'No hay datos' }}
