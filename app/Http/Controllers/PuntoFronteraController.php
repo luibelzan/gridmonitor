@@ -1633,9 +1633,10 @@ class PuntoFronteraController extends Controller
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        $tipo_reporte = request()->input('tipo_reporte', []);
 
 
-        if (!empty($id_cnts)) {
+        if (!empty($id_cnts) && in_array('cierres_mensuales', $tipo_reporte)) {
             $query = "SELECT
             t_meter_params_iec870.cups as CUPS,
             t_dat_iec870_monthly_billing.id_cnt,
@@ -2142,9 +2143,10 @@ class PuntoFronteraController extends Controller
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        $tipo_reporte = request()->input('tipo_reporte', []);
 
 
-        if (!empty($id_cnts)) {
+        if (!empty($id_cnts) && in_array('curvas_cuartihorarias', $tipo_reporte)) {
             $query = "
         SELECT
             t_meter_params_iec870.cups as 'CUPS',
