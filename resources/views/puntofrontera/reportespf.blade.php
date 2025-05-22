@@ -794,6 +794,64 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        const fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+        // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
+        let idCnts = [];
+
+        document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
+            idCnts.push(el.value);
+        });
+
+        // Armar URL base
+        var url = "{{ route('exportar.curvas.cuartihorarias.pf') }}?";
+
+        // Agregar parámetros a la URL
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        // Agregar todos los id_cnts como parámetros
+        idCnts.forEach(id => {
+            url += "id_cnts[]=" + encodeURIComponent(id) + "&";
+        });
+
+        url += "format=" + formato;
+
+        // Redirigir para descargar el archivo
+        window.location.href = url;
+    }
+
+    const exportExcelBtn = document.getElementById('exportarExcel2');
+    const exportCsvBtn = document.getElementById('exportarCsv2');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    } else {
+        console.error("El botón exportarCsv no existe en el DOM.");
+    }
+});
+</script>
+
 
 
 
@@ -1599,26 +1657,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                                             {{-- Descargar Excel --}}
 
+                                                            <!-- Botón Excel -->
                                                             <div class="text-right m-4">
-                                                                <a href="{{ route('reportespf', array_merge(request()->query(), ['export25' => 'excel25'])) }}"
-                                                                    class="download-button"
-                                                                    data-loading-container="loadingBarContainer25"
-                                                                    data-loading-bar="loadingBar25"
-                                                                    data-loading-message="loadingMessage25">
-                                                                </a>
+                                                                    <button id="exportarExcel2" 
+                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                        title="Exportar a Excel">
+                                                                    </button>
 
-                                                                <div id="loadingBarContainer25"
-                                                                    class="loading-bar-container"
-                                                                    style="display:none;">
-                                                                    <div class="progress">
-                                                                        <div class="progress-value" id="loadingBar25">
-                                                                        </div>
-                                                                    </div>
-                                                                    <div id="loadingMessage25" class="loading-message"
-                                                                        style="display:none;">
-                                                                        Procesando la descarga, por favor espera...
-                                                                    </div>
-                                                                </div>
+                                                                    <!-- Botón CSV -->
+                                                                    <button id="exportarCsv2" 
+                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                        title="Exportar a CSV">
+                                                                    </button>
                                                             </div>
                                                             {{-- <!-- Contenedor del botón de descarga -->
                                                                 <div class="text-right mt-4">
@@ -1701,77 +1751,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
-
-
-
-
-                                <script>
-                                    document.querySelectorAll('.download-button').forEach(button => {
-                                        button.addEventListener('click', function(e) {
-                                            e.preventDefault();
-
-                                            const loadingContainer = document.getElementById(this.getAttribute(
-                                                'data-loading-container'));
-                                            const loadingBar = document.getElementById(this.getAttribute('data-loading-bar'));
-                                            const loadingMessage = document.getElementById(this.getAttribute('data-loading-message'));
-
-                                            // Mostrar la barra de progreso y el mensaje
-                                            loadingContainer.style.display = 'block';
-                                            loadingMessage.style.display = 'block';
-
-                                            // Inicializar la barra de progreso
-                                            let progress = 0;
-
-                                            // Función para actualizar la barra de progreso
-                                            function updateProgress() {
-                                                progress += 1;
-                                                loadingBar.style.width = progress + '%';
-                                                if (progress >= 100) {
-                                                    progress = 0; // Reiniciar el progreso a 0
-                                                }
-
-                                                // Continuar la animación
-                                                setTimeout(updateProgress, 100); // Actualiza cada 100ms
-                                            }
-
-                                            updateProgress();
-
-                                            // Obtener la URL de descarga
-                                            const url = button.href;
-
-                                            // Hacer la petición de descarga
-                                            fetch(url)
-                                                .then(response => {
-                                                    if (!response.ok) {
-                                                        throw new Error('Network response was not ok');
-                                                    }
-                                                    return response.blob();
-                                                })
-                                                .then(blob => {
-                                                    const downloadUrl = window.URL.createObjectURL(blob);
-                                                    const link = document.createElement('a');
-                                                    link.href = downloadUrl;
-                                                    link.setAttribute('download',
-                                                        'reporte.xlsx'); // Puedes usar el nombre del archivo que prefieras
-                                                    document.body.appendChild(link);
-                                                    link.click();
-                                                    link.remove();
-                                                })
-                                                .catch(error => console.error('Error en la descarga:', error))
-                                                .finally(() => {
-                                                    // Asegurar que el temporizador se detenga al completar la descarga
-                                                    loadingBar.style.width = '100%';
-                                                    loadingBar.textContent = '100%';
-                                                    setTimeout(() => {
-                                                        // Ocultar la barra de progreso y el mensaje después de un breve retraso
-                                                        loadingContainer.style.display = 'none';
-                                                        loadingMessage.style.display = 'none';
-                                                    }, 500);
-                                                });
-                                        });
-                                    });
-                                </script>
                             </div>
                         @endif
                     @endif
