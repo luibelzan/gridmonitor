@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\EventosPFExport;
 use App\Exports\ReportesPFCierresMensualesExport;
+use App\Exports\ReportesPFCurvasCuartihorariasExport;
 use App\Exports\ResultsExport;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -2193,13 +2194,6 @@ class PuntoFronteraController extends Controller
             $resultadosQ25pf = DB::connection($connectionpf)->select($query, $params);
 
 
-            if ($request->input('export25') === 'excel25') {
-                // Llama a la clase ResultsExport para generar y descargar el archivo Excel
-                $export = new ResultsExport($resultadosQ25pf);
-                return $export->downloadQ25pf();
-            }
-
-
             // Crear una colección paginada manualmente
             $items = array_slice($resultadosQ25pf, $offset, $perPage);
             $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ25pf), $perPage, $page, [
@@ -2213,6 +2207,76 @@ class PuntoFronteraController extends Controller
 
 
         return [];
+    }
+
+    public function exportCurvasCuartihorarias(Request $request) {
+        try {
+            $connection = User::conexionPuntoFrontera();
+            if(Schema::connection($connection)->hasTable('t_dat_iec870_load_profile_1')) {
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                $id_cnts = $request->input('id_cnts', []);
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+
+                if (!empty($id_cnts)) {
+                    $query = "
+                SELECT
+                    t_meter_params_iec870.cups as 'CUPS',
+                    t_dat_iec870_load_profile_1.id_cnt,
+                    DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as 'Fecha',
+                    DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as 'Hora',
+                    t_dat_iec870_load_profile_1.e_act_imp as 'Energia_Activa_Importada_A',
+                    t_dat_iec870_load_profile_1.e_act_imp_cualif as 'Bit_Calidad_Activa_A',
+                    t_dat_iec870_load_profile_1.e_act_exp as 'Energia_Activa_Exportada_A',
+                    t_dat_iec870_load_profile_1.e_act_exp_cualif as 'Bit_Calidad_Activa_A2',
+                    t_dat_iec870_load_profile_1.e_react_ind_imp as 'Energia_Reactiva_Inductiva_Importada_Ri',
+                    t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri',
+                    t_dat_iec870_load_profile_1.e_react_ind_exp as 'Energia_Reactiva_Inductiva_Exportada_Ri',
+                    t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri2',
+                    t_dat_iec870_load_profile_1.e_react_cap_imp as 'Energia_Reactiva_Capacitiva_Importada_Rc',
+                    t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
+                    t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
+                    t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
+                FROM reader.t_dat_iec870_load_profile_1
+                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE t_dat_iec870_load_profile_1.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
+
+
+                    $params = $id_cnts;
+
+
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= "
+                    AND t_dat_iec870_load_profile_1.fh >= ?
+                    AND t_dat_iec870_load_profile_1.fh <= ?
+                    ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC";
+                        $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
+                    } else {
+                        $query .= "
+                    ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC
+                    LIMIT 168";
+                    }
+
+                    $exportCurvasCuartihorarias = DB::connection($connection)->select($query, $params);
+
+                    if($exportCurvasCuartihorarias) {
+                        return Excel::download(new ReportesPFCurvasCuartihorariasExport($exportCurvasCuartihorarias), 'curvas_cuartihorarias.' . $extension, $exportFormat);
+                    } else {
+                        return response()->json(['message' => 'No hay datos'], 404);
+
+                    }
+                }
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
     }
 
 
