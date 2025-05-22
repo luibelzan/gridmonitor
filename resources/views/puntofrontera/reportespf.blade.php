@@ -736,6 +736,64 @@
         }
     </style>
 
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        const fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+        // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
+        let idCnts = [];
+
+        document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
+            idCnts.push(el.value);
+        });
+
+        // Armar URL base
+        var url = "{{ route('exportar.cierres.mensuales.pf') }}?";
+
+        // Agregar parámetros a la URL
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        // Agregar todos los id_cnts como parámetros
+        idCnts.forEach(id => {
+            url += "id_cnts[]=" + encodeURIComponent(id) + "&";
+        });
+
+        url += "format=" + formato;
+
+        // Redirigir para descargar el archivo
+        window.location.href = url;
+    }
+
+    const exportExcelBtn = document.getElementById('exportarExcel');
+    const exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    } else {
+        console.error("El botón exportarCsv no existe en el DOM.");
+    }
+});
+</script>
+
 
 
 
@@ -851,12 +909,7 @@
                                 </div>
                                 <!-- Filtro de fechas -->
                                 <div class="flex-container m-4" style="display: flex; flex-wrap: wrap; gap: 20px;">
-                                    @foreach (request('id_cnts', []) as $id_cnt)
-                                        <input type="hidden" name="id_cnts[]" value="{{ $id_cnt }}">
-                                    @endforeach
-                                    @foreach (request('tipo_reporte', []) as $tipo_reporte)
-                                        <input type="hidden" name="tipo_reporte[]" value="{{ $tipo_reporte }}">
-                                    @endforeach
+                                    
                                     <div class="form-group">
                                         <label for="fecha_inicio" class="text-white">Fecha de inicio:</label>
                                         <input type="date" id="fecha_inicio" name="fecha_inicio"
@@ -1253,24 +1306,18 @@
 
                                                         {{-- Descargar Excel --}}
 
-                                                        <div class="text-right m-4">
-                                                            <a href="{{ route('reportespf', array_merge(request()->query(), ['export23' => 'excel23'])) }}"
-                                                                class="download-button"
-                                                                data-loading-container="loadingBarContainer23"
-                                                                data-loading-bar="loadingBar23"
-                                                                data-loading-message="loadingMessage23">
-                                                            </a>
-                                                            <div id="loadingBarContainer23"
-                                                                class="loading-bar-container" style="display:none;">
-                                                                <div class="progress">
-                                                                    <div class="progress-value" id="loadingBar23">
-                                                                    </div>
-                                                                </div>
-                                                                <div id="loadingMessage23" class="loading-message"
-                                                                    style="display:none;">
-                                                                    Procesando la descarga, por favor espera...
-                                                                </div>
-                                                            </div>
+                                                        <!-- Botón Excel -->
+                                                         <div class="text-right m-4">
+                                                                <button id="exportarExcel" 
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                    title="Exportar a Excel">
+                                                                </button>
+
+                                                                <!-- Botón CSV -->
+                                                                <button id="exportarCsv" 
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                    title="Exportar a CSV">
+                                                                </button>
                                                         </div>
                                                         <!-- Contenedor del botón de descarga -->
                                                         {{-- <div class="text-right mt-4">

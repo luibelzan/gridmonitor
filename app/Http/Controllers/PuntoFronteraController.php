@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 
 
 use App\Exports\EventosPFExport;
+use App\Exports\ReportesPFCierresMensualesExport;
 use App\Exports\ResultsExport;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel; 
 use Maatwebsite\Excel\Excel as ExcelFormat;
+use Illuminate\Support\Facades\Schema;
 
 
 
@@ -387,7 +389,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ24pf = $this->consultaVeintiCuatropf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $resultadosQ25pf = $this->consultaVeintiCincopf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnts, $connectionpf);
-
+        $exportCierresMensuales = $this->exportCierresMensuales($request, $connectionpf);
 
 
 
@@ -404,6 +406,8 @@ class PuntoFronteraController extends Controller
             'resultadosQ24pf' => $resultadosQ24pf,
             'resultadosQ25pf' => $resultadosQ25pf,
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
+            'exportCierresMensuales' => $exportCierresMensuales,
+            'connection' => $connectionpf,
 
 
         ]);
@@ -1685,27 +1689,95 @@ class PuntoFronteraController extends Controller
             // Obtener todos los resultados
             $resultadosQ23pf = DB::connection($connectionpf)->select($query, $params);
 
-
-            if ($request->input('export23') === 'excel23') {
-                // Llama a la clase ResultsExport para generar y descargar el archivo Excel
-                $export = new ResultsExport($resultadosQ23pf);
-                return $export->downloadQ23pf();
-            }
-
-
             // Crear una colección paginada manualmente
             $items = array_slice($resultadosQ23pf, $offset, $perPage);
             $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ23pf), $perPage, $page, [
                 'path' => $request->url(),
                 'query' => $request->query(),
             ]);
-            // dd($paginatedResults);
+            //dd($params); // En ambos métodos
             return $paginatedResults;
         }
 
 
         return [];
     }
+
+    public function exportCierresMensuales(Request $request) {
+        try {
+            $connection = User::conexionPuntoFrontera();
+            if(Schema::connection($connection)->hasTable('t_dat_iec870_monthly_billing')) {
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                $id_cnts = $request->input('id_cnts', []);
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+
+                if (!empty($id_cnts)) {
+                    $query = "SELECT
+                    t_meter_params_iec870.cups as CUPS,
+                    t_dat_iec870_monthly_billing.id_cnt,
+                    t_dat_iec870_monthly_billing.ctr as Contrato,
+                    t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
+                    date_format(t_dat_iec870_monthly_billing.fhi,'%d/%m/%Y') as Fecha_Inicio,
+                    date_format(t_dat_iec870_monthly_billing.fhf,'%d/%m/%Y') as Fecha_Fin,
+                    t_dat_iec870_monthly_billing.e_act_abs as Energia_Activa_Absoluta,
+                    t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
+                    t_dat_iec870_monthly_billing.e_act_cualif as Bit_Calidad_Activa,
+                    t_dat_iec870_monthly_billing.e_react_ind_abs as Energia_Reactiva_Inductiva_Absoluta,
+                    t_dat_iec870_monthly_billing.e_react_ind_inc as Energia_Reactiva_Inductiva_Incremental,
+                    t_dat_iec870_monthly_billing.e_react_ind_cualif as Bit_Calidad_Reactiva_Inductiva,
+                    t_dat_iec870_monthly_billing.e_react_cap_abs as Energia_Reactiva_Capacitiva_Absoluta,
+                    t_dat_iec870_monthly_billing.e_react_cap_inc as Energia_Reactiva_Capacitiva_Incremental,
+                    t_dat_iec870_monthly_billing.e_react_cap_cualif as Bit_Calidad_Reactiva_Capacitiva,
+                    t_dat_iec870_monthly_billing.e_act_exceso as Excesos_de_Potencias,
+                    t_dat_iec870_monthly_billing.e_act_exceso_cualif as Bit_Calidad_Excesos,
+                    t_dat_iec870_monthly_billing.pot_max as Maximetros,
+                    date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
+                    t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
+                FROM reader.t_dat_iec870_monthly_billing
+                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
+
+
+                    $params = $id_cnts;
+
+
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= "
+                    AND t_dat_iec870_monthly_billing.fhi >= ?
+                    AND t_dat_iec870_monthly_billing.fhf <= ?
+                    ORDER BY t_dat_iec870_monthly_billing.fhi DESC, t_dat_iec870_monthly_billing.fhf DESC";
+                        $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
+                    } else {
+                        $query .= "
+                            ORDER BY 
+                            t_dat_iec870_monthly_billing.id_cnt ASC,          
+                            t_dat_iec870_monthly_billing.fhi DESC,            
+                            t_dat_iec870_monthly_billing.ctr ASC,             
+                            t_dat_iec870_monthly_billing.pt ASC    ";
+                    }
+                    $exportCierresMensuales = DB::connection($connection)->select($query, $params);
+
+                    if($exportCierresMensuales) {
+                        //dd($params); // En ambos métodos
+                        return Excel::download(new ReportesPFCierresMensualesExport($exportCierresMensuales), 'cierres_mensuales.' . $extension, $exportFormat);
+                    } else {
+                        return response()->json(['message' => 'No hay datos'], 404);
+                    }
+
+                }
+        } else {
+            return ['message' => 'No hay datos'];
+        }
+    } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+}
 
 
 
