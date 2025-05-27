@@ -149,7 +149,7 @@ Route::get('/detallesenergiacups', [CupsController::class, 'detallesenergiacups'
 Route::get('/dashboardct', [DashboardController::class, 'dashboardct'])->name('dashboardct');
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
-Route::get('/dashboardsabt', [DashboardSABTController::class, 'dashboardsabt'])->name('dashboardsabt');
+Route::get('/dashboardsabt', [SupervisionAvanzadaController::class, 'dashboardsabt'])->name('dashboardsabt');
 
 //********************************
 //******EVENTOS ESPONTANEOS*******
@@ -162,6 +162,7 @@ Route::get('/eventos/actualizar', [EventosEspontaneosController::class, 'actuali
 //SUPERVISION AVANZADA ----------------------------
 Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'supervisionavanzada'])->name('supervisionavanzada');
 Route::get('/fasessabt', [SupervisionAvanzadaController::class, 'fasessabt'])->name('fasessabt');
+Route::get('/indicadoressabt', [SupervisionAvanzadaController::class, 'indicadoressabt'])->name('indicadoressabt');
 
 
 
