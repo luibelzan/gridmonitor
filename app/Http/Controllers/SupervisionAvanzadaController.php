@@ -12,6 +12,26 @@ use Illuminate\Support\Facades\DB;
 
 class SupervisionAvanzadaController extends Controller {
 
+    public function dashboardsabt(Request $request) {
+        if(!Auth::check()) {
+            return redirect()->route('login')->with('message', 'Tu sesion ha expirado por inactividad');
+        }
+
+        Session::put('vistal_actual', 'dashboardsabt');
+
+        $connection = User::conexion();
+
+        if($connection == 'psql') {
+            return view('admin/admin');
+        } else {
+            $dashboardSABTInfo = $this->getDashboardSABTInfo($connection);
+            
+            return view('supervisionavanzada/dashboardsabt', [
+                'dashboardSABTInfo' => $dashboardSABTInfo,
+            ]);
+        }
+    }
+
     public function supervisionavanzada(Request $request) {
         //Verificar si el usuario esta autenticado
         if(!Auth::check()) {
@@ -62,6 +82,43 @@ class SupervisionAvanzadaController extends Controller {
 
 
             
+        }
+    }
+
+    public function indicadoressabt(Request $request) {
+        
+        if(!Auth::check()) {
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+        //Guardar el nombre de la vista actual en la sesion
+        Session::put('vista_actual', 'indicadoressabt');
+
+        $connection = User::conexion();
+
+        if($connection == 'psql') {
+            return view('admin');
+        } else {
+
+            $distorsionesArmonicas = $this->getDistorsionesArmonicas($connection);
+            $numDistorsionesArmonicas = $this->getNumDistorsionesArmonicas($connection);
+            $promedioFase = $this->getPromedioFase($connection);
+            $numFlickers = $this->getNumFlickers($connection);
+            $desbalancesTension = $this->getDesbalancesTension($connection);
+            $numDesbalancesTension = $this->getNumDesbalancesTension($connection);
+            $variacionesTension = $this->getVariacionesTension($connection);
+            $numVariacionesTension = $this->getNumVariacionesTension($connection);
+
+            return view('supervisionavanzada/indicadoressabt', [
+                'distorsionesArmonicas' => $distorsionesArmonicas,
+                'numDistorsionesArmonicas' => $numDistorsionesArmonicas,
+                'promedioFase' => $promedioFase,
+                'numFlickers' => $numFlickers,
+                'desbalancesTension' => $desbalancesTension,
+                'numDesbalancesTension' => $numDesbalancesTension,
+                'variacionesTension' => $variacionesTension,
+                'numVariacionesTension' => $numVariacionesTension,
+            ]);
         }
     }
 
@@ -129,6 +186,194 @@ class SupervisionAvanzadaController extends Controller {
             return view('supervisionavanzada/calidadsabt', [
                 
             ]);
+        }
+    }
+
+    public function getDashboardSABTInfo($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_ct')
+            && Schema::connection($connection)->hasTable('t_trafos')
+            && Schema::connection($connection)->hasTable('t_lineas')
+            && Schema::connection($connection)->hasTable('t_cups')) {
+                $dashboardSABTInfo = DB::connection($connection)->select("
+                SELECT
+                    ct.id_ct,
+                    ct.nom_ct,
+                    COUNT(DISTINCT tra.id_trafo) AS nro_trafos,
+                    COUNT(DISTINCT li.id_linea) AS nro_lineas,
+                    COUNT(DISTINCT cu.id_cnt) AS nro_contadores
+                FROM
+                    core.t_ct ct
+                LEFT JOIN core.t_lineas li ON ct.id_ct = li.id_ct
+                LEFT JOIN core.t_trafos tra ON li.id_trafo = tra.id_trafo
+                LEFT JOIN core.t_cups cu ON ct.id_ct = cu.id_ct
+                GROUP BY
+                    ct.id_ct, ct.nom_ct
+                ORDER BY
+                    ct.id_ct;
+                ");
+
+                return $dashboardSABTInfo ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI1
+    public function getDistorsionesArmonicas($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s96')) {
+                $distorsionesArmonicas = DB::connection($connection)->select("
+                SELECT  
+                    AVG(hr_thd) AS avg_hr_thd,  
+                    AVG(hs_thd) AS avg_hs_thd,  
+                    AVG(ht_thd) AS avg_ht_thd FROM core.t_s96 		 
+                WHERE fh >= NOW() - INTERVAL '72 hours';");
+
+                return $distorsionesArmonicas ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+
+    }
+
+    //KPI1
+    public function getNumDistorsionesArmonicas($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s96')) {
+                $numDistorsionesArmonicas = DB::connection($connection)->select("
+                SELECT COUNT(*) AS total_distorsiones 
+                FROM core.t_s96 
+                WHERE hr_thd > 8 OR hs_thd > 8 OR ht_thd > 8;");
+
+                return $numDistorsionesArmonicas ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI2
+    public function getPromedioFase($connection) {
+        try {
+            if(Schema::connection($connection)-> hasTable('t_s94')) {
+                $promedioFase = DB::connection($connection)->select("
+                SELECT  
+                    AVG(fr) AS avg_fr, 
+                    AVG(fs) AS avg_fs, 
+                    AVG(ft) AS avg_ft 
+                FROM core.t_s94 
+                WHERE fh >= NOW() - INTERVAL '3 days'; ");
+
+                return $promedioFase ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI2
+    public function getNumFlickers($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s94')) {
+                $numFlickers = DB::connection($connection)->select("
+                SELECT COUNT(*) AS total_flickers 
+                FROM core.t_s94 
+                WHERE fr > 1 OR fs > 1 OR ft > 1; ");
+
+                return $numFlickers ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI3
+    public function getDesbalancesTension($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s95')) {
+                $desbalancesTension = DB::connection($connection)->select("
+                SELECT AVG(vu) AS avg_desbalance_tension 
+                FROM core.t_s95 
+                WHERE fh >= NOW() - INTERVAL '72 hours'; ");
+
+                return $desbalancesTension ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI3
+    public function getNumDesbalancesTension($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s95')) {
+                $numDesbalancesTension = DB::connection($connection)->select("
+                SELECT COUNT(*) AS total_desbalances 
+                FROM core.t_s95 
+                WHERE vu > 2; ");
+
+                return $numDesbalancesTension ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI4
+    public function getVariacionesTension($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s97')) {
+                $variacionesTension = DB::connection($connection)->select("
+                SELECT SUM(nr) AS total_variaciones_r, 
+                    SUM(ns) AS total_variaciones_s, 
+                    SUM(nt) AS total_variaciones_t 
+                FROM core.t_s97 WHERE fh >= NOW() - INTERVAL '72 hours';");
+
+                return $variacionesTension ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getNumVariacionesTension($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s97')) {
+                $numVariacionesTension = DB::connection($connection)->select("
+                SELECT id_rtu, sum(nr) , sum(ns), sum(nt)  
+                FROM core.t_s97 
+                group by 1; ");
+                
+                return $numVariacionesTension ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
         }
     }
 
@@ -363,139 +608,7 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    public function getDistorsionesArmonicasMayor8(Request $request, $connection) { //KP1 1.1
-        try {
-            if(Schema::connection($connection)->hasTable('t_s96') &&
-            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
-                $query = "
-                SELECT
-                    COUNT(CASE WHEN s96.hr_thd >= 8 THEN 1 END) AS count_hr_thd_ge_8,
-                    COUNT(CASE WHEN s96.hs_thd >= 8 THEN 1 END) AS count_hs_thd_ge_8,
-                    COUNT(CASE WHEN s96.ht_thd >= 8 THEN 1 END) AS count_ht_thd_ge_8
-                FROM core.t_s96 AS s96
-                INNER JOIN core.t_equipos_sabt AS eq ON s96.rtu_id = eq.id_equipo
-                WHERE eq.tip_equipo = 'RTU'
-                AND eq.id_ct = 'CT-95';
-                ";
 
-                $distorsionesArmonicasMayor8 = DB::connection($connection)->select($query);
-
-                return $distorsionesArmonicasMayor8 ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch(\Exception $e) {
-            return ['message' => 'No hay datos error', $e];
-        }
-    }
-
-    public function getTHDMayor8(Request $request, $connection) { //KPI 1.2
-        try {
-            if(Schema::connection($connection)->hasTable('t_s96') &&
-            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
-                $query = "
-                SELECT  s96.fh,s96.hr_thd, s96.hs_thd, s96.ht_thd
-                    FROM core.t_s96 AS s96
-                    INNER JOIN core.t_equipos_sabt AS eq ON s96.rtu_id = eq.id_equipo
-                    WHERE eq.tip_equipo = 'RTU'
-                    AND eq.id_ct = 'CT-95'
-                    AND (s96.ht_thd >=1  OR s96.hs_thd >=1  OR s96.ht_thd >=1)
-                ";
-
-                $THDMayor8 = DB::connection($connection)->select($query);
-
-                return $THDMayor8 ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch(\Exception $e) {
-            return ['message' => 'No hay datos error', $e];
-        }
-    }
-
-    public function getAverageFlickersPerFase(Request $request, $connection) { //KPI 2.1
-        try {
-            if(Schema::connection($connection)->hasTable('t_s94') &&
-            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
-                $query = "
-                    SELECT  avg(s94.fr), avg(s94.fs), avg(s94.ft)
-                    FROM core.t_s94 AS s94
-                    INNER JOIN core.t_equipos_sabt AS eq ON s94.rtu_id = eq.id_equipo
-                    WHERE eq.tip_equipo = 'RTU'
-                    AND eq.id_ct = 'CT-95'
-                    AND (s94.fr <> 0 OR s94.fs <> 0 OR s94.ft <> 0)
-                ";
-
-                $flickersPerFase = DB::connection($connection)->select($query);
-
-                return $flickersPerFase ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch(\Exception $e) {
-            return ['message' => 'No hay datos error', $e];
-        }
-    }
-
-    public function getFlickersPerFaseMayor1(Request $request, $connection) { //KPI 2.2
-        try {
-            if(Schema::connection($connection)->hasTable('t_s94') && 
-            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
-                $query = "
-                SELECT  fh,s94.fr, s94.fs, s94.ft
-                FROM core.t_s94 AS s94
-                INNER JOIN core.t_equipos_sabt AS eq ON s94.rtu_id = eq.id_equipo
-                WHERE eq.tip_equipo = 'RTU'
-                AND eq.id_ct = 'CT-95'
-                AND (s94.fr >=1  OR s94.fs >=1  OR s94.ft >=1)
-                ";
-
-                $flickersPerFaseMayor1 = DB::connection($connection)->select($query);
-
-                return $flickersPerFaseMayor1 ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch(\Exception $e) {
-            return ['message' => 'No hay datos error', $e];
-        }
-    }
-
-    public function getNumDesbalancesTension(Request $request, $connection) { //KPI 3.1
-        try {
-            if(Schema::connection($connection)->hasTable('t_s95') &&
-            Schema::connection($connection)->hasTable('t_equipos_sabt')) {
-                $query = "
-                SELECT count(s95.vu)
-                FROM core.t_s95 AS s95
-                INNER JOIN core.t_equipos_sabt AS eq ON s95.rtu_id = eq.id_equipo
-                WHERE eq.tip_equipo = 'RTU'
-                AND eq.id_ct = 'CT-95'
-                AND s95.vu >= 3 
-                ";
-
-                $desbalancesTension = DB::connection($connection)->select($query);
-
-                return $desbalancesTension ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch(\Exception $e) {
-            return ['message' => 'No hay datos error', $e];
-        }
-    }
-
-    public function getDetailsDesbalancesTension(Request $request, $connection) { //KPI 3.2
-
-    }
-
-    public function getNumVariacionesTension(Request $request, $connection) { //KPI 4.1
-
-    }
-
-    public function getDetailsVariacionesPerFase(Request $request, $connection) { //KPI 4.2
-
-    }
 
     Public function getTramos(Request $request, $connection) {
         try {
@@ -503,7 +616,6 @@ class SupervisionAvanzadaController extends Controller {
                 $query = "
                 SELECT *
                 FROM core.t_tramos
-                
                 ";
 
                 $tramos = DB::connection($connection)->select($query);
