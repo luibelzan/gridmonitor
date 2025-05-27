@@ -94,6 +94,8 @@
 <nav class="nav custom-nav mb-12">
     <a href="{{ route('dashboardsabt') }}" class="nav-item {{ Request::is('dashboard*') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Dashboard</a>
+    <a href="{{ route('indicadoressabt') }}" class="nav-item {{ Request::is('indicadores*') ? 'is-active' : '' }}"
+        active-color="rgb(88, 226, 194)">Indicadores</a>
     <a href="{{ route('supervisionavanzada') }}" class="nav-item {{ Request::is('supervisionavanzada') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Información</a>
     <a href="{{ route('fasessabt') }}" class="nav-item {{ Request::is('supervisionavanzada') ? 'is-active' : '' }}"
