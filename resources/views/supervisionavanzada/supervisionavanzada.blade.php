@@ -104,7 +104,10 @@
                                         </div>
 
                                         <!-- Campo oculto para el tipo de evento -->
-                                        <input type="hidden" id="tipo_evento" name="tipo_evento" value="{{ request('tipo_evento', 'S64') }}">
+                                         @php
+                                            $tipoEventoSeleccionado = request('tipo_evento') ?? 'S64';
+                                        @endphp
+                                        <input type="hidden" id="tipo_evento" name="tipo_evento" value="{{ $tipoEventoSeleccionado }}">
 
                                         <!-- Botón de filtrar -->
                                         <div class="flex items-end">
@@ -117,24 +120,35 @@
                                         </div>
                                     </div>
 
-                                    <!-- Botones de selección -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-6 gap-6 mb-6">
-                                                @foreach(['S64', 'G53', 'S52', 'S96', 'S97'] as $key)
-                                                    <div class="card text-white mb-3" style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                                    <div
-                                                    style="display: flex; justify-content: center; align-items: baseline; gap: 1rem;">
-                                                            <button 
-                                                                type="button"
-                                                                class="px-4 py-2 border rounded button" 
-                                                                id="btn-{{ $key }}" 
-                                                                onclick="selectData(event, '{{ $key }}')"
-                                                                style="@if(request('tipo_evento') == $key) background-color: rgb(88,226,194); color: white; @endif">
-                                                                {{ $key }}
-                                                            </button>
-                                                        </div>
+                                    @php
+                                        $botones = [
+                                            'S64' => 'Perfil Medio V/I (S64)',
+                                            'G53' => 'Perfil V Neutro/Tierra (G53)',
+                                            'S52' => 'Perfil Energetico por Linea (S52)',
+                                            'S96' => 'Armonicos de Tension (S96)',
+                                            'S97' => 'Variaciones de Tension (S97)',
+                                        ];
+                                    @endphp
+                                    <!-- Contenedor que centra la rejilla -->
+                                    <div class="flex justify-center w-full">
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-6 gap-1 mb-6">
+                                            @foreach($botones as $key => $label)
+                                                <div class="card text-white mb-3" style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                    <div class="flex justify-center items-center p-2">
+                                                        <button 
+                                                            type="button"
+                                                            class="w-full h-16 px-4 py-2 border rounded button text-center"
+                                                            id="btn-{{ $key }}"
+                                                            onclick="selectData(event, '{{ $key }}')"
+                                                            style="@if($tipoEventoSeleccionado == $key) background-color: rgb(88,226,194); color: white; @endif">
+                                                            {{ $label }}
+                                                        </button>
                                                     </div>
-                                                @endforeach
+                                                </div>
+                                            @endforeach
                                         </div>
+                                    </div>
+
                                 </form>
 
                                     <script>
