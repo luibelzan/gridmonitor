@@ -50,7 +50,6 @@ class SupervisionAvanzadaController extends Controller {
         } else {
             //Obtener los datos de todos los G53, S64, S52, S96, S97
             $tipo_evento = $request -> input('tipo_evento');
-            $resultadosG53 = [];
 
             if($tipo_evento == null) {
                 $tipo_evento = 'S64';
@@ -79,6 +78,7 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return view('supervisionavanzada/supervisionavanzada', []);
             }
+            
 
 
             
@@ -626,26 +626,26 @@ class SupervisionAvanzadaController extends Controller {
 
                 //Construir la consulta SQL para obtener los eventos S64
                 $query = "
-                SELECT * FROM t_s52";
+                SELECT * FROM core.t_s52";
 
                 // Añadir el filtro de fecha_inicio si está disponible
                 if ($fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fec_inicio >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
                 }
 
                 if($fecha_fin && !$fecha_inicio) {
-                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fec_fin <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
                 }
 
                 // Añadir el filtro de fecha_fin si está disponible
                 if ($fecha_fin && $fecha_inicio) {
-                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
-                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fec_inicio >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
+                                AND fec_fin <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
                 }
 
                 // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                    $query .= " WHERE fec_inicio >= NOW() - INTERVAL '24 hours' LIMIT 20";
                 }
 
                 //Ejecutar la consulta
