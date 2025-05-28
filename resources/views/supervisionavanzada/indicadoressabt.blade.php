@@ -319,6 +319,226 @@
 
 
 
+                            {{-- TABLA DISTORSIONES ARMONICAS --}}
+                            <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                                <div class="card text-white mb-2" 
+                                    style="
+                                    background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                    <div class="container">
+                                        @if (isset($infoDistorsionesArmonicas))
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                <table id="testTableEventosCups"
+                                                    class="w-full text-white text-center ">
+                                                    <thead
+                                                        style="border-bottom: 1px solid #ffffff;">
+                                                        <tr>
+                                                            <th class="mt-0 text-xl  text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                RTU</th>
+                                                            <th class="mt-0 text-xl  text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                Fecha</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($infoDistorsionesArmonicas as $resultado)
+                                                            <tr class="highlight-row ">
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                                                
+                                        @else
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                <p class="mt-0 text-xl  text-center"
+                                                    style="color:rgb(88,226,194)">No hay datos
+                                                </p>
+                                            </div>
+                                        @endif
+                                        <!-- Contenedor del botón de descarga -->
+                                        <div class="text-right mt-4">
+                                            <!-- Botón Excel -->
+                                            <button id="exportarExcel" 
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                title="Exportar a Excel">
+                                            </button>
+
+                                            <!-- Botón CSV -->
+                                            <button id="exportarCsv" 
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                title="Exportar a CSV">
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {{-- TABLA FLCIKERS --}}
+                            <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                                <div class="card text-white mb-2" 
+                                    style="
+                                    background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                    <div class="container">
+                                        @if (isset($infoFlickers))
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                <table id="testTableEventosCups"
+                                                    class="w-full text-white text-center ">
+                                                    <thead
+                                                        style="border-bottom: 1px solid #ffffff;">
+                                                        <tr>
+                                                            <th class="mt-0 text-xl  text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                RTU</th>
+                                                            <th class="mt-0 text-xl  text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                Fecha</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                FR</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                FS</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                FT</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($infoFlickers as $resultado)
+                                                            <tr class="highlight-row ">
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->fr) ? $resultado->fr : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->fs) ? $resultado->fs : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->ft) ? $resultado->ft : 'No hay datos' }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                                                
+                                        @else
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                <p class="mt-0 text-xl  text-center"
+                                                    style="color:rgb(88,226,194)">No hay datos
+                                                </p>
+                                            </div>
+                                        @endif
+                                        <!-- Contenedor del botón de descarga -->
+                                        <div class="text-right mt-4">
+                                            <!-- Botón Excel -->
+                                            <button id="exportarExcel" 
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                title="Exportar a Excel">
+                                            </button>
+
+                                            <!-- Botón CSV -->
+                                            <button id="exportarCsv" 
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                title="Exportar a CSV">
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            {{-- TABLA DESBALANCES --}}
+                            <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                                <div class="card text-white mb-2" 
+                                    style="
+                                    background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                    <div class="container">
+                                        @if (isset($infoDesbalancesTension))
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                <table id="testTableEventosCups"
+                                                    class="w-full text-white text-center ">
+                                                    <thead
+                                                        style="border-bottom: 1px solid #ffffff;">
+                                                        <tr>
+                                                            <th class="mt-0 text-xl  text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                RTU</th>
+                                                            <th class="mt-0 text-xl  text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                Fecha</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                Vu</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194)">
+                                                                Pi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($infoDesbalancesTension as $resultado)
+                                                            <tr class="highlight-row ">
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->vu) ? $resultado->vu : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->pi) ? $resultado->pi : 'No hay datos' }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                                                
+                                        @else
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                <p class="mt-0 text-xl  text-center"
+                                                    style="color:rgb(88,226,194)">No hay datos
+                                                </p>
+                                            </div>
+                                        @endif
+                                        <!-- Contenedor del botón de descarga -->
+                                        <div class="text-right mt-4">
+                                            <!-- Botón Excel -->
+                                            <button id="exportarExcel" 
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                title="Exportar a Excel">
+                                            </button>
+
+                                            <!-- Botón CSV -->
+                                            <button id="exportarCsv" 
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                title="Exportar a CSV">
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
                         </div>
 
                     </div>
