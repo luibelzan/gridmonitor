@@ -247,30 +247,32 @@ class SupervisionAvanzadaController extends Controller {
             if(Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
+
+                $params = [];
                 
                 $query = "
                 SELECT
-                    id_ct,
-                    id_linea,
-                    num_cnt,
-                    SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
-                    SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
-                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) AS total_lvs,
-                    SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
-                    SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
-                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
-                    CASE
-                        WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
-                        ELSE
-                            ROUND(
-                                (SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
-                                / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
-                                2
-                            )
-                    END AS porcentaje_perdida
-                FROM
-                    core.t_balances_horarios_lineas
-                WHERE";
+                id_ct,
+                id_linea,
+                SUM(COALESCE(num_cnt, 0)) AS total_cnt,
+                SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
+                SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
+                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) AS total_lvs,
+                SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
+                SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
+                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
+                CASE
+                    WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
+                    ELSE
+                        ROUND(
+                            (SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
+                            / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
+                            2
+                        )
+                END AS porcentaje_perdida
+            FROM
+                core.t_balances_horarios_lineas
+            WHERE";
 
                 if ($fecha_inicio && $fecha_fin) {
                     $query .= " fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
@@ -281,8 +283,7 @@ class SupervisionAvanzadaController extends Controller {
 
                 $query .= " GROUP BY
                             id_ct,
-                            id_linea,
-                            num_cnt
+                            id_linea
                         ORDER BY
                             id_ct,
                             id_linea;";
