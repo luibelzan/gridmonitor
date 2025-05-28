@@ -444,6 +444,9 @@
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                 AI CNT</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                AE CNT</th>
                                                             <th class="mt-0  text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                 CUPS Leidos</th>
@@ -477,7 +480,10 @@
                                                                     {{ !empty($resultado->total_ai_cnt) ? $resultado->total_ai_cnt : 'No hay datos' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->num_cnt) ? $resultado->num_cnt : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_ae_cnt) ? $resultado->total_ae_cnt : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_cnt) ? $resultado->total_cnt : 'No hay datos' }}
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->perdida_energia) ? $resultado->perdida_energia : 'No hay datos' }}
