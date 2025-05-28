@@ -24,7 +24,7 @@ class SupervisionAvanzadaController extends Controller {
         if($connection == 'psql') {
             return view('admin/admin');
         } else {
-            $dashboardSABTInfo = $this->getDashboardSABTInfo($connection);
+            $dashboardSABTInfo = $this->getDashboardSABTInfo($request, $connection);
             
             return view('supervisionavanzada/dashboardsabt', [
                 'dashboardSABTInfo' => $dashboardSABTInfo,
@@ -209,13 +209,16 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    public function getDashboardSABTInfo($connection) {
+    public function getDashboardSABTInfo(Request $request, $connection) {
         try {
             if(Schema::connection($connection)->hasTable('t_ct')
             && Schema::connection($connection)->hasTable('t_trafos')
             && Schema::connection($connection)->hasTable('t_lineas')
             && Schema::connection($connection)->hasTable('t_cups')) {
-                $dashboardSABTInfo = DB::connection($connection)->select("
+                $nom_ct = $request->input('nom_ct');
+                $params = [];
+
+                $query = "
                 SELECT
                     ct.id_ct,
                     ct.nom_ct,
@@ -227,11 +230,22 @@ class SupervisionAvanzadaController extends Controller {
                 LEFT JOIN core.t_lineas li ON ct.id_ct = li.id_ct
                 LEFT JOIN core.t_trafos tra ON li.id_trafo = tra.id_trafo
                 LEFT JOIN core.t_cups cu ON ct.id_ct = cu.id_ct
+                WHERE ind_sabt = 'true'
+                ";
+
+                if($nom_ct) {
+                    $query .= " WHERE ct.nom_ct ILIKE :nom_ct";
+                    $params = ['nom_ct' => '%' . $nom_ct . '%'];
+                }
+
+                $query .= "
                 GROUP BY
                     ct.id_ct, ct.nom_ct
                 ORDER BY
                     ct.id_ct;
-                ");
+                ";
+
+                $dashboardSABTInfo = DB::connection($connection)->select($query, $params);
 
                 return $dashboardSABTInfo ?: ['message' => 'No hay datos'];
             } else {
