@@ -108,6 +108,9 @@ class SupervisionAvanzadaController extends Controller {
             $numDesbalancesTension = $this->getNumDesbalancesTension($connection);
             $variacionesTension = $this->getVariacionesTension($connection);
             $numVariacionesTension = $this->getNumVariacionesTension($connection);
+            $infoDistorsionesArmonicas = $this->getInfoDistorsionesArmonicas($connection);
+            $infoFlickers = $this->getInfoFlickers($connection);
+            $infoDesbalancesTension = $this->getInfoDesbalancesTension($connection);
 
             return view('supervisionavanzada/indicadoressabt', [
                 'distorsionesArmonicas' => $distorsionesArmonicas,
@@ -118,6 +121,9 @@ class SupervisionAvanzadaController extends Controller {
                 'numDesbalancesTension' => $numDesbalancesTension,
                 'variacionesTension' => $variacionesTension,
                 'numVariacionesTension' => $numVariacionesTension,
+                'infoDistorsionesArmonicas' => $infoDistorsionesArmonicas,
+                'infoFlickers' => $infoFlickers,
+                'infoDesbalancesTension' => $infoDesbalancesTension,
             ]);
         }
     }
@@ -352,6 +358,24 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
+    //KPI1
+    public function getInfoDistorsionesArmonicas($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s96')) {
+                $infoDistorsionesArmonicas = DB::connection($connection)->select("
+                SELECT *  
+                FROM core.t_s96 
+                WHERE hr_thd > 8 OR hs_thd > 8 OR ht_thd > 8;");
+
+                return $infoDistorsionesArmonicas ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+    }
+
     //KPI2
     public function getPromedioFase($connection) {
         try {
@@ -392,6 +416,25 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
+    //KPI2
+    public function getInfoFlickers($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s94')) {
+                $infoFlickers = DB::connection($connection)->select("
+                SELECT * 
+                FROM core.t_s94 
+                WHERE fr > 1 OR fs > 1 OR ft > 1; ");
+
+                return $infoFlickers ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
     //KPI3
     public function getDesbalancesTension($connection) {
         try {
@@ -421,6 +464,25 @@ class SupervisionAvanzadaController extends Controller {
                 WHERE vu > 2; ");
 
                 return $numDesbalancesTension ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    //KPI3
+    public function getInfoDesbalancesTension($connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_s95')) {
+                $infoDesbalancesTension = DB::connection($connection)->select("
+                SELECT * 
+                FROM core.t_s95 
+                WHERE vu > 2; ");
+
+                return $infoDesbalancesTension ?: ['message' => 'No hay datos'];
             } else {
                 return ['message' => 'No hay datos'];
             }
