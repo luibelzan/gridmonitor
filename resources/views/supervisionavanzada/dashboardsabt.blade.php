@@ -286,57 +286,24 @@
                                         <div class="overflow-x-auto w-full">
                                             <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                                                 {{-- FILTRO FECHAS --}}
-                                                <div class="card text-white  mb-2"
-                                                    style="
-                                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                                    <div class="container ">
-                                                        <div
-                                                            class="flex flex-col md:flex-row md:items-center md:justify-center mt-2">
-                                                            <form
-                                                                action="{{ route('reporteseventos') }}"
-                                                                method="GET"
-                                                                class="flex flex-wrap items-center justify-start gap-2 mt-6">
-                                                                {{-- FILTRO FECHAS --}}
-                                                                    
-                                                                <div class="form-group flex items-center">
-                                                                    <label for="fecha_inicio"
-                                                                        class="text-white mr-2">Fecha
-                                                                        de
-                                                                        inicio:</label>
-                                                                    <input type="date" id="fecha_inicio"
-                                                                        name="fecha_inicio"
-                                                                        class="border border-gray-400 p-2 rounded-lg text-white"
-                                                                        @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
-                                                                        max="{{ date('Y-m-d') }}"
-                                                                        style="background-color: transparent;">
-                                                                </div>
-                                                                <div class="form-group flex items-center">
-                                                                    <label for="fecha_fin"
-                                                                        class="text-white mr-2">Fecha
-                                                                        de
-                                                                        fin:</label>
-                                                                    <input type="date" id="fecha_fin"
-                                                                        name="fecha_fin"
-                                                                        class="border border-slate-900 p-2 rounded-lg text-white"
-                                                                        @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
-                                                                        max="{{ date('Y-m-d') }}"
-                                                                        style="background-color: transparent;">
-                                                                </div>
-                                                                {{-- buscador por nombre --}}
-                                                                <div class="form-group flex items-center">
-                                                                <input type='text' name='descripcion' placeholder='Buscar por descripcion'
-                                                                    class='border p-2 rounded-md w-52 ml-1 text-white'
-                                                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
-                                                                    @if (isset($_GET['descripcion'])) value="{{ $_GET['descripcion'] }}" @endif>
-                                                                </div>
-                                                                <button type="submit"
-                                                                    class="btn btn-outline-info mb-3 text-white"
-                                                                    style="background-color: transparent; border-color: rgb(255, 255, 255);"
-                                                                    onmouseover="this.style.borderColor='rgb(88,226,194)'"
-                                                                    onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Filtrar</button>
-                                                            </form>
+                                                <div class="container ">
+                                                    <form
+                                                        action="{{ route('dashboardsabt') }}"
+                                                        method="GET"
+                                                        class="flex flex-wrap items-center justify-start gap-2 mt-6">
+                                                        {{-- buscador por nombre --}}
+                                                        <div class="form-group flex items-center">
+                                                            <input type='text' name='nom_ct' placeholder='Buscar por nombre'
+                                                                class='border p-2 rounded-md w-52 ml-1 text-white'
+                                                                style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                                                @if (isset($_GET['nom_ct'])) value="{{ $_GET['nom_ct'] }}" @endif>
                                                         </div>
-                                                    </div>
+                                                        <button type="submit"
+                                                            class="btn btn-outline-info mb-3 text-white"
+                                                            style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                                            onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                                            onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Filtrar</button>
+                                                    </form>
                                                 </div>
                                             </div>
 
