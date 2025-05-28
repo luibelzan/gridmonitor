@@ -507,13 +507,14 @@
                                                                 //console.log(latCupsSobretension, lonCupsSobretension);
 
                                                                 // Verificar si latCups y lonCups no son cadena vacía
+                                                                console.log(@json($sobretension));
                                                                 if (latCupsSobretension !== '' && lonCupsSobretension !== '') {
-                                                                    @if ($sobretension->ind_autoconsumo == 'R')
+                                                                    @if ($sobretension->cod_fase == 'R')
                                                                         // Determinar la imagen basada en el valor de ind_autoconsumo
                                                                         var iconImage = '../../images/casaverder.png';
-                                                                    @elseif($sobretension->ind_autoconsumo == 'S')
+                                                                    @elseif($sobretension->cod_fase == 'S')
                                                                         var iconImage = '../../images/casaverdes.png'; // imagen por defecto si no tiene ind_autoconsumo
-                                                                    @elseif($sobretension->ind_autoconsumo == 'T')
+                                                                    @elseif($sobretension->cod_fase == 'T')
                                                                         var iconImage = '../../images/casaverdet.png';
                                                                     @else
                                                                         var iconImage = '../../images/casaverdenofase.png';
@@ -566,7 +567,7 @@
                                                                         '<li><b>Latitud:</b> {{ !empty($sobretension->lat_cups) ? $sobretension->lat_cups : 'No hay datos' }}</li>' +
                                                                         '<li><b>Longitud:</b> {{ !empty($sobretension->lon_cups) ? $sobretension->lon_cups : 'No hay datos' }}</li>' +
                                                                         '<li><b>Dirección:</b> {{ !empty($sobretension->dir_cups) ? $sobretension->dir_cups : 'No hay datos' }}</li>' +
-																		'<li><b>Línea:</b> {{ !empty($cups->id_linea) ? $cups->id_linea : 'No hay datos' }}</li>' +
+																		'<li><b>Línea:</b> {{ !empty($sobretension->id_linea) ? $sobretension->id_linea : 'No hay datos' }}</li>' +
                                                                         '</ul>' +
                                                                         '</div>' +
 
