@@ -317,7 +317,7 @@
                     <div class="container">
                         {{-- FILTRO AQUI --}}
                         <form
-                            action="{{ route('reporteseventos') }}"
+                            action="{{ route('balancessabt') }}"
                             method="GET"
                             class="flex flex-wrap items-center justify-start gap-2 mt-6">
                             {{-- FILTRO FECHAS --}}

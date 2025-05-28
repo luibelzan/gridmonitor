@@ -101,8 +101,6 @@
     <a href="{{ route('fasessabt') }}" class="nav-item {{ Request::is('fases') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Fases</a>
     <a href="{{ route('balancessabt') }}" class="nav-item {{ Request::is('balances') ? 'is-active' : '' }}"
-        active-color="rgb(88, 226, 194)">Calidad</a>
-    <a href="{{ route('fasessabt') }}" class="nav-item {{ Request::is('supervisionavanzada') ? 'is-active' : '' }}"
-        active-color="rgb(88, 226, 194)">Calidad</a>
+        active-color="rgb(88, 226, 194)">Balances</a>
     <span class="nav-indicator"></span>
 </nav>
