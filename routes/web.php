@@ -163,6 +163,7 @@ Route::get('/eventos/actualizar', [EventosEspontaneosController::class, 'actuali
 Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'supervisionavanzada'])->name('supervisionavanzada');
 Route::get('/fasessabt', [SupervisionAvanzadaController::class, 'fasessabt'])->name('fasessabt');
 Route::get('/indicadoressabt', [SupervisionAvanzadaController::class, 'indicadoressabt'])->name('indicadoressabt');
+Route::get('/balancessabt', [SupervisionAvanzadaController::class, 'balancessabt'])->name('balancessabt');
 
 
 
