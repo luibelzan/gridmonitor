@@ -440,19 +440,19 @@
                                                                 Linea</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                AI LVS</th>
+                                                                Energia Generada</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                AE LVS</th>
+                                                                Energia (Exceso)</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                 Total generacion</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                AI CNT</th>
+                                                                Energia Consumida</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                AE CNT</th>
+                                                                Autoconsumos</th>
                                                             <th class="mt-0  text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                 CUPS Leidos</th>
@@ -474,28 +474,28 @@
                                                                     {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->total_ai_lvs) ? $resultado->total_ai_lvs : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_ai_lvs) ? intval($resultado->total_ai_lvs/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->total_ae_lvs) ? $resultado->total_ae_lvs : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_ae_lvs) ? intval($resultado->total_ae_lvs/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->total_lvs) ? $resultado->total_lvs : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_lvs) ? intval($resultado->total_lvs/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->total_ai_cnt) ? $resultado->total_ai_cnt : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_ai_cnt) ? intval($resultado->total_ai_cnt/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->total_ae_cnt) ? $resultado->total_ae_cnt : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_ae_cnt) ? intval($resultado->total_ae_cnt/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->total_cnt) ? $resultado->total_cnt : 'No hay datos' }}
+                                                                    {{ !empty($resultado->total_cnt) ? intval($resultado->total_cnt) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->perdida_energia) ? $resultado->perdida_energia : 'No hay datos' }}
+                                                                    {{ !empty($resultado->perdida_energia) ? intval($resultado->perdida_energia/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
-                                                                    {{ !empty($resultado->porcentaje_perdida) ? $resultado->porcentaje_perdida : 'No hay datos' }}%
+                                                                    {{ !empty($resultado->porcentaje_perdida) ? $resultado->porcentaje_perdida : '0' }}%
                                                                 </td>
                                                             </tr>
                                                         @endforeach

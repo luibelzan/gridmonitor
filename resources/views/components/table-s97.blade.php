@@ -17,29 +17,47 @@
             </tr>
         </thead>
 
+        @php
+            $hayDatos = false;
+            foreach ($resultados as $r) {
+                if (!empty($r->rtu_id) || !empty($r->lvs_id) || !empty($r->fh)) {
+                    $hayDatos = true;
+                    break;
+                }
+            }
+        @endphp
+
         <tbody>
-            @foreach($resultados as $resultado)
-            <tr>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->nr) ? $resultado->nr : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->ns) ? $resultado->ns : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->nt) ? $resultado->nt : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->bc) ? $resultado->bc : 'No hay datos' }}
-                </td>
-            </tr>
-            @endforeach
+            @if(!$hayDatos)
+                <tr>
+                    <td colspan="6" class="py-4 text-center text-gray-400">
+                        No hay datos disponibles
+                    </td>
+                </tr>
+            @else
+                @foreach($resultados as $resultado)
+                <tr>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->nr) ? $resultado->nr : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->ns) ? $resultado->ns : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->nt) ? $resultado->nt : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->bc) ? $resultado->bc : '0' }}
+                    </td>
+                </tr>
+                @endforeach
+            @endif
         </tbody>
     </table>
 </div>
