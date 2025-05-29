@@ -240,7 +240,7 @@ class SupervisionAvanzadaController extends Controller {
                 ";
 
                 if($nom_ct) {
-                    $query .= " WHERE ct.nom_ct ILIKE :nom_ct";
+                    $query .= " AND ct.nom_ct ILIKE :nom_ct";
                     $params = ['nom_ct' => '%' . $nom_ct . '%'];
                 }
 
