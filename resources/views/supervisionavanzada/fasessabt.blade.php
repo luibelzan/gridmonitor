@@ -439,7 +439,7 @@
 
                                                     {{-- Script del Mapa --}}
                                                     <script>
-                                                        var map = L.map('map').setView([0, 0], 2);
+                                                        var map = L.map('map').setView([0, 0], 10);
                                                         map.setMaxZoom(20);
                                                         //Distintos tipos de mapas                                                        
                                                         //GOOGLE MAPS
@@ -591,26 +591,32 @@
                                                         map.addLayer(capasSobretensiones);
 
                                                         //TRAMOS
-                                                        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'black'];
+                                                        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'black', 'cyan', 'magenta', 'lime', 'gold'];
+                                                        const colorPorLinea = {};  // Mapeo de id_linea a color
+                                                        let colorIndex = 0;
 
-                                                        // Añadir líneas desde tramos
                                                         var tramos = @json($tramos);
-                                                        tramos.forEach((tramo, index) => {
+                                                        tramos.forEach(tramo => {
                                                             if (
                                                                 tramo.lat_inicio && tramo.lon_inicio &&
                                                                 tramo.lat_fin && tramo.lon_fin
                                                             ) {
+                                                                // Si la línea no tiene color asignado, asígnale uno
+                                                                if (!colorPorLinea[tramo.id_linea]) {
+                                                                    colorPorLinea[tramo.id_linea] = colores[colorIndex % colores.length];
+                                                                    colorIndex++;
+                                                                }
+
+                                                                const color = colorPorLinea[tramo.id_linea];
                                                                 const latlngs = [
                                                                     [parseFloat(tramo.lat_inicio), parseFloat(tramo.lon_inicio)],
                                                                     [parseFloat(tramo.lat_fin), parseFloat(tramo.lon_fin)]
                                                                 ];
 
-                                                                const color = colores[index % colores.length];
-
                                                                 L.polyline(latlngs, {
-                                                                    color: color,      // Cambia el color si lo deseas
-                                                                    weight: 3,         // Grosor de la línea
-                                                                    opacity: 0.8       // Opacidad
+                                                                    color: color,
+                                                                    weight: 3,
+                                                                    opacity: 0.8
                                                                 }).addTo(map);
                                                             }
                                                         });

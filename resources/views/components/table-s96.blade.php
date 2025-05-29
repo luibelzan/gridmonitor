@@ -69,179 +69,197 @@
             </tr>
         </thead>
 
+        @php
+            $hayDatos = false;
+            foreach ($resultados as $r) {
+                if (!empty($r->rtu_id) || !empty($r->lvs_id) || !empty($r->fh)) {
+                    $hayDatos = true;
+                    break;
+                }
+            }
+        @endphp
+
         <tbody>
-            @foreach($resultados as $resultado)
-            <tr>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h1) ? $resultado->hr_h1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h2) ? $resultado->hr_h2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h3) ? $resultado->hr_h3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h4) ? $resultado->hr_h4 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h5) ? $resultado->hr_h5 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h6) ? $resultado->hr_h6 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h7) ? $resultado->hr_h7 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h8) ? $resultado->hr_h8 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h9) ? $resultado->hr_h9 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h10) ? $resultado->hr_h10 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h11) ? $resultado->hr_h11 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h12) ? $resultado->hr_h12 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h13) ? $resultado->hr_h13 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h14) ? $resultado->hr_h14 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h15) ? $resultado->hr_h15 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h16) ? $resultado->hr_h16 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h17) ? $resultado->hr_h17 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h18) ? $resultado->hr_h18 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h19) ? $resultado->hr_h19 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h20) ? $resultado->hr_h20 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h21) ? $resultado->hr_h21 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h22) ? $resultado->hr_h22 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h23) ? $resultado->hr_h23 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h24) ? $resultado->hr_h24 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_h25) ? $resultado->hr_h25 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_thd) ? $resultado->hr_thd : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hr_bc) ? $resultado->hr_bc : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h1) ? $resultado->hs_h1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h2) ? $resultado->hs_h2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h3) ? $resultado->hs_h3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h4) ? $resultado->hs_h4 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h5) ? $resultado->hs_h5 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h6) ? $resultado->hs_h6 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h7) ? $resultado->hs_h7 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h8) ? $resultado->hs_h8 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h9) ? $resultado->hs_h9 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h10) ? $resultado->hs_h10 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h11) ? $resultado->hs_h11 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h12) ? $resultado->hs_h12 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h13) ? $resultado->hs_h13 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h14) ? $resultado->hs_h14 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h15) ? $resultado->hs_h15 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h16) ? $resultado->hs_h16 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h17) ? $resultado->hs_h17 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h18) ? $resultado->hs_h18 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h19) ? $resultado->hs_h19 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h20) ? $resultado->hs_h20 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h21) ? $resultado->hs_h21 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h22) ? $resultado->hs_h22 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h23) ? $resultado->hs_h23 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h24) ? $resultado->hs_h24 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_h25) ? $resultado->hs_h25 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_thd) ? $resultado->hs_thd : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->hs_bc) ? $resultado->hs_bc : 'No hay datos' }}
-                </td>
-            </tr>
-            @endforeach
+            @if(!$hayDatos)
+                <tr>
+                    <td colspan="50" class="py-4 text-center text-gray-400">
+                        No hay datos disponibles
+                    </td>
+                </tr>
+            @else
+                @foreach($resultados as $resultado)
+                <tr>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h1) ? $resultado->hr_h1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h2) ? $resultado->hr_h2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h3) ? $resultado->hr_h3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h4) ? $resultado->hr_h4 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h5) ? $resultado->hr_h5 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h6) ? $resultado->hr_h6 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h7) ? $resultado->hr_h7 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h8) ? $resultado->hr_h8 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h9) ? $resultado->hr_h9 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h10) ? $resultado->hr_h10 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h11) ? $resultado->hr_h11 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h12) ? $resultado->hr_h12 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h13) ? $resultado->hr_h13 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h14) ? $resultado->hr_h14 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h15) ? $resultado->hr_h15 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h16) ? $resultado->hr_h16 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h17) ? $resultado->hr_h17 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h18) ? $resultado->hr_h18 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h19) ? $resultado->hr_h19 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h20) ? $resultado->hr_h20 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h21) ? $resultado->hr_h21 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h22) ? $resultado->hr_h22 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h23) ? $resultado->hr_h23 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h24) ? $resultado->hr_h24 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_h25) ? $resultado->hr_h25 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_thd) ? $resultado->hr_thd : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hr_bc) ? $resultado->hr_bc : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h1) ? $resultado->hs_h1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h2) ? $resultado->hs_h2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h3) ? $resultado->hs_h3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h4) ? $resultado->hs_h4 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h5) ? $resultado->hs_h5 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h6) ? $resultado->hs_h6 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h7) ? $resultado->hs_h7 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h8) ? $resultado->hs_h8 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h9) ? $resultado->hs_h9 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h10) ? $resultado->hs_h10 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h11) ? $resultado->hs_h11 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h12) ? $resultado->hs_h12 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h13) ? $resultado->hs_h13 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h14) ? $resultado->hs_h14 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h15) ? $resultado->hs_h15 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h16) ? $resultado->hs_h16 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h17) ? $resultado->hs_h17 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h18) ? $resultado->hs_h18 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h19) ? $resultado->hs_h19 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h20) ? $resultado->hs_h20 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h21) ? $resultado->hs_h21 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h22) ? $resultado->hs_h22 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h23) ? $resultado->hs_h23 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h24) ? $resultado->hs_h24 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_h25) ? $resultado->hs_h25 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_thd) ? $resultado->hs_thd : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->hs_bc) ? $resultado->hs_bc : '0' }}
+                    </td>
+                </tr>
+                @endforeach
+            @endif
         </tbody>
     </table>
 </div>
