@@ -463,7 +463,7 @@
 
                                                         map.removeControl(map.attributionControl);
 
-                                                        @if (!empty($resultadosQ1[0]->lat_ct) && !empty($resultadosQ1[0]->lon_ct))
+                                                        @if (!empty($ctSABT[0]->lat_ct) && !empty($ctSABT[0]->lon_ct))
                                                             var ctLat = {{ $resultadosQ1[0]->lat_ct }};
                                                             var ctLon = {{ $resultadosQ1[0]->lon_ct }};
                                                             var ctIcon = L.divIcon({
@@ -480,11 +480,6 @@
                                                                     <ul>
                                                                         <li><strong>ID:</strong> {{ !empty($ct->id_ct) ? $ct->id_ct : 'No hay datos' }}</li>
                                                                         <li><strong>Nombre:</strong> {{ !empty($ct->nom_ct) ? $ct->nom_ct : 'No hay datos' }}</li>
-                                                                        <li><strong>Nº de Trafos:</strong> {{ count($resultadosQ1) > 0 && !empty($resultadosQ1[0]->nro_trafos) ? $resultadosQ1[0]->nro_trafos : 'No hay datos' }}</li>
-                                                                        <li><strong>Capacidad (KVA):</strong> {{ count($resultadosQ1) > 0 && !empty($resultadosQ1[0]->kva_ct) ? $resultadosQ1[0]->kva_ct . ' kVA' : 'No hay datos' }}</li>
-                                                                        <li><strong>Nº de cups:</strong> {{ count($resultadosQ2) > 0 && !empty($resultadosQ2[0]->nro_cups) ? number_format($resultadosQ2[0]->nro_cups, 0, '.', '.') : 'No hay datos' }}</li>
-                                                                        <li><strong>Nº Autoconsumos:</strong> {{ count($resultadosQ4) > 0 && !empty($resultadosQ4[0]->nro_autoconsumos) ? $resultadosQ4[0]->nro_autoconsumos : 'No hay datos' }}</li>
-                                                                        <li><strong>Nº de líneas:</strong> {{ count($resultadosQ5) > 0 && !empty($resultadosQ5[0]->nro_lineas) ? $resultadosQ5[0]->nro_lineas : 'No hay datos' }}</li>
                                                                     </ul>
                                                                 </div>
                                                             `, {
