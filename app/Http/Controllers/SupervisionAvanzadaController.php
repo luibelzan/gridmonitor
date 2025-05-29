@@ -274,18 +274,18 @@ class SupervisionAvanzadaController extends Controller {
                 SELECT
                 id_ct,
                 id_linea,
-                SUM(COALESCE(num_cnt, 0)) AS total_cnt,
+                AVG(num_cnt) AS total_cnt,
                 SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
                 SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
-                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) AS total_lvs,
+                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0)) AS total_lvs,
                 SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
                 SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
-                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
+                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
                 CASE
                     WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
                     ELSE
                         ROUND(
-                            (SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
+                            (SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
                             / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
                             2
                         )
@@ -544,22 +544,22 @@ class SupervisionAvanzadaController extends Controller {
 
                 // Añadir el filtro de fecha_inicio si está disponible
                 if ($fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 if($fecha_fin && !$fecha_inicio) {
-                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Añadir el filtro de fecha_fin si está disponible
                 if ($fecha_fin && $fecha_inicio) {
                     $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
-                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' ORDER BY fh DESC LIMIT 20";
                 }
 
                 //Ejecutar la consulta
@@ -587,22 +587,22 @@ class SupervisionAvanzadaController extends Controller {
 
                 // Añadir el filtro de fecha_inicio si está disponible
                 if ($fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 if($fecha_fin && !$fecha_inicio) {
-                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Añadir el filtro de fecha_fin si está disponible
                 if ($fecha_fin && $fecha_inicio) {
                     $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
-                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' ORDER BY fh DESC LIMIT 20";
                 }
 
                 //Ejecutar la consulta
@@ -630,22 +630,22 @@ class SupervisionAvanzadaController extends Controller {
 
                 // Añadir el filtro de fecha_inicio si está disponible
                 if ($fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fec_inicio >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fec_inicio >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') ORDER BY fec_inicio DESC LIMIT 20";
                 }
 
                 if($fecha_fin && !$fecha_inicio) {
-                    $query .= " WHERE fec_fin <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fec_fin <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fec_inicio DESC LIMIT 20";
                 }
 
                 // Añadir el filtro de fecha_fin si está disponible
                 if ($fecha_fin && $fecha_inicio) {
                     $query .= " WHERE fec_inicio >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
-                                AND fec_fin <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                                AND fec_fin <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fec_inicio DESC LIMIT 20";
                 }
 
                 // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fec_inicio >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                    $query .= " WHERE fec_inicio >= NOW() - INTERVAL '24 hours' ORDER BY fec_inicio DESC LIMIT 20";
                 }
 
                 //Ejecutar la consulta
@@ -672,22 +672,22 @@ class SupervisionAvanzadaController extends Controller {
 
                 // Añadir el filtro de fecha_inicio si está disponible
                 if ($fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 if($fecha_fin && !$fecha_inicio) {
-                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Añadir el filtro de fecha_fin si está disponible
                 if ($fecha_fin && $fecha_inicio) {
                     $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
-                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' ORDER BY fh DESC LIMIT 20";
                 }
 
                 //Ejecutar la consulta
@@ -714,22 +714,22 @@ class SupervisionAvanzadaController extends Controller {
 
                 // Añadir el filtro de fecha_inicio si está disponible
                 if ($fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 if($fecha_fin && !$fecha_inicio) {
-                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                    $query .= " WHERE fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Añadir el filtro de fecha_fin si está disponible
                 if ($fecha_fin && $fecha_inicio) {
                     $query .= " WHERE fh >= TO_TIMESTAMP('$fecha_inicio', 'YYYY-MM-DD')
-                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') LIMIT 20";
+                                AND fh <= TO_TIMESTAMP('$fecha_fin', 'YYYY-MM-DD') ORDER BY fh DESC LIMIT 20";
                 }
 
                 // Si no se especifica ni fecha_inicio ni fecha_fin, usar las últimas 24 horas por defecto
                 if (!$fecha_inicio && !$fecha_fin) {
-                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' LIMIT 20";
+                    $query .= " WHERE fh >= NOW() - INTERVAL '24 hours' ORDER BY fh DESC LIMIT 20";
                 }
 
                 //Ejecutar la consulta

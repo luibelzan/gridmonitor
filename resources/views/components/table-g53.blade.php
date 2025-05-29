@@ -38,89 +38,107 @@
             </tr>
         </thead>
 
+        @php
+            $hayDatos = false;
+            foreach ($resultados as $r) {
+                if (!empty($r->rtu_id) || !empty($r->lvs_id) || !empty($r->fh)) {
+                    $hayDatos = true;
+                    break;
+                }
+            }
+        @endphp
+
         <tbody>
-            @foreach($resultados as $resultado)
-            <tr>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->lvs_id) ? $resultado->lvs_id : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->lvs_pos) ? $resultado->lvs_pos : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momCph1) ? $resultado->momCph1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momVph1) ? $resultado->momVph1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPimph1) ? $resultado->momPimph1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->MomPexph1) ? $resultado->MomPexph1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momQimph1) ? $resultado->momQimph1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momQexph1) ? $resultado->momQexph1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPF1) ? $resultado->momPF1 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momCph2) ? $resultado->momCph2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momVph2) ? $resultado->momVph2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPimph2) ? $resultado->momPimph2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPexph2) ? $resultado->momPexph2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momQimph2) ? $resultado->momQimph2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momQexph2) ? $resultado->momQexph2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPF2) ? $resultado->momPF2 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momCph3) ? $resultado->momCph3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momVph3) ? $resultado->momVph3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPimph3) ? $resultado->momPimph3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPexph3) ? $resultado->momPexph3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momQimph3) ? $resultado->momQimph3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momQexph3) ? $resultado->momQexph3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momPF3) ? $resultado->momPF3 : 'No hay datos' }}
-                </td>
-                <td class="py-2" style="padding: 10px;">
-                    {{ !empty($resultado->momCn) ? $resultado->momCn : 'No hay datos' }}
-                </td>
-            </tr>
-            @endforeach
+            @if(!$hayDatos)
+                <tr>
+                    <td colspan="26" class="py-4 text-center text-gray-400">
+                        No hay datos disponibles
+                    </td>
+                </tr>
+            @else
+                @foreach($resultados as $resultado)
+                <tr>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->lvs_id) ? $resultado->lvs_id : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->lvs_pos) ? $resultado->lvs_pos : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momCph1) ? $resultado->momCph1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momVph1) ? $resultado->momVph1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPimph1) ? $resultado->momPimph1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->MomPexph1) ? $resultado->MomPexph1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momQimph1) ? $resultado->momQimph1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momQexph1) ? $resultado->momQexph1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPF1) ? $resultado->momPF1 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momCph2) ? $resultado->momCph2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momVph2) ? $resultado->momVph2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPimph2) ? $resultado->momPimph2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPexph2) ? $resultado->momPexph2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momQimph2) ? $resultado->momQimph2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momQexph2) ? $resultado->momQexph2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPF2) ? $resultado->momPF2 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momCph3) ? $resultado->momCph3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momVph3) ? $resultado->momVph3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPimph3) ? $resultado->momPimph3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPexph3) ? $resultado->momPexph3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momQimph3) ? $resultado->momQimph3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momQexph3) ? $resultado->momQexph3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momPF3) ? $resultado->momPF3 : '0' }}
+                    </td>
+                    <td class="py-2" style="padding: 10px;">
+                        {{ !empty($resultado->momCn) ? $resultado->momCn : '0' }}
+                    </td>
+                </tr>
+                @endforeach
+            @endif
         </tbody>
     </table>
 </div>
