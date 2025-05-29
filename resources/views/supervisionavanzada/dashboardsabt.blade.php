@@ -337,6 +337,15 @@
                                                                                     NUMERO CONTADORES</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
+                                                                                    NUMERO CONTADORES (R)</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    NUMERO CONTADORES (S)</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    NUMERO CONTADORES (T)</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
                                                                                     RTU ID</th>
                                                                             </tr>
                                                                         </thead>
@@ -357,6 +366,15 @@
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->nro_contadores) ? $resultado->nro_contadores : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->nro_contadores_r) ? $resultado->nro_contadores_r : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->nro_contadores_s) ? $resultado->nro_contadores_s : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->nro_contadores_t) ? $resultado->nro_contadores_t : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->id_rtu) ? $resultado->id_rtu : 'No hay datos' }}
