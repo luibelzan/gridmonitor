@@ -337,37 +337,22 @@
                                                                                     NUMERO CONTADORES</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO CONTADORES (R)</th>
+                                                                                    CONTADORES FASE R</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO CONTADORES (S)</th>
+                                                                                    CONTADORES FASE S</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO CONTADORES (T)</th>
+                                                                                    CONTADORES FASE T</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     RTU ID</th>
                                                                             </tr>
                                                                         </thead>
 
-                                                                        @php
-                                                                            $hayDatos = false;
-                                                                            foreach ($dashboardSABTInfo as $r) {
-                                                                                if (!empty($r->rtu_id) || !empty($r->lvs_id) || !empty($r->fh)) {
-                                                                                    $hayDatos = true;
-                                                                                    break;
-                                                                                }
-                                                                            }
-                                                                        @endphp
 
                                                                         <tbody>
-                                                                            @if(!$hayDatos)
-                                                                                <tr>
-                                                                                    <td colspan="26" class="py-4 text-center text-gray-400">
-                                                                                        No hay datos disponibles
-                                                                                    </td>
-                                                                                </tr>
-                                                                            @else
+                
                                                                                 @foreach ($dashboardSABTInfo as $resultado)
                                                                                     <tr class="highlight-row ">
                                                                                         <td class="py-2">
@@ -395,11 +380,11 @@
                                                                                             {{ !empty($resultado->nro_contadores_t) ? $resultado->nro_contadores_t : '0' }}
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->id_rtu) ? $resultado->id_rtu : 'No hay datos' }}
+                                                                                            {{ !empty($resultado->nro_contadores_3) ? $resultado->nro_contadores_3 : '0' }}
                                                                                         </td>
                                                                                     </tr>
                                                                                 @endforeach
-                                                                            @endif
+                                                                            
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
