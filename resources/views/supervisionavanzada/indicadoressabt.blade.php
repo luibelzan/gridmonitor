@@ -398,9 +398,6 @@
                                                         <tr>
                                                             <th class="mt-0 text-xl  text-center"
                                                                 style="color:rgb(88,226,194)">
-                                                                RTU</th>
-                                                            <th class="mt-0 text-xl  text-center"
-                                                                style="color:rgb(88,226,194)">
                                                                 Fecha</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194)">
@@ -416,9 +413,6 @@
                                                     <tbody>
                                                         @foreach ($infoFlickers as $resultado)
                                                             <tr class="highlight-row ">
-                                                                <td class="py-2">
-                                                                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
-                                                                </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
                                                                 </td>
@@ -479,9 +473,6 @@
                                                         <tr>
                                                             <th class="mt-0 text-xl  text-center"
                                                                 style="color:rgb(88,226,194)">
-                                                                RTU</th>
-                                                            <th class="mt-0 text-xl  text-center"
-                                                                style="color:rgb(88,226,194)">
                                                                 Fecha</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194)">
@@ -494,9 +485,6 @@
                                                     <tbody>
                                                         @foreach ($infoDesbalancesTension as $resultado)
                                                             <tr class="highlight-row ">
-                                                                <td class="py-2">
-                                                                    {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
-                                                                </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
                                                                 </td>
