@@ -385,8 +385,14 @@
                                                     {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}</div>
                                                 <div
                                                     style="display: inline-block; position: relative;">
+                                                    @php
+                                                        $colorBorde = 'green'; // Por defecto
+                                                        if (!empty($resultado->porcentaje_perdida) && $resultado->porcentaje_perdida > 6) {
+                                                            $colorBorde = 'red';
+                                                        }
+                                                    @endphp
                                                     <div
-                                                        style="border-radius: 50%; border: 2px solid #296fd1; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+                                                        style="border-radius: 50%; border: 2px solid {{ $colorBorde }}; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
                                                         <svg xmlns="http://www.w3.org/2000/svg"
                                                             width="50" height="50"
                                                             viewBox="0 0 20 20"
