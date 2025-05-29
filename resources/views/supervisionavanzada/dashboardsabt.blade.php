@@ -349,38 +349,57 @@
                                                                                     RTU ID</th>
                                                                             </tr>
                                                                         </thead>
+
+                                                                        @php
+                                                                            $hayDatos = false;
+                                                                            foreach ($dashboardSABTInfo as $r) {
+                                                                                if (!empty($r->rtu_id) || !empty($r->lvs_id) || !empty($r->fh)) {
+                                                                                    $hayDatos = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                        @endphp
+
                                                                         <tbody>
-                                                                            @foreach ($dashboardSABTInfo as $resultado)
-                                                                                <tr class="highlight-row ">
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->id_ct) ? $resultado->id_ct : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nro_trafos) ? $resultado->nro_trafos : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nro_lineas) ? $resultado->nro_lineas : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nro_contadores) ? $resultado->nro_contadores : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nro_contadores_r) ? $resultado->nro_contadores_r : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nro_contadores_s) ? $resultado->nro_contadores_s : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->nro_contadores_t) ? $resultado->nro_contadores_t : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        {{ !empty($resultado->id_rtu) ? $resultado->id_rtu : 'No hay datos' }}
+                                                                            @if(!$hayDatos)
+                                                                                <tr>
+                                                                                    <td colspan="26" class="py-4 text-center text-gray-400">
+                                                                                        No hay datos disponibles
                                                                                     </td>
                                                                                 </tr>
-                                                                            @endforeach
+                                                                            @else
+                                                                                @foreach ($dashboardSABTInfo as $resultado)
+                                                                                    <tr class="highlight-row ">
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->id_ct) ? $resultado->id_ct : 'No hay datos' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nro_trafos) ? $resultado->nro_trafos : '0' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nro_lineas) ? $resultado->nro_lineas : '0' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nro_contadores) ? $resultado->nro_contadores : '0' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nro_contadores_r) ? $resultado->nro_contadores_r : '0' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nro_contadores_s) ? $resultado->nro_contadores_s : '0' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->nro_contadores_t) ? $resultado->nro_contadores_t : '0' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->id_rtu) ? $resultado->id_rtu : 'No hay datos' }}
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                @endforeach
+                                                                            @endif
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
