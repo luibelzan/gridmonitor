@@ -154,13 +154,14 @@ class SupervisionAvanzadaController extends Controller {
 
             $fasessabt = $this->getFasesSABT($id_ct, $connection);
             $tramos = $this->getTramos($request, $connection);
-
+            $ctSABT = $this->getCTSABT($id_ct, $connection);
             //$cups_info = $this->getCupsInfo($request, $id_ct, $connection);
 
             return view('supervisionavanzada/fasessabt', [
                 'fasessabt' => $fasessabt,
                 'ct_info' => $ct_info,
                 'tramos' => $tramos,
+                'ctSABT' => $ctSABT,
             ]);
         }
     }
@@ -756,6 +757,23 @@ class SupervisionAvanzadaController extends Controller {
                  WHERE id_ct = :id_ct", ['id_ct' => $id_ct]);
 
                  return $fasessabt ?: ['message' => 'No hay datos'];
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getCTSABT($id_ct, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_ct')) {
+                $ctSABT = DB::connection($connection)->select("
+                SELECT * FROM core.t_ct
+                WHERE id_ct = :id_ct", ['id_ct' => $id_ct]);
+
+                return $ctSABT ?: ['message' => 'No hay datos'];
             } else {
                 // Una de las tablas no existe, retornar un mensaje específico 
                 return ['message' => 'No hay datos'];
