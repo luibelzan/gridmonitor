@@ -230,7 +230,11 @@ class SupervisionAvanzadaController extends Controller {
                     ct.nom_ct,
                     COUNT(DISTINCT tra.id_trafo) AS nro_trafos,
                     COUNT(DISTINCT li.id_linea) AS nro_lineas,
-                    COUNT(DISTINCT cu.id_cnt) AS nro_contadores
+                    COUNT(DISTINCT cu.id_cnt) AS nro_contadores,
+
+                    COUNT(DISTINCT CASE WHEN cu.cod_fase = 'R' THEN cu.id_cnt END) AS nro_contadores_r,
+                    COUNT(DISTINCT CASE WHEN cu.cod_fase = 'S' THEN cu.id_cnt END) AS nro_contadores_s,
+                    COUNT(DISTINCT CASE WHEN cu.cod_fase = 'T' THEN cu.id_cnt END) AS nro_contadores_t
                 FROM
                     core.t_ct ct
                 LEFT JOIN core.t_lineas li ON ct.id_ct = li.id_ct
