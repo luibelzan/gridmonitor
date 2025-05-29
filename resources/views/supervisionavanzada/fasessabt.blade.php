@@ -324,11 +324,14 @@
                                             style="color: rgb(27, 32, 38);">Seleccione un
                                             CT</option>
                                         @foreach ($ct_info as $ct_item)
-                                            <option class="btn btn-link"
-                                                style="color: white; background-color: rgb(27, 32, 38);"
-                                                value="{{ $ct_item->id_ct }}">
-                                                {{ $ct_item->nom_ct }}
-                                            </option>
+                                            @if ($ct_item->ind_sabt) 
+                                                <option class="btn btn-link"
+                                                    style="color: white; background-color: rgb(27, 32, 38);"
+                                                    value="{{ $ct_item->id_ct }}"
+                                                    {{ $id_ct == $ct_item->id_ct ? 'selected' : '' }}>
+                                                    {{ $ct_item->nom_ct }}
+                                                </option>
+                                            @endif
                                         @endforeach
                                     @endif
                                 </select>
@@ -588,9 +591,11 @@
                                                         map.addLayer(capasSobretensiones);
 
                                                         //TRAMOS
+                                                        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'black'];
+
                                                         // Añadir líneas desde tramos
                                                         var tramos = @json($tramos);
-                                                        tramos.forEach(tramo => {
+                                                        tramos.forEach((tramo, index) => {
                                                             if (
                                                                 tramo.lat_inicio && tramo.lon_inicio &&
                                                                 tramo.lat_fin && tramo.lon_fin
@@ -600,8 +605,10 @@
                                                                     [parseFloat(tramo.lat_fin), parseFloat(tramo.lon_fin)]
                                                                 ];
 
+                                                                const color = colores[index % colores.length];
+
                                                                 L.polyline(latlngs, {
-                                                                    color: 'red',      // Cambia el color si lo deseas
+                                                                    color: color,      // Cambia el color si lo deseas
                                                                     weight: 3,         // Grosor de la línea
                                                                     opacity: 0.8       // Opacidad
                                                                 }).addTo(map);
