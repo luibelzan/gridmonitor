@@ -150,7 +150,7 @@ class SupervisionAvanzadaController extends Controller {
             // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
             return view('admin/admin');
         } else {
-            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
 
             $fasessabt = $this->getFasesSABT($id_ct, $connection);
             $tramos = $this->getTramos($request, $connection);

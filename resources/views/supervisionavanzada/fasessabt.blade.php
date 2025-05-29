@@ -323,6 +323,7 @@
                                             aria-expanded="false" value="" disabled selected
                                             style="color: rgb(27, 32, 38);">Seleccione un
                                             CT</option>
+                                            
                                         @foreach ($ct_info as $ct_item)
                                             @if ($ct_item->ind_sabt) 
                                                 <option class="btn btn-link"
@@ -510,7 +511,6 @@
                                                                 //console.log(latCupsSobretension, lonCupsSobretension);
 
                                                                 // Verificar si latCups y lonCups no son cadena vacía
-                                                                console.log(@json($sobretension));
                                                                 if (latCupsSobretension !== '' && lonCupsSobretension !== '') {
                                                                     @if ($sobretension->cod_fase == 'R')
                                                                         // Determinar la imagen basada en el valor de ind_autoconsumo
