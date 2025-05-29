@@ -464,8 +464,8 @@
                                                         map.removeControl(map.attributionControl);
 
                                                         @if (!empty($ctSABT[0]->lat_ct) && !empty($ctSABT[0]->lon_ct))
-                                                            var ctLat = {{ $resultadosQ1[0]->lat_ct }};
-                                                            var ctLon = {{ $resultadosQ1[0]->lon_ct }};
+                                                            var ctLat = {{ $ctSABT[0]->lat_ct }};
+                                                            var ctLon = {{ $ctSABT[0]->lon_ct }};
                                                             var ctIcon = L.divIcon({
                                                                 html: `<img src="../../images/ct.png" alt="ctIcon" style="width: 40px; height: 40px; margin-right: 10px;">`,
                                                                 className: 'ct-icon'
