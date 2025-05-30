@@ -51,6 +51,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script> {{-- ENLACE A JS GENERAL --}}
     <script src="{{ asset('js/app.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
 
 
 
@@ -1902,35 +1904,25 @@
                                                     {{-- SCRIPTS PARA EL GRÁFICO 48 horas --}}
                                                     <script>
                                                         var datasets = [];
-                                                        var colors = ['rgb(247,229,59)', 'rgb(88,226,194)', 'rgb(171,38,194)']; // Colores específicos
+                                                        var colors = ['rgb(247,229,59)', 'rgb(88,226,194)', 'rgb(171,38,194)'];
                                                         var colorIndex = 0;
+
                                                         @foreach ($resultadosQ14 as $resultado)
-                                                            var fecha_formateada = '{{ date('d-m-Y', strtotime($resultado->fec_estadistica)) }}'; //fecha en formato d/m/y
+                                                            var fechaISO = '{{ $resultado->fec_estadistica }}T{{ substr($resultado->hor_estadistica, 0, 5) }}:00';
+                                                            var fecha_formateada = '{{ date('d-m-Y', strtotime($resultado->fec_estadistica)) }}';
+
                                                             var existingDataset = datasets.find(dataset => dataset.label === fecha_formateada);
+
                                                             if (existingDataset) {
                                                                 existingDataset.data.push({
-                                                                    x: new Date(
-                                                                            '{{ $resultado->fec_estadistica }} {{ substr($resultado->hor_estadistica, 0, 5) }}')
-                                                                        .toLocaleDateString('es-ES', {
-                                                                            day: '2-digit',
-                                                                            month: '2-digit',
-                                                                            year: '2-digit'
-                                                                        }).split('/').join('-') +
-                                                                        ' / {{ substr($resultado->hor_estadistica, 0, 5) }}', // Separación por una barra ("/")
+                                                                    x: fechaISO,
                                                                     y: {{ $resultado->por_conta }}
                                                                 });
                                                             } else {
                                                                 datasets.push({
                                                                     label: fecha_formateada,
                                                                     data: [{
-                                                                        x: new Date(
-                                                                                '{{ $resultado->fec_estadistica }} {{ substr($resultado->hor_estadistica, 0, 5) }}'
-                                                                            ).toLocaleDateString('es-ES', {
-                                                                                day: '2-digit',
-                                                                                month: '2-digit',
-                                                                                year: '2-digit'
-                                                                            }).split('/').join('-') +
-                                                                            ' / {{ substr($resultado->hor_estadistica, 0, 5) }}', // Separación por una barra ("/")
+                                                                        x: fechaISO,
                                                                         y: {{ $resultado->por_conta }}
                                                                     }],
                                                                     borderColor: colors[colorIndex % colors.length],
@@ -1943,6 +1935,7 @@
                                                                 colorIndex++;
                                                             }
                                                         @endforeach
+
                                                         var ctx = document.getElementById('graficoLinea48horas').getContext('2d');
                                                         var myChartLine48horas = new Chart(ctx, {
                                                             type: 'line',
@@ -1952,22 +1945,6 @@
                                                             options: {
                                                                 responsive: true,
                                                                 maintainAspectRatio: false,
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                                                 plugins: {
                                                                     legend: {
                                                                         labels: {
@@ -1980,20 +1957,11 @@
                                                                     },
                                                                     tooltip: {
                                                                         callbacks: {
-                                                                            title: function(tooltipItems, data) {
-                                                                                var tooltipTitle = '';
-                                                                                if (tooltipItems.length > 0) {
-                                                                                    var label = tooltipItems[0].label;
-                                                                                    tooltipTitle = label;
-                                                                                }
-                                                                                return tooltipTitle;
+                                                                            title: function(tooltipItems) {
+                                                                                return tooltipItems[0].label;
                                                                             },
                                                                             label: function(context) {
-                                                                                var label = '';
-                                                                                if (context.parsed.y !== null) {
-                                                                                    label += context.parsed.y + ' %';
-                                                                                }
-                                                                                return label;
+                                                                                return context.parsed.y + ' %';
                                                                             }
                                                                         },
                                                                         titleFont: {
@@ -2008,16 +1976,23 @@
                                                                 },
                                                                 scales: {
                                                                     x: {
-                                                                        type: 'category',
+                                                                        type: 'time',
+                                                                        time: {
+                                                                            unit: 'hour',
+                                                                            displayFormats: {
+                                                                                hour: 'dd-MM HH:mm'
+                                                                            },
+                                                                            tooltipFormat: 'dd-MM-yyyy HH:mm'
+                                                                        },
                                                                         grid: {
                                                                             color: '#666'
                                                                         },
                                                                         ticks: {
                                                                             color: '#FFFFFF',
                                                                             font: {
-                                                                                family: 'Didact Gothic' // Estilo de letra para los ticks del eje x
+                                                                                family: 'Didact Gothic'
                                                                             }
-                                                                        },
+                                                                        }
                                                                     },
                                                                     y: {
                                                                         beginAtZero: true,
@@ -2029,7 +2004,10 @@
                                                                         ticks: {
                                                                             color: '#FFFFFF',
                                                                             font: {
-                                                                                family: 'Didact Gothic' // Estilo de letra para los ticks del eje y
+                                                                                family: 'Didact Gothic'
+                                                                            },
+                                                                            callback: function(value) {
+                                                                                return value + ' %';
                                                                             }
                                                                         }
                                                                     }
@@ -2037,6 +2015,7 @@
                                                             }
                                                         });
                                                     </script>
+
                                                     <div id="fechaGrafico2" style="color: white; text-align: center;">
                                                     </div>
                                                 @else
