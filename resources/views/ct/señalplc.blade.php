@@ -2020,7 +2020,9 @@
                                                                         },
                                                                     },
                                                                     y: {
-                                                                        beginAtZero: false,
+                                                                        beginAtZero: true,
+                                                                        min: 0,
+                                                                        max: 100,
                                                                         grid: {
                                                                             color: '#666'
                                                                         },
