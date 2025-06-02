@@ -583,6 +583,7 @@
                                                         @endforeach        
 
                                                         var capasSobretensiones = markersSobretensiones;
+                                                        map.fitBounds(markersSobretensiones.getBounds());
                                                         map.addLayer(capasSobretensiones);
 
                                                         //TRAMOS
