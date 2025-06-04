@@ -507,15 +507,15 @@
 
                                                                 // Verificar si latCups y lonCups no son cadena vacía
                                                                 @if ($sobretension->cod_fase == 'R')
-                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarR.png" : "../../images/casaverder.png" }}';
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "S" ? "../../images/casaverdepanelsolarR.png" : "../../images/casaverder.png" }}';
                                                                 @elseif ($sobretension->cod_fase == 'S')
-                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarS.png" : "../../images/casaverdes.png" }}';
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "S" ? "../../images/casaverdepanelsolarS.png" : "../../images/casaverdes.png" }}';
                                                                 @elseif ($sobretension->cod_fase == 'T')
-                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarT.png" : "../../images/casaverdet.png" }}';
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "S" ? "../../images/casaverdepanelsolarT.png" : "../../images/casaverdet.png" }}';
                                                                 @elseif ($sobretension->cod_fase == '3')
-                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverde3f_autoconsumo.png" : "../../images/casaverde3f.png" }}';
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "S" ? "../../images/casaverde3f_autoconsumo.png" : "../../images/casaverde3f.png" }}';
                                                                 @else
-                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarnofase.png" : "../../images/casaverdenofase.png" }}';
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "S" ? "../../images/casaverdepanelsolarnofase.png" : "../../images/casaverdenofase.png" }}';
                                                                 @endif
 
 
@@ -582,7 +582,7 @@
                                                                     markersSobretensiones.addLayer(marker);
                                                                     //capasSobretensiones.addLayer(marker);
                                                                     
-                                                                }
+                                                    
                                                             @endif
                                                         @endforeach        
 
