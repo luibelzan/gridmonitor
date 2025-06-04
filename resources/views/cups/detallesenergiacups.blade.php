@@ -304,6 +304,8 @@
                             active-color="rgb(88, 226, 194">Información</a>
                         <a href="{{ route('detallescurvashorariascups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Curvas Horarias</a>
+                        <a href="{{ route('detallesconsumodiariocups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Consumos Diarios</a>
                         <a href="{{ route('detallesenergiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194">Calidad Energía</a>
                         <a href="{{ route('detalleseventoscups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
@@ -947,7 +949,7 @@
                                         var values_volt1 = [];
                                         @foreach ($resultadosQ23cups as $key => $resultado)
                                             // Agregar la fecha y hora como etiquetas del eje x
-                                            var dateTime = '{{ $resultado->fec_lectura }} {{ $resultado->hor_lectura }}';
+                                            var dateTime = '{{ $resultado->fec_lectura_texto }} {{ $resultado->hor_lectura }}';
                                             labels_volt1.push(dateTime);
                                             // Agregar el valor de 'tension' como valor del eje y
                                             values_volt1.push({{ $resultado->tension }});

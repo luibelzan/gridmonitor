@@ -354,43 +354,52 @@ class DashboardController extends Controller
             ) {
                 $resultadosQ9dashboard = DB::connection($connection)
                     ->select("
-                        SELECT 
-                            core.t_ct.nom_ct, 
-                            COUNT(core.t_ct.id_ct) as total_ct,
-                            TO_CHAR(core.t_indices_lectura.fec_lectura, 'DD/MM/YYYY') AS fec_lectura,
-                            COUNT(CASE WHEN ind_s02 = 'S' THEN 1 END) AS Lec_s02_hoy,
-                            COUNT(CASE WHEN ind_s02 = 'N' THEN 1 END) AS No_Lec_s02_hoy,
-                            COUNT(CASE WHEN ind_s05 = 'S' THEN 1 END) AS Lec_s05_hoy,
-                            COUNT(CASE WHEN ind_s05 = 'N' THEN 1 END) AS No_Lec_s05_hoy,
-                            COUNT(CASE WHEN ind_s04 = 'S' THEN 1 END) AS Lec_s04_hoy,
-                            COUNT(CASE WHEN ind_s04 = 'N' THEN 1 END) AS No_Lec_s04_hoy,
-                            CASE 
-                                WHEN COUNT(core.t_ct.id_ct) = 0 THEN 0
-                                ELSE TRUNC((COUNT(CASE WHEN ind_s02 = 'S' THEN 1 END)::float / COUNT(core.t_ct.id_ct) * 100)::numeric, 2) 
-                            END AS porcentaje_s02,
-                            CASE 
-                                WHEN COUNT(core.t_ct.id_ct) = 0 THEN 0
-                                ELSE TRUNC((COUNT(CASE WHEN ind_s05 = 'S' THEN 1 END)::float / COUNT(core.t_ct.id_ct) * 100)::numeric, 2) 
-                            END AS porcentaje_s05,
-                            CASE 
-                                WHEN COUNT(core.t_ct.id_ct) = 0 THEN 0
-                                ELSE TRUNC((COUNT(CASE WHEN ind_s04 = 'S' THEN 1 END)::float / COUNT(core.t_ct.id_ct) * 100)::numeric, 2) 
-                            END AS porcentaje_s04
-                        FROM 
-                            core.t_indices_lectura
-                        JOIN core.t_cups ON core.t_indices_lectura.id_cups = core.t_cups.id_cups
-                        JOIN core.t_ct ON core.t_cups.id_ct = core.t_ct.id_ct
-                        WHERE 
-                            core.t_indices_lectura.fec_lectura = CURRENT_DATE
-                            AND core.t_cups.cups_estado = 'A' 
-                            AND core.t_cups.ind_repetidor = 'N'
-                            AND core.t_cups.tip_equipo = 'SMT'
-                        GROUP BY 
-                            core.t_ct.nom_ct, TO_CHAR(core.t_indices_lectura.fec_lectura, 'DD/MM/YYYY')
-                        ORDER BY 
-                            core.t_ct.nom_ct, TO_CHAR(core.t_indices_lectura.fec_lectura, 'DD/MM/YYYY');
+                    SELECT 
+                        core.t_ct.nom_ct,
+                        TO_CHAR(CURRENT_DATE, 'DD/MM/YYYY') AS fec_lectura,
 
-                    ");
+                        COUNT(DISTINCT core.t_cups.id_cups) AS total_cups_ct, -- TOTAL CONTADORES
+
+                        COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s02 = 'S' THEN 1 END) AS lec_s02_hoy,
+                        COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s05 = 'S' THEN 1 END) AS lec_s05_hoy,
+                        COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s04 = 'S' THEN 1 END) AS lec_s04_hoy,
+
+                        -- Porcentajes
+                        CASE 
+                            WHEN COUNT(DISTINCT core.t_cups.id_cups) = 0 THEN 0
+                            ELSE TRUNC(
+                                COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s02 = 'S' THEN 1 END)::numeric
+                                / COUNT(DISTINCT core.t_cups.id_cups) * 100, 2)
+                        END AS porcentaje_s02,
+
+                        CASE 
+                            WHEN COUNT(DISTINCT core.t_cups.id_cups) = 0 THEN 0
+                            ELSE TRUNC(
+                                COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s05 = 'S' THEN 1 END)::numeric
+                                / COUNT(DISTINCT core.t_cups.id_cups) * 100, 2)
+                        END AS porcentaje_s05,
+
+                        CASE 
+                            WHEN COUNT(DISTINCT core.t_cups.id_cups) = 0 THEN 0
+                            ELSE TRUNC(
+                                COUNT(CASE WHEN t_indices_lectura.fec_lectura = CURRENT_DATE AND ind_s04 = 'S' THEN 1 END)::numeric
+                                / COUNT(DISTINCT core.t_cups.id_cups) * 100, 2)
+                        END AS porcentaje_s04
+
+                    FROM 
+                        core.t_ct
+                    LEFT JOIN core.t_cups 
+                        ON core.t_ct.id_ct = core.t_cups.id_ct 
+                        AND core.t_cups.cups_estado = 'A'
+                        AND core.t_cups.ind_repetidor = 'N'
+                        AND core.t_cups.tip_equipo = 'SMT'
+                    LEFT JOIN core.t_indices_lectura 
+                        ON core.t_indices_lectura.id_cups = core.t_cups.id_cups
+
+                    GROUP BY core.t_ct.nom_ct
+                    ORDER BY core.t_ct.nom_ct;
+                ");
+
                 return $resultadosQ9dashboard ?: ['message' => 'No hay datos'];
             } else {
                 // Una de las tablas no existe, retornar un mensaje específico
@@ -583,11 +592,11 @@ class DashboardController extends Controller
         try {
             $resultadosQ15dashboard = DB::connection($connectionpf)
                 ->select("
-                 SELECT count(t_dat_iec870_load_profile_2.fh) as leidas
-                FROM reader.t_dat_iec870_load_profile_2, t_meter_params_iec870
-                Where t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt and
+                 SELECT count(t_dat_iec870_load_profile_1.fh) as leidas
+                FROM reader.t_dat_iec870_load_profile_1, t_meter_params_iec870
+                Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group
-                and month(t_dat_iec870_load_profile_2.fh) = month(current_date)
+                and month(t_dat_iec870_load_profile_1.fh) = month(current_date)
                     ");
 
             // dd($cod_id_group);
@@ -607,12 +616,12 @@ class DashboardController extends Controller
         try {
             $resultadosQ16dashboard = DB::connection($connectionpf)
                 ->select("
-                 SELECT count(t_dat_iec870_load_profile_2.fh)  as invalidas
-                FROM reader.t_dat_iec870_load_profile_2,t_meter_params_iec870
-                Where t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt and
+                 SELECT count(t_dat_iec870_load_profile_1.fh)  as invalidas
+                FROM reader.t_dat_iec870_load_profile_1,t_meter_params_iec870
+                Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group
-                and month(t_dat_iec870_load_profile_2.fh) = month(current_date) and
-                t_dat_iec870_load_profile_2.e_act_imp_cualif > 0
+                and month(t_dat_iec870_load_profile_1.fh) = month(current_date) and
+                t_dat_iec870_load_profile_1.e_act_imp_cualif > 0
                     ");
 
             // dd($cod_id_group);
@@ -666,6 +675,7 @@ class DashboardController extends Controller
     t_reader_meter_data.tip_punto_medida AS Tipo_Punto_Medida,      
     t_reader_connections.conx_name AS Tipo_Conexion,
     uc.fecha_ultima_curva,
+    uc2.fecha_ultima_curva_15,
     ulc.fecha_ultima_cierre,
     ue.fecha_ultimo_evento
 FROM 
@@ -684,6 +694,18 @@ FROM
             GROUP BY id_cnt
         )
     ) uc ON t_meter_params_iec870.id_cnt = uc.id_cnt
+    LEFT JOIN (
+        SELECT 
+            id_cnt,
+            DATE_FORMAT(fh, '%d/%m/%Y %H:%i:%s') AS fecha_ultima_curva_15
+        FROM 
+            t_dat_iec870_load_profile_1
+        WHERE id IN (
+            SELECT MAX(id)
+            FROM t_dat_iec870_load_profile_1
+            GROUP BY id_cnt
+        )
+    ) uc2 ON t_meter_params_iec870.id_cnt = uc2.id_cnt
     LEFT JOIN (
         SELECT 
             id_cnt,

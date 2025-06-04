@@ -1373,8 +1373,74 @@
                                                             map.addLayer(ctMarker);
                                                         @endif
 
+                                                        //TRAMOS
+                                                        // Colores disponibles para las líneas
+                                                        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'black', 'cyan', 'magenta', 'lime', 'gold'];
+                                                        const colorPorLinea = {}; // Mapeo de id_linea a color
+                                                        let colorIndex = 0;
+
+                                                        // Obtener tramos desde PHP
+                                                        var tramos = @json($tramos);
+
+                                                        // Crear conjunto para evitar duplicados en leyenda
+                                                        const lineasUnicas = new Set();
+
+                                                        // Dibujar líneas
+                                                        tramos.forEach(tramo => {
+                                                            if (
+                                                                tramo.lat_inicio && tramo.lon_inicio &&
+                                                                tramo.lat_fin && tramo.lon_fin
+                                                            ) {
+                                                                // Asignar color único por línea
+                                                                if (!colorPorLinea[tramo.id_linea]) {
+                                                                    colorPorLinea[tramo.id_linea] = colores[colorIndex % colores.length];
+                                                                    colorIndex++;
+                                                                }
+
+                                                                const color = colorPorLinea[tramo.id_linea];
+                                                                const latlngs = [
+                                                                    [parseFloat(tramo.lat_inicio), parseFloat(tramo.lon_inicio)],
+                                                                    [parseFloat(tramo.lat_fin), parseFloat(tramo.lon_fin)]
+                                                                ];
+
+                                                                // Dibujar el tramo en el mapa
+                                                                L.polyline(latlngs, {
+                                                                    color: color,
+                                                                    weight: 3,
+                                                                    opacity: 0.8
+                                                                }).addTo(map);
+
+                                                                lineasUnicas.add(tramo.id_linea); // Agregar línea para la leyenda
+                                                            }
+                                                        });
+
+                                                        // Crear leyenda dinámicamente
+                                                        var legend = L.control({ position: 'bottomright' });
+
+                                                        legend.onAdd = function (map) {
+                                                            var div = L.DomUtil.create('div', 'info legend');
+                                                            div.innerHTML += '<strong>Líneas</strong><br>';
+
+                                                            lineasUnicas.forEach(id => {
+                                                                var color = colorPorLinea[id];
+                                                                div.innerHTML +=
+                                                                    '<i style="background:' + color + '; width: 20px; height: 3px; display: inline-block; margin-right: 5px;"></i>' +
+                                                                    ' Línea ' + id + '<br>';
+                                                            });
+
+                                                            return div;
+                                                        };
+
+                                                        legend.addTo(map);
+
+
                                                         //CONECTIVIDAD
-                                                        var markers = [];
+                                                        var markersConectividad = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            });
                                                         var ubicaciones = [];
                                                         @foreach ($cups_info as $cups)
                                                             @if ($cups->lat_cups !== null && $cups->lon_cups !== null)
@@ -1463,17 +1529,23 @@
                                                                     className: 'custom-popup'
                                                                 });
                                                                 //markers.push(marker);
-                                                                markers.push(marker);
+                                                                markersConectividad.addLayer(marker);
                                                             @endif
                                                         @endforeach
                                                         var bounds = new L.LatLngBounds(ubicaciones);
                                                         map.fitBounds(bounds);
-                                                        var capasConectividad = L.layerGroup(markers);
+                                                        var capasConectividad = markersConectividad; 
 
 
 
                                                         //SOBRETENSIONES
-                                                        var capasSobretensiones = L.layerGroup([]);
+                                                        //var capasSobretensiones = L.layerGroup([]);
+                                                        var markersSobretensiones = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            });
 
                                                         @foreach ($resultadosQ28 as $sobretension)
                                                             // Obtener latitud y longitud del objeto $sobretension si existen
@@ -1553,15 +1625,24 @@
                                                                             className: 'custom-popup'
                                                                         }
                                                                     );
-                                                                    capasSobretensiones.addLayer(marker);
+                                                                    markersSobretensiones.addLayer(marker);
+                                                                    //capasSobretensiones.addLayer(marker);
                                                                     
                                                                 }
                                                             @endif
                                                         @endforeach        
 
+                                                        var capasSobretensiones = markersSobretensiones;
+
 
                                                         //LECTURAS
-                                                        var capasLecturas = L.layerGroup([]); // Mapa de lecturas
+                                                        //var capasLecturas = L.layerGroup([]); // Mapa de lecturas
+                                                        var markersLecturas = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            });
 
                                                         @php
                                                             $filtroFechaLectura = !empty($_GET['fecha_lecturas']) ? \Carbon\Carbon::createFromFormat('Y-m-d', $_GET['fecha_lecturas'])->format('Y-m-d') : \Carbon\Carbon::today()->format('Y-m-d');
@@ -1661,14 +1742,21 @@
                                                                         });
 
 
-                                                                        capasLecturas.addLayer(lecturaMarker);
+                                                                        markersLecturas.addLayer(lecturaMarker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
+                                                        var capasLecturas = markersLecturas;
+
 
                                                         //SUBTENSIONES
-                                                        var capasSubtensiones = L.layerGroup([]); // mapa de subtensiones
+                                                        var markersSubtensiones = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            }); // mapa de subtensiones
                                                         
                                                         @foreach ($resultadosQ29 as $subtension)
                                                             // Obtener latitud y longitud del objeto $subtension si existen
@@ -1752,14 +1840,21 @@
 
 
 
-                                                                    capasSubtensiones.addLayer(marker);
+                                                                    markersSubtensiones.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
+                                                        var capasSubtensiones = markersSubtensiones;
+
                                                         
                                                         //CORTES
-                                                        var capasApagones = L.layerGroup([]);
+                                                        var markersApagones = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            });
 
                                                         @foreach ($resultadosQ30 as $apagone)
                                                             // Obtener latitud y longitud del objeto $apagone si existen
@@ -1843,14 +1938,21 @@
 
 
 
-                                                                    capasApagones.addLayer(marker);
+                                                                    markersApagones.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
+                                                        var capasApagones = markersApagones;
+
 
                                                         //MICROCORTES
-                                                        var capasMicrocortes = L.layerGroup([]); // mapa de microcortes
+                                                        var markersMicrocortes = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            }); // mapa de microcortes
 
                                                         @foreach ($resultadosQ31 as $microcorte)
                                                             // Obtener latitud y longitud del objeto $microcorte si existen
@@ -1931,14 +2033,21 @@
                                                                         }
                                                                     );
 
-                                                                    capasMicrocortes.addLayer(marker);
+                                                                    markersMicrocortes.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
 
+                                                        var capasMicrocortes = markersMicrocortes;
+
 
                                                         //NIVELES DE TENSION
-                                                        var capasNivelesTension = L.layerGroup([]); // Mapa de niveles de tensión
+                                                        var markersNivelesTension = L.markerClusterGroup({
+                                                            spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
+                                                            showCoverageOnHover: false,
+                                                            zoomToBoundsOnClick: true,
+                                                            maxClusterRadius: 0,  // Reduce el radio del clúster
+                                                            }); // Mapa de niveles de tensión
 
 
                                                         @foreach ($resultadosQ50 as $nivelestension)
@@ -2039,10 +2148,12 @@
                                                                         }
                                                                     );
                                                                     // Añadir el marcador a la capa
-                                                                    capasNivelesTension.addLayer(marker);
+                                                                    markersNivelesTension.addLayer(marker);
                                                                 }
                                                             @endif
                                                         @endforeach
+                                                        var capasNivelesTension = markersNivelesTension;
+
 
 
                                                         var baseLayers = {
@@ -2145,7 +2256,6 @@
         </div>
     </div>
 </body>
-
 
 
 

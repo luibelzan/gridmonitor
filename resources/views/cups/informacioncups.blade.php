@@ -463,6 +463,8 @@
                             active-color="rgb(88, 226, 194">Información</a>
                         <a href="{{ route('curvashorariascups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Curvas Horarias</a>
+                        <a href="{{ route('consumodiariocups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Consumos Diarios</a>
                         <a href="{{ route('energiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Calidad Energía</a>
                         <a href="{{ route('eventoscups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}" class="nav-item"
@@ -505,6 +507,12 @@
                                     style="background-color: transparent; border-color: rgb(255, 255, 255);"
                                     @if (isset($_GET['id_cnt'])) value="{{ $_GET['id_cnt'] }}" @endif>
 
+                                {{-- buscador por nombre --}}
+                                <input type='text' name='nom_cups' placeholder='Buscar por nombre'
+                                    class='border p-2 rounded-md w-52 ml-1 text-white'
+                                    style='background-color: transparent; border-color: rgb(255, 255, 255);'
+                                    @if (isset($_GET['nom_cups'])) value="{{ $_GET['nom_cups'] }}" @endif>
+
 
                                 {{-- Boton buscar --}}
                                 <button type="submit" class="btn btn-outline-info mb-2 ml-2 text-white"
@@ -524,7 +532,7 @@
                             </form>
                         </div>
                     </div>
-                    @if (isset($id_cups) || isset($id_cnt))
+                    @if (isset($id_cups) || isset($id_cnt) || isset($nom_cups))
                         @if (count($resultadosQ1cups) === 0)
                             <div class="flex justify-center">
                                 <div class="alert alert-danger text-center max-w-max flex items-center space-x-2"
@@ -577,7 +585,7 @@
                                                     @foreach ($resultadosQ1cups as $resultado)
                                                         <tr class="highlight-row">
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
@@ -585,7 +593,7 @@
                                                                 </a>
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
@@ -593,7 +601,7 @@
 
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->nom_cups) ? $resultado->nom_cups : 'No hay datos' }}
@@ -601,13 +609,13 @@
 
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->dir_cups) ? $resultado->dir_cups : 'No hay datos' }}
                                                             </td>
                                                             <td class="py-2 px-4 text-center">
-                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups, 'id_cnt' => $resultado->id_cnt]) }}"
+                                                                <a href="{{ route('detallesinformacioncups', ['id_cups' => $resultado->id_cups]) }}"
                                                                     data-id="{{ $resultado->id_cups }}"
                                                                     style="text-decoration: none; color: inherit;">
                                                                     {{ !empty($resultado->ind_autoconsumo) ? $resultado->ind_autoconsumo : 'No hay datos' }}
@@ -619,6 +627,10 @@
                                                     @endforeach
                                                 </tbody>
                                             </table>
+                                            {{-- Paginación --}}
+                                            <div class="mt-4 flex justify-center">
+                                            {{ $resultadosQ1cups->appends(['id_cups' => request()->get('id_cups')])->links() }}
+                                            </div>
                                         </div>
 
                                     </div>

@@ -11,6 +11,8 @@ use App\Http\Controllers\EventosEspontaneosController;
 use App\Http\Controllers\InformacionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PuntoFronteraController;
+use App\Http\Controllers\SupervisionAvanzadaController;
+use App\Http\Controllers\DashboardSABTController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -73,6 +75,23 @@ Route::get('/reportes', [ctController::class, 'reportes'])->name('reportes');
 Route::get('/reportescalidad', [ctController::class, 'reportescalidad'])->name('reportescalidad');
 Route::get('/reportesinventario', [ctController::class, 'reportesinventario'])->name('reportesinventario');
 Route::get('/reportescurvashorarias', [ctController::class, 'reportescurvashorarias'])->name('reportescurvashorarias');
+Route::get('/reporteseventos', [ctController::class, 'reporteseventos'])->name('reporteseventos');
+Route::get('/exportar-excel', [ctController::class, 'exportCurvasHorarias'])->name('exportar.excel');
+Route::get('/exportar-eventos', [ctController::class, 'exportReportesEventos'])->name('exportar.eventos');
+Route::get('/exportar-registros', [CupsController::class, 'exportRegistrosMensuales'])->name('exportar.registros');
+Route::get('/exportar-registros-diarios', [CupsController::class, 'exportConsumosTotalesDiarios'])->name('exportar.registros.diarios');
+Route::get('/exportar-balances', [CtController::class, 'exportSumBalances'])->name('exportar.balances');
+Route::get('/exportar-eventos-ct', [CtController::class, 'exportEventosCT'])->name('exportar.eventos.ct');
+Route::get('/exportar-eventos-pf', [PuntoFronteraController::class, 'exportEventsPF'])->name('exportar.eventos.pf');
+Route::get('/exportar-eventos-espontaneos', [EventosEspontaneosController::class, 'exportEventosEspontaneos'])->name('exportar.eventosespontaneos');
+Route::get('/exportar-curvas-horarias', [CupsController::class, 'exportCurvasHorarias'])->name('exportar.curvas.cups');
+Route::get('/exportar-eventos-cups', [CupsController::class, 'exportEventsCups'])->name('exportar.eventos.cups');
+Route::get('/exportar-reportes-calidad', [ctController::class, 'exportReportesCalidad'])->name('exportar.reportes.calidad');
+Route::get('/exportar-actualizaciones', [ctController::class, 'exportReportesInventarioFW'])->name('exportar.reportes.actualizaciones');
+Route::get('/exportar-reportes-inventario', [ctController::class, 'exportReportesInventario'])->name('exportar.reportes.inventario');
+Route::get('/exportar-cierres-mensuales', [PuntoFronteraController::class, 'exportCierresMensuales'])->name('exportar.cierres.mensuales.pf');
+Route::get('/exportar-curvas-cuartihorarias', [PuntoFronteraController::class, 'exportCurvasCuartihorarias'])->name('exportar.curvas.cuartihorarias.pf');
+
 
 
 //*********************************
@@ -113,6 +132,8 @@ Route::get('/detalleseventoscups', [CupsController::class, 'detalleseventoscups'
 // CURVAS HORARIAS CUPS ------------------------------
 Route::get('/curvashorariascups', [CupsController::class, 'curvashorariascups'])->name('curvashorariascups');
 Route::get('/detallescurvashorariascups', [CupsController::class, 'detallescurvashorariascups'])->name('detallescurvashorariascups');
+Route::get('/consumodiariocups', [CupsController::class, 'consumodiariocups'])->name('consumodiariocups');
+Route::get('/detallesconsumodiariocups', [CupsController::class, 'detallesconsumodiariocups'])->name('detallesconsumodiariocups');
 
 
 // ENERGIA CUPS -------------------------------
@@ -128,6 +149,7 @@ Route::get('/detallesenergiacups', [CupsController::class, 'detallesenergiacups'
 Route::get('/dashboardct', [DashboardController::class, 'dashboardct'])->name('dashboardct');
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
+Route::get('/dashboardsabt', [SupervisionAvanzadaController::class, 'dashboardsabt'])->name('dashboardsabt');
 
 //********************************
 //******EVENTOS ESPONTANEOS*******
@@ -137,7 +159,11 @@ Route::get('/eventosespontaneos', [EventosEspontaneosController::class, 'eventos
 Route::get('/eventos/actualizar', [EventosEspontaneosController::class, 'actualizarEventos']);
 
 
-
+//SUPERVISION AVANZADA ----------------------------
+Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'supervisionavanzada'])->name('supervisionavanzada');
+Route::get('/fasessabt', [SupervisionAvanzadaController::class, 'fasessabt'])->name('fasessabt');
+Route::get('/indicadoressabt', [SupervisionAvanzadaController::class, 'indicadoressabt'])->name('indicadoressabt');
+Route::get('/balancessabt', [SupervisionAvanzadaController::class, 'balancessabt'])->name('balancessabt');
 
 
 

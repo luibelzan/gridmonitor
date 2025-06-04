@@ -697,6 +697,7 @@
                                                             % S04</th>
                                                     </tr>
                                                 </thead>
+
                                                 <tbody>
                                                     @foreach ($resultadosQ9dashboard as $resultado)
                                                         <tr class="highlight-row ">
@@ -706,28 +707,28 @@
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->fec_lectura) ? $resultado->fec_lectura : 'No hay datos' }}
                                                             </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->total_ct) ? $resultado->total_ct : '0' }}
-                                                                /
+                                                            <td class="py-2">                                                                
                                                                 {{ !empty($resultado->lec_s02_hoy) ? $resultado->lec_s02_hoy : '0' }}
+                                                                /
+                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
                                                             </td>
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->porcentaje_s02) ? $resultado->porcentaje_s02 : '0' }}
                                                                 %
                                                             </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->total_ct) ? $resultado->total_ct : '0' }}
-                                                                /
+                                                            <td class="py-2">                                                                
                                                                 {{ !empty($resultado->lec_s05_hoy) ? $resultado->lec_s05_hoy : '0' }}
+                                                                /
+                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
                                                             </td>
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->porcentaje_s05) ? $resultado->porcentaje_s05 : '0' }}
                                                                 %
                                                             </td>
                                                             <td class="py-2">
-                                                                {{ !empty($resultado->total_ct) ? $resultado->total_ct : '0' }}
-                                                                /
                                                                 {{ !empty($resultado->lec_s04_hoy) ? $resultado->lec_s04_hoy : '0' }}
+                                                                /
+                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
                                                             </td>
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->porcentaje_s04) ? $resultado->porcentaje_s04 : '0' }}

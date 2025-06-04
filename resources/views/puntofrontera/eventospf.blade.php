@@ -210,40 +210,53 @@
         }
     </style>
     <script>
-        function tableToExcel(tableID, worksheetName) {
-            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
-            var data = "<table border='1'>";
-            for (var i = 0; i < table.rows.length; i++) {
-                var rowData = [];
-                for (var j = 0; j < table.rows[i].cells.length; j++) {
-                    rowData.push(table.rows[i].cells[j].innerText);
-                }
-                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
-            }
-            data += "</table>"; // Convertir a formato Excel y descargar
-            var uri = 'data:application/vnd.ms-excel;base64,';
-            var template =
-                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
-            var base64 = function(s) {
-                return window.btoa(unescape(encodeURIComponent(s)))
-            };
-            var format = function(s, c) {
-                return s.replace(/{(\w+)}/g, function(m, p) {
-                    return c[p];
-                })
-            };
-            var excelData = format(template, {
-                worksheet: worksheetName,
-                table: data
-            }); // Crear un enlace temporal y descargar el archivo Excel
-            var link = document.createElement("a");
-            link.href = uri + base64(excelData);
-            link.download = "exportacion_excel.xls";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var descripcion = document.querySelector('input[name="descripcion"]').value;
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+        var id_cnt = document.querySelector('input[name="id_cnt"]').value;
+
+        var url = "{{ route('exportar.eventos.pf') }}?";
+
+        if (id_cnt) {
+            url += "id_cnt=" + encodeURIComponent(id_cnt) + "&";
         }
-    </script>
+        if (descripcion) {
+            url += "descripcion=" + encodeURIComponent(descripcion) + "&";
+        }
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+});
+</script>
+
 
 
     <title>Eventos PF</title>
@@ -277,12 +290,8 @@
                             active-color="rgb(88, 226, 194">Dashboard</a>
                         <a href="{{ route('informacionpf', ['id_cnt' => $id_cnt]) }}" class="nav-item  "
                             active-color="rgb(88, 226, 194">Información</a>
-                        <a href="{{ route('curvashorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
-                            active-color="rgb(88, 226, 194">Curvas horarias</a>
-                        @if ($id_cnt && !empty($mostrarcurvascuartihorarias) && $mostrarcurvascuartihorarias[0]->curva_1 == 1)
-                            <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
-                                active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
-                        @endif
+                        <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
+                            active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
                         <a href="{{ route('eventospf', ['id_cnt' => $id_cnt]) }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194">Eventos</a>
                         <a href="{{ route('reportespf') }}" class="nav-item "
@@ -442,6 +451,14 @@
                                                                                         style="color:rgb(88,226,194)">
                                                                                         FECHA DE CORTE
                                                                                     </th>
+                                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                                        style="color:rgb(88,226,194)">
+                                                                                        DURACION (Segundos)
+                                                                                    </th>
+                                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                                        style="color:rgb(88,226,194)">
+                                                                                        FIN
+                                                                                    </th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
@@ -457,6 +474,18 @@
                                                                                         </td>
                                                                                         <td class="py-2">
                                                                                             {{ !empty($resultado->Fecha_Corte) ? $resultado->Fecha_Corte : 'No hay datos' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            {{ !empty($resultado->duracion_segundos) ? $resultado->duracion_segundos : 'No hay datos' }}
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            @if (!empty($resultado->Fecha_Corte) && !empty($resultado->duracion_segundos))
+                                                                                                {{ \Carbon\Carbon::createFromFormat('d/m/Y H:i:s', $resultado->Fecha_Corte)
+                                                                                                    ->addSeconds($resultado->duracion_segundos)
+                                                                                                    ->format('d/m/Y H:i:s') }}
+                                                                                            @else
+                                                                                                No hay datos
+                                                                                            @endif
                                                                                         </td>
                                                                                     </tr>
                                                                                 @endforeach
@@ -606,6 +635,11 @@
                                                                         </tbody>
                                                                     </table>
                                                                 </div>
+                                                                <div class="pagination-container mt-4 flex justify-center items-center">
+                                                                    <div class="pagination">
+                                                                        {{ $resultadosQ11pf->links() }}
+                                                                    </div>
+                                                                </div>
                                                             @else
                                                                 <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
                                                                     <p class="mt-0 text-xl  text-center"
@@ -616,9 +650,17 @@
                                                             @endif
                                                             <!-- Contenedor del botón de descarga -->
                                                             <div class="text-right mt-4">
-                                                                <input type="button"
-                                                                    onclick="tableToExcel('testTableEventos', 'W3C Example Table')"
-                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                                <!-- Botón Excel -->
+                                                                <button id="exportarExcel" 
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                    title="Exportar a Excel">
+                                                                </button>
+
+                                                                <!-- Botón CSV -->
+                                                                <button id="exportarCsv" 
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                                    title="Exportar a CSV">
+                                                                </button>
                                                             </div>
                                                             {{-- </div> --}}
                                                         </div>

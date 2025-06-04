@@ -530,12 +530,8 @@
                             active-color="rgb(88, 226, 194">Dashboard</a>
                         <a href="{{ route('informacionpf', ['id_cnt' => $id_cnt]) }}" class="nav-item  "
                             active-color="rgb(88, 226, 194">Información</a>
-                        <a href="{{ route('curvashorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
-                            active-color="rgb(88, 226, 194">Curvas horarias</a>
-                        @if ($id_cnt && !empty($mostrarcurvascuartihorarias) && $mostrarcurvascuartihorarias[0]->curva_1 == 1)
-                            <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}"
-                                class="nav-item is-active" active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
-                        @endif
+                        <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}"
+                            class="nav-item is-active" active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
                         <a href="{{ route('eventospf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Eventos</a> 
                         <a href="{{ route('reportespf') }}" class="nav-item"
@@ -783,13 +779,10 @@
                                                                     values_curvascuartihorarias_Exportada_A.push({{ $resultado->Energia_Activa_Exportada_A }}); // Recolectar los datos de Energia_Activa_Exportada_A
                                                                 @endforeach
                                                             
-                                                                var sortedData = labels_curvascuartihorarias.slice().sort();
-                                                                var filteredLabels = [sortedData[0]];
-                                                                for (var i = 1; i < sortedData.length; i++) {
-                                                                    if (sortedData[i] !== sortedData[i - 1]) {
-                                                                        filteredLabels.push(sortedData[i]);
-                                                                    }
-                                                                }
+                                                                var filteredLabels = labels_curvascuartihorarias.filter(function(item, pos, self) {
+                                                                    return self.indexOf(item) === pos;
+                                                                });
+
                                                             
                                                                 var myChartLineCurvasHorarias;
                                                             
@@ -904,7 +897,7 @@
                                                                                         labels: data.labels_curvascuartihorarias.map(label => {
                                                                                             const timeWithoutSeconds = label.replace(/\:\d\d$/, 'h');
                                                                                             return timeWithoutSeconds;
-                                                                                        }).sort(),
+                                                                                        }),
                                                                                         grid: {
                                                                                             color: '#666'
                                                                                         },

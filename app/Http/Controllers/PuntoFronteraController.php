@@ -6,6 +6,9 @@
 namespace App\Http\Controllers;
 
 
+use App\Exports\EventosPFExport;
+use App\Exports\ReportesPFCierresMensualesExport;
+use App\Exports\ReportesPFCurvasCuartihorariasExport;
 use App\Exports\ResultsExport;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,6 +16,11 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
+use Illuminate\Support\Collection;
+use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Illuminate\Support\Facades\Schema;
 
 
 
@@ -247,7 +255,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ11pf = $this->consultaOncepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
         $resultadosQ11pfFiltro =  $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnt, $connectionpf);
-
+        $exportEventsPF = $this->exportEventsPF($request);
 
 
 
@@ -265,6 +273,7 @@ class PuntoFronteraController extends Controller
             'resultadosQ11pf' => $resultadosQ11pf,
             'resultadosQ11pfFiltro' => $resultadosQ11pfFiltro,
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
+            'exportEventsPF' => $exportEventsPF,
 
 
         ]);
@@ -381,7 +390,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ24pf = $this->consultaVeintiCuatropf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $resultadosQ25pf = $this->consultaVeintiCincopf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnts, $connectionpf);
-
+        $exportCierresMensuales = $this->exportCierresMensuales($request, $connectionpf);
 
 
 
@@ -398,6 +407,8 @@ class PuntoFronteraController extends Controller
             'resultadosQ24pf' => $resultadosQ24pf,
             'resultadosQ25pf' => $resultadosQ25pf,
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
+            'exportCierresMensuales' => $exportCierresMensuales,
+            'connection' => $connectionpf,
 
 
         ]);
@@ -583,10 +594,10 @@ class PuntoFronteraController extends Controller
         if ($id_cnt) {
             $resultadosQ3pf = DB::connection($connectionpf)
                 ->select('
-                SELECT MAX(id) as max_id, DATE_FORMAT(t_dat_iec870_load_profile_2.fh, "%d/%m/%Y %H:%i:%s") as fecha_ultima_curva
-                FROM t_dat_iec870_load_profile_2, t_meter_params_iec870
+                SELECT MAX(id) as max_id, DATE_FORMAT(t_dat_iec870_load_profile_1.fh, "%d/%m/%Y %H:%i:%s") as fecha_ultima_curva
+                FROM t_dat_iec870_load_profile_1, t_meter_params_iec870
                 WHERE t_meter_params_iec870.id_cnt = :id_cnt
-                AND t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
+                AND t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
                 GROUP BY 2
                 ORDER BY 1 DESC
                 LIMIT 1
@@ -815,22 +826,66 @@ class PuntoFronteraController extends Controller
     public function consultaDiezpf($id_cnt, $connectionpf) //Estadisticas de Cortes
     {
         if ($id_cnt) {
-            $resultadosQ10pf = DB::connection($connectionpf)
+
+            if(Str::startsWith($id_cnt, 'B') || Str::startsWith($id_cnt, 'C')) {
+                $resultadosQ10pf = DB::connection($connectionpf)
                 ->select("
                 SELECT
                     t_meter_params_iec870.cups AS 'CUPS',
-                    t_dat_iec870_eventos.id_cnt,
-                    t_dat_iec870_eventos.fh AS 'Fecha_Corte'
-                FROM t_dat_iec870_eventos, t_meter_params_iec870
-                WHERE t_dat_iec870_eventos.id_cnt = :id_cnt
-                AND t_dat_iec870_eventos.id_cnt = t_meter_params_iec870.id_cnt
-                AND t_dat_iec870_eventos.DR = '52'
-                AND t_dat_iec870_eventos.SPA = '3'
-                AND t_dat_iec870_eventos.SPQ = '0'
-                AND t_dat_iec870_eventos.SPI = '1'
-                ORDER BY STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') DESC;
+                    e.id_cnt,
+                    e.fh AS 'Fecha_Corte',
+                    (SELECT TIMESTAMPDIFF(SECOND, 
+                                STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
+                                STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
+                    FROM t_dat_iec870_eventos fin
+                    WHERE fin.id_cnt = e.id_cnt
+                    AND fin.DR = 52 AND fin.SPA = 1 AND fin.SPQ = 2 AND fin.SPI = 1
+                    AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
+                    ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
+                    LIMIT 1
+                    ) AS 'duracion_segundos'
+                FROM t_dat_iec870_eventos e
+                JOIN t_meter_params_iec870
+                    ON e.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE e.id_cnt = :id_cnt
+                AND e.DR = '52'
+                AND e.SPA = '3'
+                AND e.SPQ = '0'
+                AND e.SPI = '1'
+                ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;
+
                 ", ['id_cnt' => $id_cnt]);
-            // dd($resultadosQ10pf);
+
+            } else if(Str::startsWith($id_cnt, 'Q') || Str::startsWith($id_cnt, 'Z')) {
+                $resultadosQ10pf = DB::connection($connectionpf)
+                ->select("
+                SELECT
+                    t_meter_params_iec870.cups AS 'CUPS',
+                    e.id_cnt,
+                    e.fh AS 'Fecha_Corte',
+                    (SELECT TIMESTAMPDIFF(SECOND, 
+                                STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
+                                STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
+                    FROM t_dat_iec870_eventos fin
+                    WHERE fin.id_cnt = e.id_cnt
+                    AND fin.DR = 52 AND fin.SPA = 3 AND fin.SPQ = 0 AND fin.SPI = 0
+                    AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
+                    ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
+                    LIMIT 1
+                    ) AS 'duracion_segundos'
+                FROM t_dat_iec870_eventos e
+                JOIN t_meter_params_iec870
+                    ON e.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE e.id_cnt = :id_cnt
+                AND e.DR = '52'
+                AND e.SPA = '1'
+                AND e.SPQ = '2'
+                AND e.SPI = '0'
+                ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;
+
+                ", ['id_cnt' => $id_cnt]);
+
+            } 
             return $resultadosQ10pf  ?: [];
         }
     }
@@ -842,20 +897,10 @@ class PuntoFronteraController extends Controller
     {
         if ($id_cnt) {
 
-
-
-
-
-
-
-
             // Si ha hecho una búsqueda por filtro, lo mandamos a su método
             if ($request->filled('descripcion')) {
                 return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
             }
-
-
-
 
             $query = "
         SELECT    
@@ -875,12 +920,6 @@ class PuntoFronteraController extends Controller
             AND t_dat_iec870_eventos.id_cnt = :id_cnt";
 
 
-
-
-
-
-
-
             if ($fecha_inicio && $fecha_fin) {
                 $query .= "
                 AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
@@ -894,30 +933,79 @@ class PuntoFronteraController extends Controller
             }
 
 
-
-
-
-
-
-
             $resultadosQ11pf = DB::connection($connectionpf)
                 ->select($query, $params);
+            $resultadosQ11pfCollection = new Collection($resultadosQ11pf);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 100; // Número de elementos por página
+            $currentItems = $resultadosQ11pfCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
-
-
-
-
-
+                    // Crear paginador manualmente
+            $resultadosQ11pf = new LengthAwarePaginator($currentItems, count($resultadosQ11pfCollection), $perPage, $currentPage, [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]);
 
             return $resultadosQ11pf ?: [];
         }
     }
 
+    public function exportEventsPF(Request $request)
+{
+    $id_cnt = $request->input('id_cnt'); // <- lo obtienes aquí
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+    // NUEVO: Tipo de archivo ('excel' por default)
+    $format = $request->input('format', 'excel'); 
+    $extension = $format === 'csv' ? 'csv' : 'xlsx';
+    $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
+    // Obtener la conexión dinámica (esto lo puedes mover a un método privado si se repite)
+    $connectionpf = User::conexionPuntoFrontera();
 
+    if ($request->filled('descripcion')) {
+        return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
+    }
 
+    $query = "
+        SELECT    
+            t_dat_iec870_eventos.id_cnt,
+            t_dat_iec870_eventos.fh,    
+            t_dat_iec870_eventos.DR,
+            t_dat_iec870_eventos.SPA,
+            t_dat_iec870_eventos.SPQ,
+            t_dat_iec870_eventos.SPI,
+            t_reader_events_description.description
+        FROM reader.t_dat_iec870_eventos, t_reader_events_description
+        WHERE
+            t_dat_iec870_eventos.DR = t_reader_events_description.DR
+            AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
+            AND t_dat_iec870_eventos.SPQ = t_reader_events_description.SPQ
+            AND t_dat_iec870_eventos.SPI = t_reader_events_description.SPI
+            AND t_dat_iec870_eventos.id_cnt = :id_cnt";
 
+    if ($fecha_inicio && $fecha_fin) {
+        $query .= "
+            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
+            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') <= :fecha_fin";
+        $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+    } else {
+        $query .= "
+            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+            ORDER BY STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') DESC";
+        $params = ['id_cnt' => $id_cnt];
+    }
+
+    $exportEventsPF = DB::connection($connectionpf)
+        ->select($query, $params);
+
+    if ($exportEventsPF) {
+        return Excel::download(new EventosPFExport($exportEventsPF), 'eventos_pf.' . $extension, $exportFormat);
+    } else {
+        return response()->json(['message' => 'No hay datos'], 404);
+    }
+}
 
 
 
@@ -925,12 +1013,6 @@ class PuntoFronteraController extends Controller
     public function buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, Request $request)
     {
         $descripcion = strtolower($request->input('descripcion'));
-
-
-
-
-
-
 
 
         $query = "
@@ -968,8 +1050,17 @@ class PuntoFronteraController extends Controller
         }
         $resultadosQ11pfFiltro = DB::connection($connectionpf)
             ->select($query, $params);
+        $resultadosQ11pfFiltroCollection = new Collection($resultadosQ11pfFiltro);
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 100; // Número de elementos por página
+        $currentItems = $resultadosQ11pfFiltroCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
+        // Crear paginador manualmente
+        $resultadosQ11pfFiltro = new LengthAwarePaginator($currentItems, count($resultadosQ11pfFiltroCollection), $perPage, $currentPage, [
+            'path' => request()->url(),
+            'query' => request()->query()
+        ]);
 
 
 
@@ -978,6 +1069,7 @@ class PuntoFronteraController extends Controller
 
         return $resultadosQ11pfFiltro ?: [];
     }
+
 
 
 
@@ -1350,13 +1442,13 @@ class PuntoFronteraController extends Controller
                 $query .= "
                 AND t_dat_iec870_load_profile_1.fh >= :fecha_inicio
                 AND t_dat_iec870_load_profile_1.fh <= :fecha_fin
-                ORDER BY t_dat_iec870_load_profile_1.fh DESC
+                ORDER BY t_dat_iec870_load_profile_1.fh ASC
                 ";
                 $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
             } else {
                 $query .= "
                 ORDER BY t_dat_iec870_load_profile_1.fh DESC
-                LIMIT 168";
+                LIMIT 2880";
                 $params = ['id_cnt' => $id_cnt];
             }
 
@@ -1365,7 +1457,10 @@ class PuntoFronteraController extends Controller
 
             $resultadosQ20pf = DB::connection($connectionpf)->select($query, $params);
 
-
+            // Invertir resultados para orden ascendente si no hay fechas
+            if (!$fecha_inicio && !$fecha_fin) {
+                $resultadosQ20pf = array_reverse($resultadosQ20pf);
+            }
 
 
             // dd($resultadosQ20pf);
@@ -1538,9 +1633,10 @@ class PuntoFronteraController extends Controller
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        $tipo_reporte = request()->input('tipo_reporte', []);
 
 
-        if (!empty($id_cnts)) {
+        if (!empty($id_cnts) && in_array('cierres_mensuales', $tipo_reporte)) {
             $query = "SELECT
             t_meter_params_iec870.cups as CUPS,
             t_dat_iec870_monthly_billing.id_cnt,
@@ -1595,27 +1691,95 @@ class PuntoFronteraController extends Controller
             // Obtener todos los resultados
             $resultadosQ23pf = DB::connection($connectionpf)->select($query, $params);
 
-
-            if ($request->input('export23') === 'excel23') {
-                // Llama a la clase ResultsExport para generar y descargar el archivo Excel
-                $export = new ResultsExport($resultadosQ23pf);
-                return $export->downloadQ23pf();
-            }
-
-
             // Crear una colección paginada manualmente
             $items = array_slice($resultadosQ23pf, $offset, $perPage);
             $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ23pf), $perPage, $page, [
                 'path' => $request->url(),
                 'query' => $request->query(),
             ]);
-            // dd($paginatedResults);
+            //dd($params); // En ambos métodos
             return $paginatedResults;
         }
 
 
         return [];
     }
+
+    public function exportCierresMensuales(Request $request) {
+        try {
+            $connection = User::conexionPuntoFrontera();
+            if(Schema::connection($connection)->hasTable('t_dat_iec870_monthly_billing')) {
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                $id_cnts = $request->input('id_cnts', []);
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+
+                if (!empty($id_cnts)) {
+                    $query = "SELECT
+                    t_meter_params_iec870.cups as CUPS,
+                    t_dat_iec870_monthly_billing.id_cnt,
+                    t_dat_iec870_monthly_billing.ctr as Contrato,
+                    t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
+                    date_format(t_dat_iec870_monthly_billing.fhi,'%d/%m/%Y') as Fecha_Inicio,
+                    date_format(t_dat_iec870_monthly_billing.fhf,'%d/%m/%Y') as Fecha_Fin,
+                    t_dat_iec870_monthly_billing.e_act_abs as Energia_Activa_Absoluta,
+                    t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
+                    t_dat_iec870_monthly_billing.e_act_cualif as Bit_Calidad_Activa,
+                    t_dat_iec870_monthly_billing.e_react_ind_abs as Energia_Reactiva_Inductiva_Absoluta,
+                    t_dat_iec870_monthly_billing.e_react_ind_inc as Energia_Reactiva_Inductiva_Incremental,
+                    t_dat_iec870_monthly_billing.e_react_ind_cualif as Bit_Calidad_Reactiva_Inductiva,
+                    t_dat_iec870_monthly_billing.e_react_cap_abs as Energia_Reactiva_Capacitiva_Absoluta,
+                    t_dat_iec870_monthly_billing.e_react_cap_inc as Energia_Reactiva_Capacitiva_Incremental,
+                    t_dat_iec870_monthly_billing.e_react_cap_cualif as Bit_Calidad_Reactiva_Capacitiva,
+                    t_dat_iec870_monthly_billing.e_act_exceso as Excesos_de_Potencias,
+                    t_dat_iec870_monthly_billing.e_act_exceso_cualif as Bit_Calidad_Excesos,
+                    t_dat_iec870_monthly_billing.pot_max as Maximetros,
+                    date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
+                    t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
+                FROM reader.t_dat_iec870_monthly_billing
+                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
+
+
+                    $params = $id_cnts;
+
+
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= "
+                    AND t_dat_iec870_monthly_billing.fhi >= ?
+                    AND t_dat_iec870_monthly_billing.fhf <= ?
+                    ORDER BY t_dat_iec870_monthly_billing.fhi DESC, t_dat_iec870_monthly_billing.fhf DESC";
+                        $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
+                    } else {
+                        $query .= "
+                            ORDER BY 
+                            t_dat_iec870_monthly_billing.id_cnt ASC,          
+                            t_dat_iec870_monthly_billing.fhi DESC,            
+                            t_dat_iec870_monthly_billing.ctr ASC,             
+                            t_dat_iec870_monthly_billing.pt ASC    ";
+                    }
+                    $exportCierresMensuales = DB::connection($connection)->select($query, $params);
+
+                    if($exportCierresMensuales) {
+                        //dd($params); // En ambos métodos
+                        return Excel::download(new ReportesPFCierresMensualesExport($exportCierresMensuales), 'cierres_mensuales.' . $extension, $exportFormat);
+                    } else {
+                        return response()->json(['message' => 'No hay datos'], 404);
+                    }
+
+                }
+        } else {
+            return ['message' => 'No hay datos'];
+        }
+    } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+}
 
 
 
@@ -1979,9 +2143,10 @@ class PuntoFronteraController extends Controller
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        $tipo_reporte = request()->input('tipo_reporte', []);
 
 
-        if (!empty($id_cnts)) {
+        if (!empty($id_cnts) && in_array('curvas_cuartihorarias', $tipo_reporte)) {
             $query = "
         SELECT
             t_meter_params_iec870.cups as 'CUPS',
@@ -2031,13 +2196,6 @@ class PuntoFronteraController extends Controller
             $resultadosQ25pf = DB::connection($connectionpf)->select($query, $params);
 
 
-            if ($request->input('export25') === 'excel25') {
-                // Llama a la clase ResultsExport para generar y descargar el archivo Excel
-                $export = new ResultsExport($resultadosQ25pf);
-                return $export->downloadQ25pf();
-            }
-
-
             // Crear una colección paginada manualmente
             $items = array_slice($resultadosQ25pf, $offset, $perPage);
             $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ25pf), $perPage, $page, [
@@ -2051,6 +2209,76 @@ class PuntoFronteraController extends Controller
 
 
         return [];
+    }
+
+    public function exportCurvasCuartihorarias(Request $request) {
+        try {
+            $connection = User::conexionPuntoFrontera();
+            if(Schema::connection($connection)->hasTable('t_dat_iec870_load_profile_1')) {
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                $id_cnts = $request->input('id_cnts', []);
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+
+                if (!empty($id_cnts)) {
+                    $query = "
+                SELECT
+                    t_meter_params_iec870.cups as 'CUPS',
+                    t_dat_iec870_load_profile_1.id_cnt,
+                    DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as 'Fecha',
+                    DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as 'Hora',
+                    t_dat_iec870_load_profile_1.e_act_imp as 'Energia_Activa_Importada_A',
+                    t_dat_iec870_load_profile_1.e_act_imp_cualif as 'Bit_Calidad_Activa_A',
+                    t_dat_iec870_load_profile_1.e_act_exp as 'Energia_Activa_Exportada_A',
+                    t_dat_iec870_load_profile_1.e_act_exp_cualif as 'Bit_Calidad_Activa_A2',
+                    t_dat_iec870_load_profile_1.e_react_ind_imp as 'Energia_Reactiva_Inductiva_Importada_Ri',
+                    t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri',
+                    t_dat_iec870_load_profile_1.e_react_ind_exp as 'Energia_Reactiva_Inductiva_Exportada_Ri',
+                    t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri2',
+                    t_dat_iec870_load_profile_1.e_react_cap_imp as 'Energia_Reactiva_Capacitiva_Importada_Rc',
+                    t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
+                    t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
+                    t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
+                FROM reader.t_dat_iec870_load_profile_1
+                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
+                WHERE t_dat_iec870_load_profile_1.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
+
+
+                    $params = $id_cnts;
+
+
+                    if ($fecha_inicio && $fecha_fin) {
+                        $query .= "
+                    AND t_dat_iec870_load_profile_1.fh >= ?
+                    AND t_dat_iec870_load_profile_1.fh <= ?
+                    ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC";
+                        $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
+                    } else {
+                        $query .= "
+                    ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC
+                    LIMIT 168";
+                    }
+
+                    $exportCurvasCuartihorarias = DB::connection($connection)->select($query, $params);
+
+                    if($exportCurvasCuartihorarias) {
+                        return Excel::download(new ReportesPFCurvasCuartihorariasExport($exportCurvasCuartihorarias), 'curvas_cuartihorarias.' . $extension, $exportFormat);
+                    } else {
+                        return response()->json(['message' => 'No hay datos'], 404);
+
+                    }
+                }
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
     }
 
 
