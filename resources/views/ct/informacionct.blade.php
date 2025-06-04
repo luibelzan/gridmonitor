@@ -1373,6 +1373,67 @@
                                                             map.addLayer(ctMarker);
                                                         @endif
 
+                                                        //TRAMOS
+                                                        // Colores disponibles para las líneas
+                                                        const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'black', 'cyan', 'magenta', 'lime', 'gold'];
+                                                        const colorPorLinea = {}; // Mapeo de id_linea a color
+                                                        let colorIndex = 0;
+
+                                                        // Obtener tramos desde PHP
+                                                        var tramos = @json($tramos);
+
+                                                        // Crear conjunto para evitar duplicados en leyenda
+                                                        const lineasUnicas = new Set();
+
+                                                        // Dibujar líneas
+                                                        tramos.forEach(tramo => {
+                                                            if (
+                                                                tramo.lat_inicio && tramo.lon_inicio &&
+                                                                tramo.lat_fin && tramo.lon_fin
+                                                            ) {
+                                                                // Asignar color único por línea
+                                                                if (!colorPorLinea[tramo.id_linea]) {
+                                                                    colorPorLinea[tramo.id_linea] = colores[colorIndex % colores.length];
+                                                                    colorIndex++;
+                                                                }
+
+                                                                const color = colorPorLinea[tramo.id_linea];
+                                                                const latlngs = [
+                                                                    [parseFloat(tramo.lat_inicio), parseFloat(tramo.lon_inicio)],
+                                                                    [parseFloat(tramo.lat_fin), parseFloat(tramo.lon_fin)]
+                                                                ];
+
+                                                                // Dibujar el tramo en el mapa
+                                                                L.polyline(latlngs, {
+                                                                    color: color,
+                                                                    weight: 3,
+                                                                    opacity: 0.8
+                                                                }).addTo(map);
+
+                                                                lineasUnicas.add(tramo.id_linea); // Agregar línea para la leyenda
+                                                            }
+                                                        });
+
+                                                        // Crear leyenda dinámicamente
+                                                        var legend = L.control({ position: 'bottomright' });
+
+                                                        legend.onAdd = function (map) {
+                                                            var div = L.DomUtil.create('div', 'info legend');
+                                                            div.innerHTML += '<strong>Líneas</strong><br>';
+
+                                                            lineasUnicas.forEach(id => {
+                                                                var color = colorPorLinea[id];
+                                                                div.innerHTML +=
+                                                                    '<i style="background:' + color + '; width: 20px; height: 3px; display: inline-block; margin-right: 5px;"></i>' +
+                                                                    ' Línea ' + id + '<br>';
+                                                            });
+
+                                                            return div;
+                                                        };
+
+                                                        legend.addTo(map);
+
+
                                                         //CONECTIVIDAD
                                                         var markersConectividad = L.markerClusterGroup({
                                                             spiderfyOnMaxZoom: true,  // Activa la separación de marcadores al hacer zoom
