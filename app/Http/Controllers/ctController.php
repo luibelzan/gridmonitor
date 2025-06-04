@@ -100,6 +100,7 @@ class ctController extends Controller
             $resultadosQ31 = $this->consultaTreintayUno($request, $id_ct, $connection);
             $resultadosQ32 = $this->consultaTreintayDos($id_ct, $connection, $request);
             $resultadosQ50 = $this->consultaCincuenta($id_ct, $connection, $request);
+            $tramos = $this->getTramos($request, $connection);
 
 
 
@@ -134,6 +135,7 @@ class ctController extends Controller
                 'id_ct' => $id_ct,
                 'cups_info' => $cups_info,
                 'selected_ct' => $id_ct,
+                'tramos' => $tramos,
             ]);
         }
     }
@@ -5355,6 +5357,25 @@ public function exportReportesCalidad(Request $request)
             }
         } catch (\Exception $e) {
             return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
+        }
+    }
+
+    Public function getTramos(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_tramos')) {
+                $query = "
+                SELECT *
+                FROM core.t_tramos
+                ";
+
+                $tramos = DB::connection($connection)->select($query);
+
+                return $tramos ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
         }
     }
     

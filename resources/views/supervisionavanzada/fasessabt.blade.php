@@ -506,17 +506,18 @@
                                                                 //console.log(latCupsSobretension, lonCupsSobretension);
 
                                                                 // Verificar si latCups y lonCups no son cadena vacía
-                                                                if (latCupsSobretension !== '' && lonCupsSobretension !== '') {
-                                                                    @if ($sobretension->cod_fase == 'R')
-                                                                        // Determinar la imagen basada en el valor de ind_autoconsumo
-                                                                        var iconImage = '../../images/casaverder.png';
-                                                                    @elseif($sobretension->cod_fase == 'S')
-                                                                        var iconImage = '../../images/casaverdes.png'; // imagen por defecto si no tiene ind_autoconsumo
-                                                                    @elseif($sobretension->cod_fase == 'T')
-                                                                        var iconImage = '../../images/casaverdet.png';
-                                                                    @else
-                                                                        var iconImage = '../../images/casaverdenofase.png';
-                                                                    @endif
+                                                                @if ($sobretension->cod_fase == 'R')
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarR.png" : "../../images/casaverder.png" }}';
+                                                                @elseif ($sobretension->cod_fase == 'S')
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarS.png" : "../../images/casaverdes.png" }}';
+                                                                @elseif ($sobretension->cod_fase == 'T')
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarT.png" : "../../images/casaverdet.png" }}';
+                                                                @elseif ($sobretension->cod_fase == '3')
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverde3f_autoconsumo.png" : "../../images/casaverde3f.png" }}';
+                                                                @else
+                                                                    var iconImage = '{{ $sobretension->ind_autoconsumo == "Y" ? "../../images/casaverdepanelsolarnofase.png" : "../../images/casaverdenofase.png" }}';
+                                                                @endif
+
 
 
                                                                     var divIcon = L.divIcon({
@@ -555,6 +556,9 @@
                                                                         '<div class="tab-pane fade show active" id="general-sobretension">' +
                                                                         '<ul>' +
                                                                         '<li><b>Id cups:</b> <a href="detallesenergiacups?id_cups={{ $sobretension->id_cups ?? ' ' }}" target="_blank">{{ $sobretension->id_cups ?? ' ' }}</a></li>' +
+                                                                        '<li><b>Linea:</b> {{ !empty($sobretension->id_linea) ? $sobretension->id_linea : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Potencia:</b> {{ !empty($sobretension->val_potencia_contratada) ? $sobretension->val_potencia_contratada : 'No hay datos' }}</li>' +
+                                                                        '<li><b>Tarifa:</b> {{ !empty($sobretension->tip_tarifa) ? $sobretension->tip_tarifa : 'No hay datos' }}</li>' +
                                                                         '</ul>' +
                                                                         '</div>' +
 
@@ -587,17 +591,24 @@
                                                         map.addLayer(capasSobretensiones);
 
                                                         //TRAMOS
+                                                        // Colores disponibles para las líneas
                                                         const colores = ['red', 'blue', 'green', 'orange', 'purple', 'brown', 'black', 'cyan', 'magenta', 'lime', 'gold'];
-                                                        const colorPorLinea = {};  // Mapeo de id_linea a color
+                                                        const colorPorLinea = {}; // Mapeo de id_linea a color
                                                         let colorIndex = 0;
 
+                                                        // Obtener tramos desde PHP
                                                         var tramos = @json($tramos);
+
+                                                        // Crear conjunto para evitar duplicados en leyenda
+                                                        const lineasUnicas = new Set();
+
+                                                        // Dibujar líneas
                                                         tramos.forEach(tramo => {
                                                             if (
                                                                 tramo.lat_inicio && tramo.lon_inicio &&
                                                                 tramo.lat_fin && tramo.lon_fin
                                                             ) {
-                                                                // Si la línea no tiene color asignado, asígnale uno
+                                                                // Asignar color único por línea
                                                                 if (!colorPorLinea[tramo.id_linea]) {
                                                                     colorPorLinea[tramo.id_linea] = colores[colorIndex % colores.length];
                                                                     colorIndex++;
@@ -609,13 +620,36 @@
                                                                     [parseFloat(tramo.lat_fin), parseFloat(tramo.lon_fin)]
                                                                 ];
 
+                                                                // Dibujar el tramo en el mapa
                                                                 L.polyline(latlngs, {
                                                                     color: color,
                                                                     weight: 3,
                                                                     opacity: 0.8
                                                                 }).addTo(map);
+
+                                                                lineasUnicas.add(tramo.id_linea); // Agregar línea para la leyenda
                                                             }
                                                         });
+
+                                                        // Crear leyenda dinámicamente
+                                                        var legend = L.control({ position: 'bottomright' });
+
+                                                        legend.onAdd = function (map) {
+                                                            var div = L.DomUtil.create('div', 'info legend');
+                                                            div.innerHTML += '<strong>Líneas</strong><br>';
+
+                                                            lineasUnicas.forEach(id => {
+                                                                var color = colorPorLinea[id];
+                                                                div.innerHTML +=
+                                                                    '<i style="background:' + color + '; width: 20px; height: 3px; display: inline-block; margin-right: 5px;"></i>' +
+                                                                    ' Línea ' + id + '<br>';
+                                                            });
+
+                                                            return div;
+                                                        };
+
+                                                        legend.addTo(map);
+
 
 
 
