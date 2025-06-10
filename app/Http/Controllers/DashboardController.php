@@ -536,12 +536,12 @@ class DashboardController extends Controller
     {
         $user = Auth::user(); //obtenemos los datos del usuario autenticado
         $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
-
+        $nombre = DB::connection($connectionpf)->getDatabaseName();
         try {
             $resultadosQ13dashboard = DB::connection($connectionpf)
                 ->select("
                    SELECT count(id_cnt) as num_contadores
-                    FROM reader.t_meter_params_iec870
+                    FROM t_meter_params_iec870
                     Where cod_id_group = $cod_id_group;
                     ");
 
@@ -558,7 +558,6 @@ class DashboardController extends Controller
     {
         $user = Auth::user(); //obtenemos los datos del usuario autenticado
         $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
-
         try {
             $resultadosQ14dashboard = DB::connection($connectionpf)
                 ->select("
@@ -574,8 +573,8 @@ class DashboardController extends Controller
                         AND t_meter_params_iec870.cod_id_group = $cod_id_group
                         AND month(t_dat_iec870_eventos.fh) = month (current_date);
                     ");
-
-            // dd($cod_id_group);
+            //$nombre = DB::connection($connectionpf)->getDatabaseName();
+            //dd($nombre);
             // dd($resultadosQ14dashboard);
             return $resultadosQ14dashboard ?: ['message' => 'No hay datos'];
         } catch (\Exception $e) {
@@ -593,7 +592,7 @@ class DashboardController extends Controller
             $resultadosQ15dashboard = DB::connection($connectionpf)
                 ->select("
                  SELECT count(t_dat_iec870_load_profile_1.fh) as leidas
-                FROM reader.t_dat_iec870_load_profile_1, t_meter_params_iec870
+                FROM t_dat_iec870_load_profile_1, t_meter_params_iec870
                 Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group
                 and month(t_dat_iec870_load_profile_1.fh) = month(current_date)
@@ -617,7 +616,7 @@ class DashboardController extends Controller
             $resultadosQ16dashboard = DB::connection($connectionpf)
                 ->select("
                  SELECT count(t_dat_iec870_load_profile_1.fh)  as invalidas
-                FROM reader.t_dat_iec870_load_profile_1,t_meter_params_iec870
+                FROM t_dat_iec870_load_profile_1,t_meter_params_iec870
                 Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group
                 and month(t_dat_iec870_load_profile_1.fh) = month(current_date) and
@@ -642,7 +641,7 @@ class DashboardController extends Controller
             $resultadosQ17dashboard = DB::connection($connectionpf)
                 ->select("
                  SELECT count(t_dat_iec870_monthly_billing.fhi) excesos_potencia
-                FROM reader.t_dat_iec870_monthly_billing,t_meter_params_iec870
+                FROM t_dat_iec870_monthly_billing,t_meter_params_iec870
                 Where t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt and
                 t_meter_params_iec870.cod_id_group = $cod_id_group 
                 and t_dat_iec870_monthly_billing.e_act_exceso > 0
