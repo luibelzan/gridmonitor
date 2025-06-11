@@ -149,6 +149,8 @@ class User extends Authenticatable
                 return 'pgsql-ebrofanas';
 			case 'Leandro':
                 return 'pgsql-leandro';	
+			case 'Ferez':
+                return 'pgsql-ferez';
 			case 'Sierramagina':
                 return 'pgsql-sierramagina';				
             default:
@@ -166,6 +168,34 @@ class User extends Authenticatable
 
     // CONEXION PARA PUNTO FRONTERA ------------------------------------------------
 
+    public static function setDynamicMySQLConnection($nom_distribuidora)
+{
+    // Limpiamos y normalizamos el nombre de la distribuidora para que coincida con el formato de las variables .env
+    // Convertimos a minúsculas y reemplazamos espacios o caracteres especiales si los hubiera por un guion bajo o similar,
+    // o simplemente capitalizamos la primera letra si ese es el patrón en el .env (como en tu caso).
+    // Para tu .env, parece que el patrón es `DB_MYSQL_NOMBRESDITRIBUIDORA_CONNECTION`.
+    $connectionName = 'mysql_' . strtolower($nom_distribuidora);
+
+    // Si tu .env usa nombres capitalizados (ej: CELA, CHERA), usa:
+    // $connectionName = 'mysql_' . strtoupper($nom_distribuidora);
+
+    // Si tus conexiones en el .env son como 'DB_MYSQL_Cela_CONNECTION', puedes usar:
+    // $connectionName = 'mysql_' . ucfirst(strtolower($nom_distribuidora));
+    // Pero basándonos en tu .env, parece que los nombres de las bases de datos son en minúscula.
+
+    // Verifica si existe una configuración para la conexión dinámica en las configuraciones de la base de datos.
+    // Esto asume que estás usando un framework como Laravel o Symfony que gestiona las configuraciones de la base de datos.
+    // Si no es el caso, deberías cargar las variables del .env y comprobarlas directamente.
+    if (config('database.connections.' . $connectionName)) {
+        return $connectionName;
+    }
+
+    // Si no se encuentra una conexión específica, se devuelve una conexión MySQL por defecto.
+    return 'mysql';
+}
+
+
+
     public static function conexionPuntoFrontera()
     {
         // Verificar si hay un usuario autenticado
@@ -176,7 +206,7 @@ class User extends Authenticatable
 
             if ($user->cod_id_group != 'admin') {
                 // Determinar la conexión de base de datos correspondiente utilizando el modelo User
-                return 'mysql_puntofrontera';
+                return User::setDynamicMySQLConnection($user->nom_distribuidora);
             }
             return 'pgsql';
         }

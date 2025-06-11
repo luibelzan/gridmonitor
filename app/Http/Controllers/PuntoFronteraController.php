@@ -390,7 +390,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ24pf = $this->consultaVeintiCuatropf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $resultadosQ25pf = $this->consultaVeintiCincopf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnts, $connectionpf);
-        $exportCierresMensuales = $this->exportCierresMensuales($request, $connectionpf);
+        $exportCierresMensuales = $this->exportCierresMensuales($request);
 
 
 
@@ -427,7 +427,7 @@ class PuntoFronteraController extends Controller
 
 
         $datos = DB::connection($connectionpf)
-            ->select("SELECT * FROM reader.t_reader_groups WHERE cod_id_group = $cod_id_group;");
+            ->select("SELECT * FROM t_reader_groups WHERE cod_id_group = $cod_id_group;");
         //  dd($datos);
         return $datos ?: [];
     }
@@ -442,7 +442,7 @@ class PuntoFronteraController extends Controller
 
 
         $parametros = DB::connection($connectionpf)
-            ->select("SELECT * FROM reader.t_meter_params_iec870
+            ->select("SELECT * FROM t_meter_params_iec870
             WHERE cod_id_group = $cod_id_group;");
         //  dd($parametros);
         return $parametros ?: [];
@@ -692,8 +692,8 @@ class PuntoFronteraController extends Controller
                     t_dat_iec870_monthly_billing.pot_max as Maximetros,
                     date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
                     t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
-                FROM reader.t_dat_iec870_monthly_billing
-                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+                FROM t_dat_iec870_monthly_billing
+                INNER JOIN t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
                 WHERE t_dat_iec870_monthly_billing.id_cnt = :id_cnt";
 
 
@@ -764,8 +764,8 @@ class PuntoFronteraController extends Controller
                 t_dat_iec870_load_profile_2.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
                 t_dat_iec870_load_profile_2.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
                 t_dat_iec870_load_profile_2.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-            FROM reader.t_dat_iec870_load_profile_2
-            INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
+            FROM t_dat_iec870_load_profile_2
+            INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
             WHERE t_dat_iec870_load_profile_2.id_cnt = :id_cnt";
 
 
@@ -810,7 +810,7 @@ class PuntoFronteraController extends Controller
                 ->select("
                 SELECT Count(*) as numero
                 FROM t_dat_iec870_eventos
-                WHERE reader.t_dat_iec870_eventos.id_cnt = :id_cnt
+                WHERE t_dat_iec870_eventos.id_cnt = :id_cnt
                 and t_dat_iec870_eventos.DR = '52'
                 and t_dat_iec870_eventos.SPA = '3'
                 and t_dat_iec870_eventos.SPQ = '0'
@@ -911,7 +911,7 @@ class PuntoFronteraController extends Controller
             t_dat_iec870_eventos.SPQ,
             t_dat_iec870_eventos.SPI,
             t_reader_events_description.description
-        FROM reader.t_dat_iec870_eventos, t_reader_events_description
+        FROM t_dat_iec870_eventos, t_reader_events_description
         WHERE
             t_dat_iec870_eventos.DR = t_reader_events_description.DR
             AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
@@ -977,7 +977,7 @@ class PuntoFronteraController extends Controller
             t_dat_iec870_eventos.SPQ,
             t_dat_iec870_eventos.SPI,
             t_reader_events_description.description
-        FROM reader.t_dat_iec870_eventos, t_reader_events_description
+        FROM t_dat_iec870_eventos, t_reader_events_description
         WHERE
             t_dat_iec870_eventos.DR = t_reader_events_description.DR
             AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
@@ -1024,7 +1024,7 @@ class PuntoFronteraController extends Controller
             t_dat_iec870_eventos.SPQ,
             t_dat_iec870_eventos.SPI,
             t_reader_events_description.description
-        FROM reader.t_dat_iec870_eventos, t_reader_events_description
+        FROM t_dat_iec870_eventos, t_reader_events_description
         WHERE
             t_dat_iec870_eventos.DR = t_reader_events_description.DR
             AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
@@ -1081,7 +1081,7 @@ class PuntoFronteraController extends Controller
             SELECT
                 COUNT(t_dat_iec870_load_profile_2.fh) AS Energia_Activa_Importada_A
             FROM
-                reader.t_dat_iec870_load_profile_2,  t_meter_params_iec870
+                t_dat_iec870_load_profile_2,  t_meter_params_iec870
                 WHERE t_meter_params_iec870.id_cnt = :id_cnt
             AND t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
                 AND t_dat_iec870_load_profile_2.e_act_imp = 0";
@@ -1097,7 +1097,7 @@ class PuntoFronteraController extends Controller
                 $query .= "
                 AND t_dat_iec870_load_profile_2.fh >= (
                     SELECT MAX(fh) - INTERVAL 168 HOUR
-                    FROM reader.t_dat_iec870_load_profile_2
+                    FROM t_dat_iec870_load_profile_2
                   );
                 ";
                 $params = ['id_cnt' => $id_cnt];
@@ -1121,7 +1121,7 @@ class PuntoFronteraController extends Controller
                     SELECT 
                         SUM(e_act_imp) AS suma_importada
                     FROM 
-                        reader.t_dat_iec870_load_profile_2
+                        t_dat_iec870_load_profile_2
                     WHERE 
                         id_cnt = :id_cnt";
 
@@ -1161,7 +1161,7 @@ class PuntoFronteraController extends Controller
                 SELECT 
                     SUM(e_act_exp) AS suma_exportada
                 FROM 
-                    reader.t_dat_iec870_load_profile_2
+                    t_dat_iec870_load_profile_2
                 WHERE 
                     id_cnt = :id_cnt";
 
@@ -1203,7 +1203,7 @@ class PuntoFronteraController extends Controller
                     ROUND(AVG(e_act_imp), 2) AS media_consumo_hora_imp,
                     ROUND(AVG(e_act_exp), 2) AS media_consumo_hora_exp
                 FROM 
-                    reader.t_dat_iec870_load_profile_2
+                    t_dat_iec870_load_profile_2
                 WHERE 
                     id_cnt = :id_cnt";
 
@@ -1252,7 +1252,7 @@ class PuntoFronteraController extends Controller
                     ROUND(AVG(e_act_imp), 2) AS media_consumo_dia_imp,
                     ROUND(AVG(e_act_exp), 2) AS media_consumo_dia_exp
                 FROM 
-                    reader.t_dat_iec870_load_profile_2
+                    t_dat_iec870_load_profile_2
                 WHERE 
                     id_cnt = :id_cnt";
 
@@ -1298,7 +1298,7 @@ class PuntoFronteraController extends Controller
             SELECT
                 COUNT(t_dat_iec870_load_profile_1.fh) AS Energia_Activa_Importada_A
             FROM
-                reader.t_dat_iec870_load_profile_1,  t_meter_params_iec870
+                t_dat_iec870_load_profile_1,  t_meter_params_iec870
                 WHERE t_meter_params_iec870.id_cnt = :id_cnt
             AND t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
                 AND t_dat_iec870_load_profile_1.e_act_imp = 0";
@@ -1314,7 +1314,7 @@ class PuntoFronteraController extends Controller
                 $query .= "
                 AND t_dat_iec870_load_profile_1.fh >= (
                     SELECT MAX(fh) - INTERVAL 168 HOUR
-                    FROM reader.t_dat_iec870_load_profile_1
+                    FROM t_dat_iec870_load_profile_1
                   );
                 ";
                 $params = ['id_cnt' => $id_cnt];
@@ -1341,7 +1341,7 @@ class PuntoFronteraController extends Controller
                     SELECT 
                         SUM(e_act_imp) AS suma_importada
                     FROM 
-                        reader.t_dat_iec870_load_profile_1
+                        t_dat_iec870_load_profile_1
                     WHERE 
                         id_cnt = :id_cnt";
 
@@ -1380,7 +1380,7 @@ class PuntoFronteraController extends Controller
                 SELECT 
                     SUM(e_act_exp) AS suma_exportada
                 FROM 
-                    reader.t_dat_iec870_load_profile_1
+                    t_dat_iec870_load_profile_1
                 WHERE 
                     id_cnt = :id_cnt";
 
@@ -1431,8 +1431,8 @@ class PuntoFronteraController extends Controller
                 t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
                 t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
                 t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-            FROM reader.t_dat_iec870_load_profile_1
-            INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
+            FROM t_dat_iec870_load_profile_1
+            INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
             WHERE t_dat_iec870_load_profile_1.id_cnt = :id_cnt";
 
 
@@ -1479,7 +1479,7 @@ class PuntoFronteraController extends Controller
                     ROUND(AVG(e_act_imp), 2) AS media_consumo_hora_imp,
                     ROUND(AVG(e_act_exp), 2) AS media_consumo_hora_exp
                 FROM 
-                    reader.t_dat_iec870_load_profile_1
+                    t_dat_iec870_load_profile_1
                 WHERE 
                     id_cnt = :id_cnt";
 
@@ -1526,7 +1526,7 @@ class PuntoFronteraController extends Controller
                     ROUND(AVG(e_act_imp), 2) AS media_consumo_dia_imp,
                     ROUND(AVG(e_act_exp), 2) AS media_consumo_dia_exp
                 FROM 
-                    reader.t_dat_iec870_load_profile_1
+                    t_dat_iec870_load_profile_1
                 WHERE 
                     id_cnt = :id_cnt";
 
@@ -1658,8 +1658,8 @@ class PuntoFronteraController extends Controller
             t_dat_iec870_monthly_billing.pot_max as Maximetros,
             date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
             t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
-        FROM reader.t_dat_iec870_monthly_billing
-        INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+        FROM t_dat_iec870_monthly_billing
+        INNER JOIN t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
         WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
 
 
@@ -1740,8 +1740,8 @@ class PuntoFronteraController extends Controller
                     t_dat_iec870_monthly_billing.pot_max as Maximetros,
                     date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
                     t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
-                FROM reader.t_dat_iec870_monthly_billing
-                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+                FROM t_dat_iec870_monthly_billing
+                INNER JOIN t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
                 WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
 
 
@@ -1952,8 +1952,8 @@ class PuntoFronteraController extends Controller
                 t_dat_iec870_load_profile_2.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
                 t_dat_iec870_load_profile_2.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
                 t_dat_iec870_load_profile_2.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-            FROM reader.t_dat_iec870_load_profile_2
-            INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
+            FROM t_dat_iec870_load_profile_2
+            INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
             WHERE t_dat_iec870_load_profile_2.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
 
 
@@ -2165,8 +2165,8 @@ class PuntoFronteraController extends Controller
             t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
             t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
             t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-        FROM reader.t_dat_iec870_load_profile_1
-        INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
+        FROM t_dat_iec870_load_profile_1
+        INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
         WHERE t_dat_iec870_load_profile_1.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
 
 
@@ -2243,8 +2243,8 @@ class PuntoFronteraController extends Controller
                     t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
                     t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
                     t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-                FROM reader.t_dat_iec870_load_profile_1
-                INNER JOIN reader.t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
+                FROM t_dat_iec870_load_profile_1
+                INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
                 WHERE t_dat_iec870_load_profile_1.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
 
 
@@ -2292,9 +2292,9 @@ class PuntoFronteraController extends Controller
                 t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
                 t_dat_iec870_monthly_billing.ctr as Contrato
             FROM
-                reader.t_dat_iec870_monthly_billing
+                t_dat_iec870_monthly_billing
             INNER JOIN
-                reader.t_meter_params_iec870 
+                t_meter_params_iec870 
                 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
             WHERE
                 t_dat_iec870_monthly_billing.id_cnt = :id_cnt1                
@@ -2303,7 +2303,7 @@ class PuntoFronteraController extends Controller
                     SELECT 
                         DATE_SUB(MAX(fhf), INTERVAL 11 MONTH)
                     FROM 
-                        reader.t_dat_iec870_monthly_billing
+                        t_dat_iec870_monthly_billing
                     WHERE 
                         id_cnt = :id_cnt2
                 )
@@ -2338,9 +2338,9 @@ class PuntoFronteraController extends Controller
                     DATE_FORMAT(t_dat_iec870_monthly_billing.pot_max_fh, '%m/%Y') AS Fecha,
                     FORMAT(AVG(t_dat_iec870_monthly_billing.pot_max), 2) AS Maximetros
                 FROM 
-                    reader.t_dat_iec870_monthly_billing
+                    t_dat_iec870_monthly_billing
                 INNER JOIN 
-                    reader.t_meter_params_iec870 
+                    t_meter_params_iec870 
                     ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
                 WHERE 
                     t_dat_iec870_monthly_billing.id_cnt = :id_cnt
@@ -2374,9 +2374,9 @@ public function consultaVeintiOchopf($id_cnt, $connectionpf)
             t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
             SUM(t_dat_iec870_monthly_billing.e_act_inc) as Energia_Activa_Incremental
         FROM 
-            reader.t_dat_iec870_monthly_billing
+            t_dat_iec870_monthly_billing
         INNER JOIN 
-            reader.t_meter_params_iec870 
+            t_meter_params_iec870 
             ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
         WHERE 
             t_dat_iec870_monthly_billing.id_cnt = :id_cnt
