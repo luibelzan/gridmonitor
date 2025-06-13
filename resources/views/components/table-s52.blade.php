@@ -55,7 +55,7 @@
                         {{ !empty($resultado->lvs_magn) ? $resultado->lvs_magn : '0' }}
                     </td>
                     <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->fh) ? $resultado->fec_inicio : 'No hay datos' }}
+                        {{ !empty($resultado->fec_inicio) ? $resultado->fec_inicio : 'No hay datos' }}
                     </td>
                     <td class="py-2" style="padding: 10px;">
                         {{ !empty($resultado->ai) ? $resultado->ai : '0' }}
