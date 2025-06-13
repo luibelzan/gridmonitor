@@ -84,6 +84,7 @@
                                 <!-- Formulario para filtros -->
                                 <form action="{{ route('supervisionavanzada') }}" method="GET"
                                     class="flex flex-col items-center space-y-4 mb-4 mt-4">
+                                    <input type="hidden" name="id_ct" value="{{ $id_ct }}">
                                     <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                                         <!-- Input de Fecha de Inicio -->
                                         <div class="flex flex-col">
