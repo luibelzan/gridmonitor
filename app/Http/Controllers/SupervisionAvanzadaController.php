@@ -51,6 +51,7 @@ class SupervisionAvanzadaController extends Controller {
             //Obtener los datos de todos los G53, S64, S52, S96, S97
             $tipo_evento = $request -> input('tipo_evento');
             $id_ct = $request -> input('id_ct');
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
 
             if($tipo_evento == null) {
                 $tipo_evento = 'S64';
@@ -60,27 +61,32 @@ class SupervisionAvanzadaController extends Controller {
                 $resultadosS64 = $this->getAllS64($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS64' => $resultadosS64,
-                    'id_ct' => $id_ct]);
+                    'id_ct' => $id_ct,
+                'ct_info' => $ct_info]);
             } else if($tipo_evento == 'G53') {
                 $resultadosG53 = $this->getAllG53($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosG53' => $resultadosG53,
-                    'id_ct' => $id_ct]);
+                    'id_ct' => $id_ct,
+                'ct_info' => $ct_info]);
             } else if($tipo_evento == 'S52') {
                 $resultadosS52 = $this->getAllS52($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS52' => $resultadosS52,
-                    'id_ct' => $id_ct]);
+                    'id_ct' => $id_ct,
+                'ct_info' => $ct_info]);
             } else if($tipo_evento == 'S96') {
                 $resultadosS96 = $this->getAllS96($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS96' => $resultadosS96,
-                    'id_ct' => $id_ct]);
+                    'id_ct' => $id_ct,
+                'ct_info' => $ct_info]);
             } else if($tipo_evento == 'S97') {
                 $resultadosS97 = $this->getAllS97($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS97' => $resultadosS97,
-                    'id_ct' => $id_ct]);
+                    'id_ct' => $id_ct,
+                'ct_info' => $ct_info]);
             } else {
                 return view('supervisionavanzada/supervisionavanzada', []);
             }
