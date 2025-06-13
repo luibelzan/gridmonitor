@@ -328,22 +328,22 @@
                                                                                     NOMBRE CT</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO TRAFOS</th>
+                                                                                    TRAFOS</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO LINEAS</th>
+                                                                                    LINEAS</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO CONTADORES</th>
+                                                                                    CONTADORES</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    CONTADORES FASE R</th>
+                                                                                    FASE R</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    CONTADORES FASE S</th>
+                                                                                    FASE S</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    CONTADORES FASE T</th>
+                                                                                    FASE T</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     RTU ID</th>
@@ -359,7 +359,11 @@
                                                                                             {{ !empty($resultado->id_ct) ? $resultado->id_ct : 'No hay datos' }}
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
+                                                                                            @if(!empty($resultado->nom_ct) && !empty($resultado->id_ct))
+                                                                                                <a href="{{ route('supervisionavanzada', ['id_ct' => $resultado->id_ct]) }}">
+                                                                                                    {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
+                                                                                                </a>
+                                                                                            @endif
                                                                                         </td>
                                                                                         <td class="py-2">
                                                                                             {{ !empty($resultado->nro_trafos) ? $resultado->nro_trafos : '0' }}
