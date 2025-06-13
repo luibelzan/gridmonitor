@@ -1181,7 +1181,7 @@
                                                         style="display: flex; justify-content: center;">
                                                         {{-- <div class="overflow-x-auto"> --}}
                                                         <!-- Contenido de S1 -->
-                                                        @if (count($resultadosQ6) > 0)
+                                                        @if (!empty($resultadosQ6) && isset($resultadosQ6[0]))
                                                             <div class="p-0 #205E86 text-white rounded-lg shadow-xl ">
                                                                 <?php
                                                                 $fecha = $resultadosQ6[0]->fec_lectura;
