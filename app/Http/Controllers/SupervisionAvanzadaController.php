@@ -52,6 +52,12 @@ class SupervisionAvanzadaController extends Controller {
             $tipo_evento = $request -> input('tipo_evento');
             $id_ct = $request -> input('id_ct');
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
+            $numTrafosAndCapacity = $this->getNumTrafosAndCapacity($id_ct, $connection);
+            $numCups = $this-> getNumCups($id_ct, $connection);
+            $numAutoconsumos = $this -> getNumAutoconsumos($id_ct, $connection);
+            $numLineas = $this-> getNumLineas($id_ct, $connection);
+            $comunicaciones = $this -> getComunicaciones($id_ct, $connection);
+            $datosSABT = $this -> getDatosSABT($id_ct, $connection);
 
             if($tipo_evento == null) {
                 $tipo_evento = 'S64';
@@ -62,31 +68,61 @@ class SupervisionAvanzadaController extends Controller {
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS64' => $resultadosS64,
                     'id_ct' => $id_ct,
-                'ct_info' => $ct_info]);
+                    'ct_info' => $ct_info,
+                    'numTrafosAndCapacity' => $numTrafosAndCapacity,
+                    'numCups' => $numCups,
+                    'numAutoconsumos' => $numAutoconsumos,
+                    'numLineas' => $numLineas,
+                    'comunicaciones' => $comunicaciones, 
+                    'datosSABT' => $datosSABT]);
             } else if($tipo_evento == 'G53') {
                 $resultadosG53 = $this->getAllG53($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosG53' => $resultadosG53,
                     'id_ct' => $id_ct,
-                'ct_info' => $ct_info]);
+                    'ct_info' => $ct_info,
+                    'numTrafosAndCapacity' => $numTrafosAndCapacity,
+                    'numCups' => $numCups,
+                    'numAutoconsumos' => $numAutoconsumos,
+                    'numLineas' => $numLineas,
+                    'comunicaciones' => $comunicaciones,
+                    'datosSABT' => $datosSABT]);
             } else if($tipo_evento == 'S52') {
                 $resultadosS52 = $this->getAllS52($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS52' => $resultadosS52,
                     'id_ct' => $id_ct,
-                'ct_info' => $ct_info]);
+                    'ct_info' => $ct_info,
+                    'numTrafosAndCapacity' => $numTrafosAndCapacity,
+                    'numCups' => $numCups,
+                    'numAutoconsumos' => $numAutoconsumos,
+                    'numLineas' => $numLineas,
+                    'comunicaciones' => $comunicaciones,
+                    'datosSABT' => $datosSABT]);
             } else if($tipo_evento == 'S96') {
                 $resultadosS96 = $this->getAllS96($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS96' => $resultadosS96,
                     'id_ct' => $id_ct,
-                'ct_info' => $ct_info]);
+                    'ct_info' => $ct_info,
+                    'numTrafosAndCapacity' => $numTrafosAndCapacity,
+                    'numCups' => $numCups,
+                    'numAutoconsumos' => $numAutoconsumos,
+                    'numLineas' => $numLineas,
+                    'comunicaciones' => $comunicaciones,
+                    'datosSABT' => $datosSABT]);
             } else if($tipo_evento == 'S97') {
                 $resultadosS97 = $this->getAllS97($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS97' => $resultadosS97,
                     'id_ct' => $id_ct,
-                'ct_info' => $ct_info]);
+                    'ct_info' => $ct_info,
+                    'numTrafosAndCapacity' => $numTrafosAndCapacity,
+                    'numCups' => $numCups,
+                    'numAutoconsumos' => $numAutoconsumos,
+                    'numLineas' => $numLineas,
+                    'comunicaciones' => $comunicaciones,
+                    'datosSABT' => $datosSABT]);
             } else {
                 return view('supervisionavanzada/supervisionavanzada', []);
             }
@@ -853,6 +889,195 @@ class SupervisionAvanzadaController extends Controller {
         } catch(\Exception $e) {
             return ['message' => 'No hay datos error', $e];
         }
+    }
+
+    public function getNumTrafosAndCapacity($id_ct, $connection)
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_ct') &&
+                Schema::connection($connection)->hasTable('t_concentradores') &&
+                Schema::connection($connection)->hasTable('t_supervisores') &&
+                Schema::connection($connection)->hasTable('t_trafos')
+            ) {
+                $numTrafosAndCapacity = DB::connection($connection)
+                    ->select('
+                    SELECT
+                        count(t_trafos.id_trafo) as nro_trafos,
+                        t_ct.id_ct,
+                        t_ct.nom_ct,
+                        t_ct.lat_ct,  
+						t_ct.lon_ct,
+                        t_concentradores.id_cnc,
+                        t_concentradores.cod_mod,
+                        t_concentradores.des_cnc_af,
+                        t_concentradores.des_vdlms,
+                        t_supervisores.id_svr,
+                        t_supervisores.id_trafo,
+                        t_trafos.nom_trafo,
+                        sum(t_trafos.val_kva) as kva_ct
+                    FROM
+                        core.t_ct,
+                        core.t_concentradores,
+                        core.t_supervisores,
+                        core.t_trafos
+                    WHERE
+                        t_concentradores.id_ct = t_ct.id_ct AND
+                        t_supervisores.id_trafo = t_trafos.id_trafo AND
+                        t_trafos.id_cnc = t_concentradores.id_cnc AND
+                        t_ct.id_ct = :id_ct
+                    GROUP BY
+                        t_ct.id_ct, t_ct.nom_ct, t_concentradores.id_cnc,
+                        t_concentradores.cod_mod, t_concentradores.des_cnc_af,
+                        t_concentradores.des_vdlms,
+                        t_supervisores.id_svr, t_supervisores.id_trafo,
+                        t_trafos.nom_trafo
+                    ORDER BY
+                        t_ct.id_ct ASC, t_ct.nom_ct ASC;
+                ', ['id_ct' => $id_ct]);
+
+
+                // dd($resultadosQ1);
+
+
+                return $numTrafosAndCapacity ?: ['message' => 'No hay datos'];
+            } else {
+                // La tabla no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getNumCups($id_ct, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_cups')) {
+                $numCups = DB::connection($connection)
+                    ->select('
+                    SELECT count(*) as nro_cups
+                    FROM core.t_cups
+                    WHERE t_cups.id_ct = :id_ct;
+                ', ['id_ct' => $id_ct]);
+
+
+
+
+                return empty($numCups) ? [['nro_cups' => 0]] : $numCups;
+            } else {
+                // La tabla no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getNumAutoconsumos($id_ct, $connection)
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_cups') &&
+                Schema::connection($connection)->hasTable('t_ct')
+            ) {
+                $numAutoconsumos = DB::connection($connection)
+                    ->select("
+                        SELECT count(*) as nro_autoconsumos
+                        FROM core.t_cups, core.t_ct
+                        WHERE 
+                        t_cups.ind_autoconsumo = 'S' AND
+                        t_cups.id_ct = t_ct.id_ct AND
+                        t_cups.id_ct = :id_ct;
+                    ", ['id_ct' => $id_ct]);
+
+
+
+
+                return empty($numAutoconsumos) ? [['nro_autoconsumos' => 0]] : $numAutoconsumos;
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getNumLineas($id_ct, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_lineas')) {
+                $numLineas = DB::connection($connection)
+                    ->select("
+                        SELECT count(id_linea) as nro_lineas
+                        FROM core.t_lineas
+                        WHERE t_lineas.id_trafo = id_trafo
+                        AND t_lineas.id_ct = :id_ct;
+                    ", ['id_ct' => $id_ct]);
+
+
+
+
+                return empty($numLineas) ? [['nro_lineas' => 0]] : $numLineas;
+            } else {
+                // La tabla no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getComunicaciones($id_ct, $connection)
+    {
+        if ($id_ct) {
+            // Verificar si la tabla existe
+            if (Schema::connection($connection)->hasTable('t_hw_comunicaciones')) {
+                // La tabla existe, ejecutar la consulta
+                $comunicaciones = DB::connection($connection)
+                    ->select("
+                    SELECT * FROM core.t_hw_comunicaciones
+                    WHERE id_ct = :id_ct
+                    ", ['id_ct' => $id_ct]);
+                return $comunicaciones ?: [];
+            } else {
+                // La tabla no existe, retornar un array vacío 
+                return [];
+            }
+        }
+    }
+
+    public function getDatosSABT($id_ct, $connection) {
+        if($id_ct) {
+            if(Schema::connection($connection)->hasTable('t_equipos_sabt') && 
+            Schema::connection($connection)->hasTable('t_s62')) {
+                $datosSABT = DB::connection($connection)
+                ->select("
+                    SELECT
+                        sabt.id_rtu AS id,
+                        s62.mod AS modelo,
+                        s62.af AS anio,
+                        s62.te AS tipo,
+                        s62.vf AS firmware,
+                        s62.\"revConf\" AS config
+                    FROM
+                        core.t_equipos_sabt sabt
+                    JOIN
+                        core.t_s62 s62
+                        ON sabt.id_rtu = s62.id_rtu
+                    WHERE 
+                        sabt.id_ct = :id_ct;
+                ", [$id_ct]);
+
+                return $datosSABT ?: [];
+            } 
+        }
+        return [];
     }
 
 }
