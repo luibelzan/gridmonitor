@@ -564,7 +564,7 @@
 
                                                     @php
                                                         $botones = [
-                                                            'S64' => 'Perfil Medio V/I (S64)',
+                                                            'S64' => 'Perfil Voltaje/Intensidad (S64)',
                                                             'G53' => 'Perfil V Neutro/Tierra (G53)',
                                                             'S52' => 'Perfil Energetico por Linea (S52)',
                                                             'S96' => 'Armonicos de Tension (S96)',

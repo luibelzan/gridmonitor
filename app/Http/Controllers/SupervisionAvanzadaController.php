@@ -594,7 +594,7 @@ class SupervisionAvanzadaController extends Controller {
 
             // Inicia el query con JOIN para filtrar por id_ct
             $query = "
-                SELECT DISTINCT s.*
+                SELECT DISTINCT s.*, e.id_linea
                 FROM core.t_s64 s
                 INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
                 WHERE 1=1
@@ -623,7 +623,7 @@ class SupervisionAvanzadaController extends Controller {
                 $query .= " AND s.fh >= NOW() - INTERVAL '24 hours'";
             }
 
-            $query .= " ORDER BY s.fh DESC LIMIT 20";
+            $query .= " ORDER BY s.fh DESC LIMIT 1000";
 
             $resultadosS64 = DB::connection($connection)->select($query, $params);
 
