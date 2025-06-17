@@ -149,11 +149,13 @@
     {{-- SCRIPTS PARA EL GRÁFICO VOLTAJE 1 --}}
     <script>
         var datosPorLinea = {};
+        var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
         @foreach ($resultados as $resultado)
             @if (isset($resultado->fh) && isset($resultado->v1) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d') }}';
+                var fechaCompleta = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i:s') }}';
                 var valor = {{ $resultado->v1 }};
 
                 if (!datosPorLinea[linea]) {
@@ -161,10 +163,12 @@
                         labels: [],
                         values: []
                     };
+                    tooltipsPorLinea[linea] = {};
                 }
 
                 datosPorLinea[linea].labels.push(fecha);
                 datosPorLinea[linea].values.push(valor);
+                tooltipsPorLinea[linea][fecha] = fechaCompleta;
             @endif
         @endforeach
 
@@ -196,7 +200,8 @@
                 borderWidth: 2,
                 tension: 0.4,
                 fill: false,
-                pointRadius: 3
+                pointRadius: 3,
+                tooltips: fechas.map(f => tooltipsPorLinea[lineaId][f] ?? f)
             });
         });
 
@@ -236,6 +241,19 @@
                         labels: {
                             color: 'white',
                             font: { family: 'Didact Gothic', weight: 'normal' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function (context) {
+                                // Obtener el índice del punto
+                                const index = context[0].dataIndex;
+                                const dataset = context[0].dataset;
+                                return dataset.tooltips ? dataset.tooltips[index] : context[0].label;
+                            },
+                            label: function (context) {
+                                return 'Valor: ' + context.formattedValue + ' V';
+                            }
                         }
                     }
                 },
