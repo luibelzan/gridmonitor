@@ -8,6 +8,7 @@ namespace App\Http\Controllers;
 
 
 
+use App\Exports\DiferenciaConsumosExport;
 use App\Exports\EventosCTExport;
 use App\Exports\ReportesCalidadExport;
 use App\Exports\ReportesInventarioExport;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Maatwebsite\Excel\Facades\Excel; 
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use App\Exports\CurvasHorariasExport;
 use App\Exports\ReportesEventosExport;
@@ -157,13 +158,15 @@ class ctController extends Controller
                 // Construir la consulta principal
                 $cups_info = Cups::on($connection)
                     ->where('id_ct', $id_ct)
-                    ->with(['estadisticasContadores' => function ($query) use ($fecha_inicio, $fecha_fin) {
-                        // Filtrar estadísticas de contadores por fechas si están presentes
-                        if ($fecha_inicio && $fecha_fin) {
-                            $query->whereBetween('fec_fin', [$fecha_inicio, $fecha_fin]);
+                    ->with([
+                        'estadisticasContadores' => function ($query) use ($fecha_inicio, $fecha_fin) {
+                            // Filtrar estadísticas de contadores por fechas si están presentes
+                            if ($fecha_inicio && $fecha_fin) {
+                                $query->whereBetween('fec_fin', [$fecha_inicio, $fecha_fin]);
+                            }
+                            $query->select('id_cups', 'id_cnt', 'fec_fin', 'por_minutos_contador');
                         }
-                        $query->select('id_cups', 'id_cnt', 'fec_fin', 'por_minutos_contador');
-                    }])
+                    ])
                     ->join('core.t_contadores', 'core.t_cups.id_cnt', '=', 'core.t_contadores.id_cnt')
                     ->join('core.t_modelos_contadores', 'core.t_contadores.mod_cnt', '=', 'core.t_modelos_contadores.mod_cnt')
                     ->where(function ($query) {
@@ -738,6 +741,7 @@ class ctController extends Controller
             $resultadosQ58 = $this->consultaCincuentayOcho($request, $connection);
             $exportCurvasHorarias = $this->exportCurvasHorarias($request);
             $diferenciaConsumo = $this->getDiferenciaConsumo($request, $connection);
+            $exportDiferenciaConsumos = $this->exportDiferenciaConsumo($request);
 
             // Pasar los datos de los CTs y los resultados de las consultas a la vista
             return view('ct/reportescurvashorarias', [
@@ -745,11 +749,13 @@ class ctController extends Controller
                 'resultadosQ58' => $resultadosQ58,
                 'exportCurvasHorarias' => $exportCurvasHorarias,
                 'diferenciaConsumo' => $diferenciaConsumo,
+                'exportDiferenciaConsumos' => $exportDiferenciaConsumos
             ]);
         }
     }
 
-    public function reporteseventos(Request $request) {
+    public function reporteseventos(Request $request)
+    {
         // Verificar si el usuario está autenticado
         if (!Auth::check()) {
             // Si no está autenticado, redirigir a la página de inicio de sesión
@@ -790,8 +796,8 @@ class ctController extends Controller
                 //'eventosByDescription'=> $eventosByDescription,
 
             ]);
+        }
     }
-}
 
 
     //CONSULTAS -------------------------------------------
@@ -1775,17 +1781,17 @@ class ctController extends Controller
     }
 
 
-//CONSULTA 6 PERO PARA LOS ÚLTIMOS 7 DÍAS
-public function consultaVeintidos($id_ct, $connection)
-{
-    try {
-        if (
-            Schema::connection($connection)->hasTable('t_indices_lectura') &&
-            Schema::connection($connection)->hasTable('t_cups') &&
-            Schema::connection($connection)->hasTable('t_supervisores')
-        ) {
-            $resultadosQ22 = DB::connection($connection)
-                ->select("
+    //CONSULTA 6 PERO PARA LOS ÚLTIMOS 7 DÍAS
+    public function consultaVeintidos($id_ct, $connection)
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_indices_lectura') &&
+                Schema::connection($connection)->hasTable('t_cups') &&
+                Schema::connection($connection)->hasTable('t_supervisores')
+            ) {
+                $resultadosQ22 = DB::connection($connection)
+                    ->select("
                 SELECT  
 	                core.t_cups.id_ct,
                     core.t_indices_lectura.fec_lectura,
@@ -1808,17 +1814,17 @@ public function consultaVeintidos($id_ct, $connection)
 
 
 
-            // dd($resultadosQ22);
-            return $resultadosQ22 ?: ['message' => 'No hay datos'];
-        } else {
-            // Una de las tablas no existe, retornar un mensaje específico 
+                // dd($resultadosQ22);
+                return $resultadosQ22 ?: ['message' => 'No hay datos'];
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
             return ['message' => 'No hay datos'];
         }
-    } catch (\Exception $e) {
-        // Manejo de excepciones con mensaje específico
-        return ['message' => 'No hay datos'];
     }
-}
 
 
 
@@ -1907,7 +1913,7 @@ public function consultaVeintidos($id_ct, $connection)
             $fecha_fin = $request->input('fecha_fin');
             $id_ct = $request->input('id_ct');
             // NUEVO: Tipo de archivo ('excel' por default)
-            $format = $request->input('format', 'excel'); 
+            $format = $request->input('format', 'excel');
             $extension = $format === 'csv' ? 'csv' : 'xlsx';
             $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
@@ -1941,11 +1947,11 @@ public function consultaVeintidos($id_ct, $connection)
 
 
                 $exportEventosCT = DB::connection($connection)->select($query, $params);
-                if($exportEventosCT) {
-                    return Excel::download(new EventosCTExport($exportEventosCT), 'eventos_ct.' . $extension, $exportFormat);                   
+                if ($exportEventosCT) {
+                    return Excel::download(new EventosCTExport($exportEventosCT), 'eventos_ct.' . $extension, $exportFormat);
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
-                } 
+                }
             } else {
                 return ['message' => 'No hay datos'];
             }
@@ -2215,7 +2221,7 @@ public function consultaVeintidos($id_ct, $connection)
 
 
 
-    
+
     public function consultaVeintiOcho(Request $request, $id_ct, $connection) // mapa sobretensiones
     {
         try {
@@ -2226,14 +2232,14 @@ public function consultaVeintidos($id_ct, $connection)
             ) {
                 return ['message' => 'No hay datos (Tablas no encontradas)'];
             }
-    
+
             // Obtener las fechas de inicio y fin del request
             $fecha_inicio = $request->input('fecha_inicio');
             $fecha_fin = $request->input('fecha_fin');
-    
+
             // Definir los parámetros iniciales
             $params = ['id_ct' => $id_ct];
-    
+
             // Construcción de la consulta SQL
             $query = "
                 WITH max_fec_evento AS (
@@ -2262,9 +2268,9 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         COUNT(*) AS nro_sobre_voltajes
                     FROM core.v_sobre_voltajes
-                    WHERE 1=1 " . 
-                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
-                    (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
+                    WHERE 1=1 " .
+                (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") .
+                (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 )
                 SELECT
@@ -2284,7 +2290,7 @@ public function consultaVeintidos($id_ct, $connection)
                 JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
             ";
-    
+
             // Añadir condiciones de fecha si están presentes
             if ($fecha_inicio) {
                 $params['fecha_inicio'] = $fecha_inicio;
@@ -2292,21 +2298,21 @@ public function consultaVeintidos($id_ct, $connection)
             if ($fecha_fin) {
                 $params['fecha_fin'] = $fecha_fin;
             }
-    
+
             // Depurar consulta antes de ejecutarla
             // dd($query, $params); // Descomentar para ver la consulta exacta en Laravel
-    
+
             // Ejecutar la consulta
             $resultadosQ28 = DB::connection($connection)->select($query, $params);
-    
+
             return !empty($resultadosQ28) ? $resultadosQ28 : ['message' => 'No hay datos'];
-    
+
         } catch (\Exception $e) {
             return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
-    
-    
+
+
 
 
 
@@ -2363,8 +2369,8 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         COUNT(*) AS nro_sub_voltajes
                     FROM core.v_sub_voltajes
-                    WHERE 1=1 " . 
-                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
+                    WHERE 1=1 " .
+                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") .
                     (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 )
@@ -2465,9 +2471,9 @@ public function consultaVeintidos($id_ct, $connection)
                     id_cups,
                     COUNT(*) AS apagones
                 FROM core.v_apagones
-                WHERE 1=1 " . 
-                (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
-                (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
+                WHERE 1=1 " .
+                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") .
+                    (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                 GROUP BY id_cups
                 )
                 SELECT
@@ -2567,8 +2573,8 @@ public function consultaVeintidos($id_ct, $connection)
                         id_cups,
                         COUNT(*) AS microcortes
                     FROM core.v_micro_cortes
-                    WHERE 1=1 " . 
-                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") . 
+                    WHERE 1=1 " .
+                    (!empty($fecha_inicio) ? "AND fec_evento >= :fecha_inicio " : "") .
                     (!empty($fecha_fin) ? "AND fec_evento <= :fecha_fin " : "") . "
                     GROUP BY id_cups
                 )
@@ -2618,7 +2624,7 @@ public function consultaVeintidos($id_ct, $connection)
             return ['message' => 'No hay datos'];
         }
     }
-    
+
 
 
 
@@ -2880,21 +2886,21 @@ public function consultaVeintidos($id_ct, $connection)
 
     // REPORTES CALIDAD
     public function consultaTreintaySiete(Request $request, $connection)
-{
-    try {
-        if (
-            Schema::connection($connection)->hasTable('t_ct') &&
-            Schema::connection($connection)->hasTable('t_cups')
-        ) {
-            // Obtener las fechas de inicio y fin del request
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_ct') &&
+                Schema::connection($connection)->hasTable('t_cups')
+            ) {
+                // Obtener las fechas de inicio y fin del request
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
 
-            // Inicializar el array de parámetros
-            $params = [];
+                // Inicializar el array de parámetros
+                $params = [];
 
-            // Construir la consulta SQL con las fechas
-            $query = "
+                // Construir la consulta SQL con las fechas
+                $query = "
                 SELECT
                     t.nom_ct,
                     c.id_cups,
@@ -2912,150 +2918,150 @@ public function consultaVeintidos($id_ct, $connection)
                     FROM core.v_apagones
                     WHERE 1=1 ";
 
-            // Agregar filtro de fechas para apagones
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                // Agregar filtro de fechas para apagones
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-                $params['fecha_fin'] = $fecha_fin;
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) p ON c.id_cups = p.id_cups";
+                $query .= "GROUP BY id_cups) p ON c.id_cups = p.id_cups";
 
-            // Hacer lo mismo para las otras subconsultas (sobrevoltajes, sub_voltajes, micro_cortes)
-            $query .= "
+                // Hacer lo mismo para las otras subconsultas (sobrevoltajes, sub_voltajes, micro_cortes)
+                $query .= "
                 LEFT JOIN (
                     SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sobrevoltajes
                     FROM core.v_sobre_voltajes
                     WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) s ON c.id_cups = s.id_cups";
+                $query .= "GROUP BY id_cups) s ON c.id_cups = s.id_cups";
 
-            $query .= "
+                $query .= "
                 LEFT JOIN (
                     SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sub_voltajes
                     FROM core.v_sub_voltajes
                     WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) a ON c.id_cups = a.id_cups";
+                $query .= "GROUP BY id_cups) a ON c.id_cups = a.id_cups";
 
-            $query .= "
+                $query .= "
                 LEFT JOIN (
                     SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS micro_cortes
                     FROM core.v_micro_cortes
                     WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) m ON c.id_cups = m.id_cups";
+                $query .= "GROUP BY id_cups) m ON c.id_cups = m.id_cups";
 
-            // Filtro de fechas en la consulta principal
-            $query .= " WHERE 1=1 ";
+                // Filtro de fechas en la consulta principal
+                $query .= " WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio
                             AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } else if ($fecha_inicio) {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio ";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } else if ($fecha_fin) {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
-                $params['fecha_fin'] = $fecha_fin;
-            } else {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= NOW() - INTERVAL '30 days' ";
-            }
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if ($fecha_inicio) {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } else if ($fecha_fin) {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= NOW() - INTERVAL '30 days' ";
+                }
 
-            // Añadir la cláusula GROUP BY y ORDER BY
-            $query .= "
+                // Añadir la cláusula GROUP BY y ORDER BY
+                $query .= "
                 GROUP BY c.id_cups, t.nom_ct, c.nom_cups, p.apagones, s.sobrevoltajes, a.sub_voltajes, m.micro_cortes
                 ORDER BY MAX(COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento)) DESC
             ";
 
-            // Ejecutar la consulta
-            $resultadosQ37 = DB::connection($connection)->select($query, $params);
-            $resultadosQ37Collection = new Collection($resultadosQ37);
-            $currentPage = LengthAwarePaginator::resolveCurrentPage();
-            $perPage = 100; // Número de elementos por página
-            $currentItems = $resultadosQ37Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                // Ejecutar la consulta
+                $resultadosQ37 = DB::connection($connection)->select($query, $params);
+                $resultadosQ37Collection = new Collection($resultadosQ37);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $resultadosQ37Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
-            // Crear paginador manualmente
-            $resultadosQ37 = new LengthAwarePaginator($currentItems, count($resultadosQ37Collection), $perPage, $currentPage, [
-                'path' => request()->url(),
-                'query' => request()->query()
-            ]);
-            return $resultadosQ37;
+                // Crear paginador manualmente
+                $resultadosQ37 = new LengthAwarePaginator($currentItems, count($resultadosQ37Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                return $resultadosQ37;
+            }
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage()];
     }
-}
 
 
-public function exportReportesCalidad(Request $request)
-{
-    try {
-        $user = auth()->user();
-        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
-        if (
-            Schema::connection($connection)->hasTable('t_ct') &&
-            Schema::connection($connection)->hasTable('t_cups')
-        ) {
-            // Obtener las fechas de inicio y fin del request
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
+    public function exportReportesCalidad(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            if (
+                Schema::connection($connection)->hasTable('t_ct') &&
+                Schema::connection($connection)->hasTable('t_cups')
+            ) {
+                // Obtener las fechas de inicio y fin del request
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
 
-            // NUEVO: Tipo de archivo ('excel' por default)
-            $format = $request->input('format', 'excel'); 
-            $extension = $format === 'csv' ? 'csv' : 'xlsx';
-            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel');
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
-            // Inicializar el array de parámetros
-            $params = [];
+                // Inicializar el array de parámetros
+                $params = [];
 
-            // Construir la consulta SQL con las fechas
-            $query = "
+                // Construir la consulta SQL con las fechas
+                $query = "
                 SELECT
                     t.nom_ct,
                     c.id_cups,
@@ -3073,118 +3079,118 @@ public function exportReportesCalidad(Request $request)
                     FROM core.v_apagones
                     WHERE 1=1 ";
 
-            // Agregar filtro de fechas para apagones
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                // Agregar filtro de fechas para apagones
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-                $params['fecha_fin'] = $fecha_fin;
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) p ON c.id_cups = p.id_cups";
+                $query .= "GROUP BY id_cups) p ON c.id_cups = p.id_cups";
 
-            // Hacer lo mismo para las otras subconsultas (sobrevoltajes, sub_voltajes, micro_cortes)
-            $query .= "
+                // Hacer lo mismo para las otras subconsultas (sobrevoltajes, sub_voltajes, micro_cortes)
+                $query .= "
                 LEFT JOIN (
                     SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sobrevoltajes
                     FROM core.v_sobre_voltajes
                     WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) s ON c.id_cups = s.id_cups";
+                $query .= "GROUP BY id_cups) s ON c.id_cups = s.id_cups";
 
-            $query .= "
+                $query .= "
                 LEFT JOIN (
                     SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS sub_voltajes
                     FROM core.v_sub_voltajes
                     WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) a ON c.id_cups = a.id_cups";
+                $query .= "GROUP BY id_cups) a ON c.id_cups = a.id_cups";
 
-            $query .= "
+                $query .= "
                 LEFT JOIN (
                     SELECT id_cups, MAX(fec_evento) AS fec_evento, COUNT(fec_evento) AS micro_cortes
                     FROM core.v_micro_cortes
                     WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "AND fec_evento >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= "AND fec_evento >= :fecha_inicio
                             AND fec_evento <= :fecha_fin ";
-            } else if ($fecha_inicio) {
-                $query .= " AND fec_evento >= :fecha_inicio ";
-            } else if ($fecha_fin) {
-                $query .= " AND fec_evento <= :fecha_fin ";
-            } else {
-                $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
-            }
+                } else if ($fecha_inicio) {
+                    $query .= " AND fec_evento >= :fecha_inicio ";
+                } else if ($fecha_fin) {
+                    $query .= " AND fec_evento <= :fecha_fin ";
+                } else {
+                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days' ";
+                }
 
-            $query .= "GROUP BY id_cups) m ON c.id_cups = m.id_cups";
+                $query .= "GROUP BY id_cups) m ON c.id_cups = m.id_cups";
 
-            // Filtro de fechas en la consulta principal
-            $query .= " WHERE 1=1 ";
+                // Filtro de fechas en la consulta principal
+                $query .= " WHERE 1=1 ";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio
                             AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } else if ($fecha_inicio) {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio ";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } else if ($fecha_fin) {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
-                $params['fecha_fin'] = $fecha_fin;
-            } else {
-                $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= NOW() - INTERVAL '30 days' ";
-            }
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else if ($fecha_inicio) {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= :fecha_inicio ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } else if ($fecha_fin) {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) <= :fecha_fin ";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento) >= NOW() - INTERVAL '30 days' ";
+                }
 
-            // Añadir la cláusula GROUP BY y ORDER BY
-            $query .= "
+                // Añadir la cláusula GROUP BY y ORDER BY
+                $query .= "
                 GROUP BY c.id_cups, t.nom_ct, c.nom_cups, p.apagones, s.sobrevoltajes, a.sub_voltajes, m.micro_cortes
                 ORDER BY MAX(COALESCE(p.fec_evento, s.fec_evento, a.fec_evento, m.fec_evento)) DESC
             ";
 
-            // Ejecutar la consulta
-            $exportReportesCalidad = DB::connection($connection)->select($query, $params);
-            if($exportReportesCalidad) {
-                return Excel::download(new ReportesCalidadExport($exportReportesCalidad), 'reportes_calidad.' . $extension, $exportFormat);
-            } else {
-                return response()->json(['message' => 'No hay datos'], 404);
+                // Ejecutar la consulta
+                $exportReportesCalidad = DB::connection($connection)->select($query, $params);
+                if ($exportReportesCalidad) {
+                    return Excel::download(new ReportesCalidadExport($exportReportesCalidad), 'reportes_calidad.' . $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
             }
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage()];
     }
-}
 
 
 
@@ -3250,10 +3256,10 @@ public function exportReportesCalidad(Request $request)
                         AND fec_evento <= :fecha_fin";
                     $params['fecha_inicio'] = $fecha_inicio;
                     $params['fecha_fin'] = $fecha_fin;
-                } else if($fecha_inicio) {
+                } else if ($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
-                } else if($fecha_fin) {
+                } else if ($fecha_fin) {
                     $query .= "AND fec_evento <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
@@ -3278,10 +3284,10 @@ public function exportReportesCalidad(Request $request)
                             AND fec_evento <= :fecha_fin";
                     $params['fecha_inicio'] = $fecha_inicio;
                     $params['fecha_fin'] = $fecha_fin;
-                } else if($fecha_inicio) {
+                } else if ($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
-                } else if($fecha_fin) {
+                } else if ($fecha_fin) {
                     $query .= "AND fec_evento <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
@@ -3304,10 +3310,10 @@ public function exportReportesCalidad(Request $request)
                         AND fec_evento <= :fecha_fin";
                     $params['fecha_inicio'] = $fecha_inicio;
                     $params['fecha_fin'] = $fecha_fin;
-                } else if($fecha_inicio) {
+                } else if ($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
-                } else if($fecha_fin) {
+                } else if ($fecha_fin) {
                     $query .= "AND fec_evento <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
@@ -3333,10 +3339,10 @@ public function exportReportesCalidad(Request $request)
                         AND fec_evento <= :fecha_fin";
                     $params['fecha_inicio'] = $fecha_inicio;
                     $params['fecha_fin'] = $fecha_fin;
-                } else if($fecha_inicio) {
+                } else if ($fecha_inicio) {
                     $query .= " AND fec_evento >= :fecha_inicio";
                     $params['fecha_inicio'] = $fecha_inicio;
-                } else if($fecha_fin) {
+                } else if ($fecha_fin) {
                     $query .= "AND fec_evento <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
@@ -4361,10 +4367,10 @@ public function exportReportesCalidad(Request $request)
                 // Obtener las fechas de inicio y fin del request, si están presentes
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
-    
+
                 // Inicializar array de parámetros
                 $params = [];
-    
+
                 // Construir la consulta SQL
                 $query = "
                     SELECT 
@@ -4385,7 +4391,7 @@ public function exportReportesCalidad(Request $request)
                         ON tc.id_ct = ct.id_ct
                     WHERE 1 = 1
                 ";
-    
+
                 // Añadir condiciones de fecha si están presentes
                 if ($fecha_inicio && $fecha_fin) {
                     $query .= "
@@ -4398,12 +4404,12 @@ public function exportReportesCalidad(Request $request)
                         AND vi.fec_lectura >= CURRENT_DATE - INTERVAL '7 days'
                     ";
                 }
-    
+
                 // Agrupar por id_cups y los datos necesarios
                 $query .= "
                     GROUP BY vi.id_cups, tc.dir_cups, tc.nom_cups, tc.id_cnt, ct.nom_ct
                 ";
-    
+
                 // Ejecutar la consulta
                 $resultadosQ51 = DB::connection($connection)->select($query, $params);
                 // dd($resultadosQ51);
@@ -4419,7 +4425,7 @@ public function exportReportesCalidad(Request $request)
             return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
-    
+
 
     //CONSULTAS PARA REPORTES INVENTARIO
     public function consultaCincuentayDos($connection)
@@ -4439,20 +4445,20 @@ public function exportReportesCalidad(Request $request)
                     FROM core.v_actualizaciones_fw
                     ORDER BY fec_evento::DATE DESC;  -- Ordena por la fecha original
                 ");
-    
+
             $resultadosQ52Collection = new Collection($resultadosQ52);
             $currentPage = LengthAwarePaginator::resolveCurrentPage('page_q52');
             $perPage = 100; // Número de elementos por página
             $currentItems = $resultadosQ52Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
-                // Crear paginador manualmente
-                $resultadosQ52 = new LengthAwarePaginator($currentItems, count($resultadosQ52Collection), $perPage, $currentPage, [
-                    'path' => request()->url(),
-                    'query' => request()->query(),
-                    'pageName' => 'page_q52'
-                ]);
-    
+            // Crear paginador manualmente
+            $resultadosQ52 = new LengthAwarePaginator($currentItems, count($resultadosQ52Collection), $perPage, $currentPage, [
+                'path' => request()->url(),
+                'query' => request()->query(),
+                'pageName' => 'page_q52'
+            ]);
+
             // Retorna los resultados formateados o un array vacío si no hay
             return $resultadosQ52 ?: [];
         } catch (\Exception $e) {
@@ -4467,7 +4473,7 @@ public function exportReportesCalidad(Request $request)
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
             // NUEVO: Tipo de archivo ('excel' por default)
-            $format = $request->input('format', 'excel'); 
+            $format = $request->input('format', 'excel');
             $extension = $format === 'csv' ? 'csv' : 'xlsx';
             $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
             // Realiza la consulta, seleccionando las columnas necesarias
@@ -4484,8 +4490,8 @@ public function exportReportesCalidad(Request $request)
                     FROM core.v_actualizaciones_fw
                     ORDER BY fec_evento::DATE DESC;  -- Ordena por la fecha original
                 ");
-    
-            if($exportReportesInventarioFW) {
+
+            if ($exportReportesInventarioFW) {
                 return Excel::download(new ReportesInventarioFWExport($exportReportesInventarioFW), 'reportes_actualizaciones.' . $extension, $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
@@ -4495,7 +4501,7 @@ public function exportReportesCalidad(Request $request)
             return "Error en la consulta: " . $e->getMessage();
         }
     }
-    
+
 
     public function consultaCincuentayTres($connection) // kpi total actualizaciones
     {
@@ -4578,7 +4584,7 @@ public function exportReportesCalidad(Request $request)
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
             // NUEVO: Tipo de archivo ('excel' por default)
-            $format = $request->input('format', 'excel'); 
+            $format = $request->input('format', 'excel');
             $extension = $format === 'csv' ? 'csv' : 'xlsx';
             $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
             // Realiza la consulta
@@ -4586,7 +4592,7 @@ public function exportReportesCalidad(Request $request)
                 ->select("
                    SELECT * FROM core.v_contadores_modelos;
                 ");
-            if($exportReportesInventario) {
+            if ($exportReportesInventario) {
                 return Excel::download(new ReportesInventarioExport($exportReportesInventario), 'reportes_inventario.' . $extension, $exportFormat);
             } else {
                 return response()->json(['message' => 'No hay datos'], 404);
@@ -4652,19 +4658,19 @@ public function exportReportesCalidad(Request $request)
                 $nom_ct = $request->input('nom_ct');
                 $id_cups = $request->input('id_cups');
                 $nom_cups = $request->input('nom_cups');
-    
+
                 // Si no hay fechas, establecer fechas predeterminadas (últimos 30 días)
                 if (!$fecha_inicio || !$fecha_fin) {
                     $fecha_inicio = Carbon::now()->subDays(30)->format('Y-m-d');
                     $fecha_fin = Carbon::now()->format('Y-m-d'); // Fecha actual
                 }
-    
+
                 // Inicializar array de parámetros
                 $params = [
                     'fecha_inicio' => $fecha_inicio,
                     'fecha_fin' => $fecha_fin,
                 ];
-    
+
                 // Construir la consulta SQL
                 $query = "
                     WITH cups_data AS (
@@ -4684,18 +4690,18 @@ public function exportReportesCalidad(Request $request)
                         WHERE 1 = 1 
                         ";
 
-                if($id_cups) {
+                if ($id_cups) {
                     $query .= " AND LOWER(cups.id_cups) LIKE LOWER('%' ||:id_cups || '%') ";
                     $params['id_cups'] = "%{$id_cups}%";
-                } else if($nom_ct) {
+                } else if ($nom_ct) {
                     $query .= " AND LOWER(ct.nom_ct) LIKE LOWER('%' || :nom_ct || '%') ";
                     $params['nom_ct'] = "%{$nom_ct}%";
-                } else if($nom_cups) {
+                } else if ($nom_cups) {
                     $nom_cups = $nom_cups ? (string) $nom_cups : null;
                     $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
                     $params['nom_cups'] = "%{$nom_cups}%";
                 }
-                            
+
                 $query .= "
                     ),
                     consumos_data AS (
@@ -4736,10 +4742,10 @@ public function exportReportesCalidad(Request $request)
                         cd.id_cups ASC;
 
                 ";
-    
+
                 // Ejecutar la consulta con los parámetros
                 $res = DB::connection($connection)->select($query, $params);
-                
+
                 $resCollection = new Collection($res);
                 // Obtener la página actual
                 $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -4753,9 +4759,9 @@ public function exportReportesCalidad(Request $request)
                     'query' => request()->query()
                 ]);
                 //dd($resultadosQ58 instanceof LengthAwarePaginator);
-            
+
                 return $resultadosQ58 ?: ['message' => 'No hay datos'];
-                
+
             } else {
                 // Si alguna tabla no existe, retornar un mensaje de error
                 return ['message' => 'No hay datos'];
@@ -4769,7 +4775,7 @@ public function exportReportesCalidad(Request $request)
     public function exportCurvasHorarias(Request $request) // reportes curvas horarias
     {
         try {
-            
+
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
 
@@ -4784,22 +4790,22 @@ public function exportReportesCalidad(Request $request)
                 $id_cups = $request->input('id_cups');
                 $nom_cups = $request->input('nom_cups');
                 // NUEVO: Tipo de archivo ('excel' por default)
-                $format = $request->input('format', 'excel'); 
+                $format = $request->input('format', 'excel');
                 $extension = $format === 'csv' ? 'csv' : 'xlsx';
                 $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
-    
+
                 // Si no hay fechas, establecer fechas predeterminadas (últimos 30 días)
                 if (!$fecha_inicio || !$fecha_fin) {
                     $fecha_inicio = Carbon::now()->subDays(30)->format('Y-m-d');
                     $fecha_fin = Carbon::now()->format('Y-m-d'); // Fecha actual
                 }
-    
+
                 // Inicializar array de parámetros
                 $params = [
                     'fecha_inicio' => $fecha_inicio,
                     'fecha_fin' => $fecha_fin,
                 ];
-    
+
                 // Construir la consulta SQL
                 $query = "
                     WITH cups_data AS (
@@ -4819,18 +4825,18 @@ public function exportReportesCalidad(Request $request)
                         WHERE 1 = 1 
                         ";
 
-                if($id_cups) {
+                if ($id_cups) {
                     $query .= " AND LOWER(cups.id_cups) = LOWER(:id_cups) ";
                     $params['id_cups'] = "%{$id_cups}%";
-                } else if($id_ct) {
+                } else if ($id_ct) {
                     $query .= " AND LOWER(cups.id_ct) = LOWER(:id_ct) ";
                     $params['id_ct'] = "%{$id_ct}%";
-                } else if($nom_cups) {
+                } else if ($nom_cups) {
                     $nom_cups = $nom_cups ? (string) $nom_cups : null;
                     $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
                     $params['nom_cups'] = "%{$nom_cups}%";
                 }
-                            
+
                 $query .= "
                     ),
                     consumos_data AS (
@@ -4871,16 +4877,16 @@ public function exportReportesCalidad(Request $request)
                         cd.id_cups ASC;
 
                 ";
-    
+
                 $exportCurvasHorarias = DB::connection($connection)->select($query, $params);
 
-            // Devuelve el archivo Excel si los datos existen
-            if ($exportCurvasHorarias) {
-                return Excel::download(new CurvasHorariasExport($exportCurvasHorarias), 'curvas_horarias.' . $extension, $exportFormat);
-            } else {
-                return response()->json(['message' => 'No hay datos'], 404);
-            }
-                
+                // Devuelve el archivo Excel si los datos existen
+                if ($exportCurvasHorarias) {
+                    return Excel::download(new CurvasHorariasExport($exportCurvasHorarias), 'curvas_horarias.' . $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
+
             } else {
                 // Si alguna tabla no existe, retornar un mensaje de error
                 return ['message' => 'No hay datos'];
@@ -4893,7 +4899,8 @@ public function exportReportesCalidad(Request $request)
 
 
 
-    public function getNumEventos(Request $request, $connection) {
+    public function getNumEventos(Request $request, $connection)
+    {
         try {
             // Verificar que las tablas existen
             if (
@@ -4906,7 +4913,7 @@ public function exportReportesCalidad(Request $request)
                 $descripcion = $request->input('descripcion');
 
                 $params = [];
-    
+
                 // Construir la consulta SQL
                 $query = "
                     SELECT COUNT(*) as total_eventos
@@ -4921,18 +4928,18 @@ public function exportReportesCalidad(Request $request)
                 if (!empty($descripcion)) {
                     $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion ";
                     $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
-                } 
-                if($fecha_inicio) {
+                }
+                if ($fecha_inicio) {
                     $query .= "
                         AND t_eventos_contador.fec_evento >= :fecha_inicio ";
                     $params['fecha_inicio'] = $fecha_inicio;
                 }
-                if($fecha_fin) {
+                if ($fecha_fin) {
                     $query .= "
-                    AND t_eventos_contador.fec_evento <= :fecha_fin ;";   
-                    $params['fecha_fin'] = $fecha_fin;   
-                } 
-    
+                    AND t_eventos_contador.fec_evento <= :fecha_fin ;";
+                    $params['fecha_fin'] = $fecha_fin;
+                }
+
                 // Ejecutar la consulta con los parámetros
                 $numeroeventos = DB::connection($connection)->select($query, $params);
                 //dd($query);
@@ -4950,7 +4957,8 @@ public function exportReportesCalidad(Request $request)
 
 
 
-    public function getAllReportesEventos(Request $request, $connection) {
+    public function getAllReportesEventos(Request $request, $connection)
+    {
         try {
             // Verificar que las tablas existen
             if (
@@ -4961,8 +4969,8 @@ public function exportReportesCalidad(Request $request)
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
                 $descripcion = $request->input('descripcion');
-                
-    
+
+
                 $params = [];
                 $query = "
                     SELECT
@@ -4979,13 +4987,13 @@ public function exportReportesCalidad(Request $request)
                         AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
                     WHERE 1=1 
                 ";
-    
+
                 // Agregar filtro por descripción si existe
                 if (!empty($descripcion)) {
                     $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion";
                     $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
                 }
-    
+
                 // Agregar filtros de fecha
                 if (!empty($fecha_inicio) && !empty($fecha_fin)) {
                     $query .= " AND t_eventos_contador.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
@@ -4998,17 +5006,17 @@ public function exportReportesCalidad(Request $request)
                     $query .= " AND t_eventos_contador.fec_evento <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 }
-                
-                if(empty($fecha_fin) && empty($fecha_inicio)) {
+
+                if (empty($fecha_fin) && empty($fecha_inicio)) {
                     $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 500;";
                 } else {
                     // Agregar orden y límite
                     $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
                 }
-    
+
                 // Ejecutar la consulta con los parámetros correctos
                 $reporteseventos = DB::connection($connection)->select($query, $params);
-                
+
                 $reporteseventosCollection = new Collection($reporteseventos);
                 // Obtener la página actual
                 $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -5021,7 +5029,7 @@ public function exportReportesCalidad(Request $request)
                     'path' => request()->url(),
                     'query' => request()->query()
                 ]);
-    
+
                 return $reporteseventos ?: ['message' => 'No hay datos'];
             } else {
                 return ['message' => 'No hay datos'];
@@ -5031,7 +5039,8 @@ public function exportReportesCalidad(Request $request)
         }
     }
 
-    public function exportReportesEventos(Request $request) {
+    public function exportReportesEventos(Request $request)
+    {
         try {
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
@@ -5044,10 +5053,10 @@ public function exportReportesCalidad(Request $request)
                 $fecha_fin = $request->input('fecha_fin');
                 $descripcion = $request->input('descripcion');
                 // NUEVO: Tipo de archivo ('excel' por default)
-                $format = $request->input('format', 'excel'); 
+                $format = $request->input('format', 'excel');
                 $extension = $format === 'csv' ? 'csv' : 'xlsx';
                 $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
-    
+
                 $params = [];
                 $query = "
                     SELECT
@@ -5064,13 +5073,13 @@ public function exportReportesCalidad(Request $request)
                         AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
                     WHERE 1=1 
                 ";
-    
+
                 // Agregar filtro por descripción si existe
                 if (!empty($descripcion)) {
                     $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion";
                     $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
                 }
-    
+
                 // Agregar filtros de fecha
                 if (!empty($fecha_inicio) && !empty($fecha_fin)) {
                     $query .= " AND t_eventos_contador.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
@@ -5083,22 +5092,22 @@ public function exportReportesCalidad(Request $request)
                     $query .= " AND t_eventos_contador.fec_evento <= :fecha_fin";
                     $params['fecha_fin'] = $fecha_fin;
                 }
-                
-                if(empty($fecha_fin) && empty($fecha_inicio)) {
+
+                if (empty($fecha_fin) && empty($fecha_inicio)) {
                     $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 500;";
                 } else {
                     // Agregar orden y límite
                     $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
                 }
-    
+
                 // Ejecutar la consulta con los parámetros correctos
                 $exportreporteseventos = DB::connection($connection)->select($query, $params);
-                
-                if($exportreporteseventos) {
+
+                if ($exportreporteseventos) {
                     return Excel::download(new ReportesEventosExport($exportreporteseventos), 'reportes_eventos.' . $extension, $exportFormat);
                 } else {
                     return response()->json(['message' => 'No hay datos'], 404);
-                }    
+                }
             } else {
                 return ['message' => 'No hay datos'];
             }
@@ -5108,17 +5117,20 @@ public function exportReportesCalidad(Request $request)
     }
 
 
-    public function getSumBalances($id_ct, Request $request, $connection) {
+    public function getSumBalances($id_ct, Request $request, $connection)
+    {
         try {
-                if(Schema::connection($connection)->hasTable('t_cups') &&
-                Schema::connection($connection)->hasTable('t_consumos_diarios')) {
-                    $fecha_inicio = $request->input('fecha_inicio');
-                    $fecha_fin = $request->input('fecha_fin');
-                    $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
-                    $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
-                    
-                    $params = [];
-                    $query = "
+            if (
+                Schema::connection($connection)->hasTable('t_cups') &&
+                Schema::connection($connection)->hasTable('t_consumos_diarios')
+            ) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
+                $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
+
+                $params = [];
+                $query = "
                     SELECT 
                         c.nom_cups,
                         c.id_cnt,
@@ -5129,64 +5141,67 @@ public function exportReportesCalidad(Request $request)
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
                     ";
-    
-                    $params['id_ct'] = $id_ct;
-    
-                    if ($fecha) {
-                        $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
-                        $query .= " AND d.fec_inicio = :fecha ";
-                        $params['fecha'] = $fecha;
-                    } else {
-                        $query .= " AND d.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin "; 
-                        $params['fecha_inicio'] = $fecha_inicio;
-                        $params['fecha_fin'] = $fecha_fin;
-                    }
-    
-                    $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
-    
-                    $sumBalances = DB::connection($connection)->select($query, $params);
-    
-                    $sumBalancesCollection = new Collection($sumBalances);
-                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                    $perPage = 100; // Número de elementos por página
-                    $currentItems = $sumBalancesCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
+                $params['id_ct'] = $id_ct;
 
-                    // Crear paginador manualmente
-                    $sumBalances = new LengthAwarePaginator($currentItems, count($sumBalancesCollection), $perPage, $currentPage, [
-                        'path' => request()->url(),
-                        'query' => request()->query()
-                    ]);
-                    // Return an empty array if no data is found
-                    //dd($query);
-                    return $sumBalances ?: ['message' => 'No hay datos'];
+                if ($fecha) {
+                    $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+                    $query .= " AND d.fec_inicio = :fecha ";
+                    $params['fecha'] = $fecha;
+                } else {
+                    $query .= " AND d.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
                 }
+
+                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+
+                $sumBalances = DB::connection($connection)->select($query, $params);
+
+                $sumBalancesCollection = new Collection($sumBalances);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100; // Número de elementos por página
+                $currentItems = $sumBalancesCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+
+
+                // Crear paginador manualmente
+                $sumBalances = new LengthAwarePaginator($currentItems, count($sumBalancesCollection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                // Return an empty array if no data is found
+                //dd($query);
+                return $sumBalances ?: ['message' => 'No hay datos'];
+            }
         } catch (\Exception $e) {
             return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
         }
-    
+
         return []; // Default return an empty array
     }
 
 
-    public function exportSumBalances(Request $request) {
+    public function exportSumBalances(Request $request)
+    {
         try {
             $user = auth()->user();
             $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
-                if(Schema::connection($connection)->hasTable('t_cups') &&
-                Schema::connection($connection)->hasTable('t_consumos_diarios')) {
-                    $fecha_inicio = $request->input('fecha_inicio');
-                    $fecha_fin = $request->input('fecha_fin');
-                    $id_ct = $request->input('id_ct');
-                    $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
-                    $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
-                    // NUEVO: Tipo de archivo ('excel' por default)
-                    $format = $request->input('format', 'excel'); 
-                    $extension = $format === 'csv' ? 'csv' : 'xlsx';
-                    $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;   
-    
-                    $params = [];
-                    $query = "
+            if (
+                Schema::connection($connection)->hasTable('t_cups') &&
+                Schema::connection($connection)->hasTable('t_consumos_diarios')
+            ) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
+                $resultadosQ26 = $this->consultaVeintiSeis($id_ct, $connection, $request);
+                $fecha = !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : null;
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel');
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                $params = [];
+                $query = "
                     SELECT 
                         c.nom_cups,
                         c.id_cnt,
@@ -5197,43 +5212,44 @@ public function exportReportesCalidad(Request $request)
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
                     ";
-    
-                    $params['id_ct'] = $id_ct;
-    
-                    if ($fecha_inicio && $fecha_fin) {
-                        $query .= " AND d.fec_inicio >= :fecha_inicio AND d.fec_inicio <= :fecha_fin ";
-                        $params['fecha_inicio'] = $fecha_inicio;
-                        $params['fecha_fin'] = $fecha_fin;
-                    } else {
-                        $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
-                        $query .= " AND d.fec_inicio = :fecha ";
-                        $params['fecha'] = $fecha;
-                    }
-    
-                    $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
-    
-                    $exportSumBalances = DB::connection($connection)->select($query, $params);
-                    if($exportSumBalances) {
-                        return Excel::download(new SumBalancesExport($exportSumBalances), 'consumos_cups.' . $extension, $exportFormat);
-                    } else {
-                        return response()->json(['message' => 'No hay datos'], 404);
-                    }                    
+
+                $params['id_ct'] = $id_ct;
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND d.fec_inicio >= :fecha_inicio AND d.fec_inicio <= :fecha_fin ";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $fecha = Carbon::createFromFormat('d/m/Y', $fecha)->format('Y-m-d');
+                    $query .= " AND d.fec_inicio = :fecha ";
+                    $params['fecha'] = $fecha;
                 }
-            
+
+                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+
+                $exportSumBalances = DB::connection($connection)->select($query, $params);
+                if ($exportSumBalances) {
+                    return Excel::download(new SumBalancesExport($exportSumBalances), 'consumos_cups.' . $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
+            }
+
         } catch (\Exception $e) {
             return []; // Return an empty array instead of a string on error
         }
-    
+
         return []; // Default return an empty array
     }
-    
-    
 
-    function validarFecha($fecha) {
+
+
+    function validarFecha($fecha)
+    {
         try {
             // Intentar crear la fecha con el formato esperado
             Carbon::createFromFormat('d/m/Y', $fecha);
-    
+
             // Si no hay error, la fecha es válida
             return true;
         } catch (\Exception $e) {
@@ -5242,30 +5258,28 @@ public function exportReportesCalidad(Request $request)
         }
     }
 
-    public function getDiferenciaConsumo(Request $request, $connection) {
+    public function getDiferenciaConsumo(Request $request, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_consumos_diarios') &&
-            Schema::connection($connection)->hasTable('t_consumos_mensual') &&
-            Schema::connection($connection)->hasTable('t_consumos_horarios')) {
-                $fecha_inicio = $request->input('fecha_inicio2');
+            $fecha_inicio = $request->input('fecha_inicio2');
 
-                if (!$fecha_inicio) {
-                    return ['message' => 'Debe seleccionar un rango de fechas.'];
-                }
+            if (!$fecha_inicio) {
+                return ['message' => 'Debe seleccionar un rango de fechas.'];
+            }
 
-                $fecha_inicio .= '-01';
-                $fecha_inicio_carbon = Carbon::parse($fecha_inicio)->startOfMonth();
-                $fecha_fin = $fecha_inicio_carbon->copy()->addMonth();
-                $inicio = Carbon::parse($fecha_inicio);
-                $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
+            $fecha_inicio .= '-01';
+            $fecha_inicio_carbon = Carbon::parse($fecha_inicio)->startOfMonth();
+            $fecha_fin = $fecha_inicio_carbon->copy()->addMonth();
+            $inicio = Carbon::parse($fecha_inicio);
+            $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
 
-                // Calcular diferencias
-                $total_dias = $inicio->diffInDays($fin);
-                $total_horas = $total_dias * 24;
+            // Calcular diferencias
+            $total_dias = $inicio->diffInDays($fin);
+            $total_horas = $total_dias * 24;
 
 
-                $params = [];
-                $query = "
+            $params = [];
+            $query = "
                 WITH diarios AS (
                     SELECT 
                         id_cups, 
@@ -5288,7 +5302,7 @@ public function exportReportesCalidad(Request $request)
                     FROM core.t_consumos_mensual
                     WHERE fec_inicio >= :fecha_inicio 
                         AND fec_fin <= :fecha_fin
-                        AND cod_periodotarifa = '1'
+                        AND cod_periodotarifa = '0'
                         AND id_cups <> id_cnt
                         AND val_ai_m IS NOT NULL
                     GROUP BY id_cups, id_cnt
@@ -5332,26 +5346,143 @@ public function exportReportesCalidad(Request $request)
                     )
                 ORDER BY d.id_cups;";
 
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                    $params['total_dias'] = $total_dias;
-                    $params['total_horas'] = $total_horas;
+            $params['fecha_inicio'] = $fecha_inicio;
+            $params['fecha_fin'] = $fecha_fin;
+            $params['total_dias'] = $total_dias;
+            $params['total_horas'] = $total_horas;
 
-                    $diferenciaConsumo = DB::connection($connection)->select($query, $params);
-                    $diferenciaConsumoCollection = new Collection($diferenciaConsumo);
+            $diferenciaConsumo = DB::connection($connection)->select($query, $params);
+            $diferenciaConsumoCollection = new Collection($diferenciaConsumo);
 
-                    $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                    $perPage = 100; // Número de elementos por página
-                    $currentItems = $diferenciaConsumoCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 100; // Número de elementos por página
+            $currentItems = $diferenciaConsumoCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
 
-                    // Crear paginador manualmente
-                    $diferenciaConsumo = new LengthAwarePaginator($currentItems, count($diferenciaConsumoCollection), $perPage, $currentPage, [
-                        'path' => request()->url(),
-                        'query' => request()->query()
-                    ]);
-                    //dd($total_horas);
-                    return $diferenciaConsumo ?: ['message' => 'No hay datos'];
+            // Crear paginador manualmente
+            $diferenciaConsumo = new LengthAwarePaginator($currentItems, count($diferenciaConsumoCollection), $perPage, $currentPage, [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]);
+            //dd($total_horas);
+            return $diferenciaConsumo ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
+        }
+    }
+
+    public function exportDiferenciaConsumo(Request $request)
+    {
+        try {
+            $connection = User::conexion();
+            if (
+                Schema::connection($connection)->hasTable('t_consumos_diarios') &&
+                Schema::connection($connection)->hasTable('t_consumos_mensual') &&
+                Schema::connection($connection)->hasTable('t_consumos_horarios')
+            ) {
+                $fecha_inicio = $request->input('fecha_inicio2');
+
+                if (!$fecha_inicio) {
+                    return ['message' => 'Debe seleccionar un rango de fechas.'];
+                }
+
+                $fecha_inicio .= '-01';
+                $fecha_inicio_carbon = Carbon::parse($fecha_inicio)->startOfMonth();
+                $fecha_fin = $fecha_inicio_carbon->copy()->addMonth();
+                $inicio = Carbon::parse($fecha_inicio);
+                $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
+
+                // Calcular diferencias
+                $total_dias = $inicio->diffInDays($fin);
+                $total_horas = $total_dias * 24;
+
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel');
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+
+                $params = [];
+                $query = "
+                WITH diarios AS (
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        SUM(val_ai_d) AS suma_diarios, 
+                        COUNT(val_ai_d) AS num_cons_dia
+                    FROM core.t_consumos_diarios
+                    WHERE fec_inicio >= :fecha_inicio 
+                        AND fec_inicio < :fecha_fin
+                        AND id_cups <> id_cnt
+                        AND val_ai_d IS NOT NULL
+                    GROUP BY id_cups, id_cnt
+                ),
+                mensuales AS (
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        SUM(val_ai_m) AS suma_mensual, 
+                        COUNT(val_ai_m) AS num_cons_mes
+                    FROM core.t_consumos_mensual
+                    WHERE fec_inicio >= :fecha_inicio 
+                        AND fec_fin <= :fecha_fin
+                        AND cod_periodotarifa = '0'
+                        AND id_cups <> id_cnt
+                        AND val_ai_m IS NOT NULL
+                    GROUP BY id_cups, id_cnt
+                ),
+                horarios AS (
+                    SELECT 
+                        id_cups, 
+                        id_cnt, 
+                        FLOOR(SUM(val_ai_h) / 1000) AS suma_horas, 
+                        COUNT(val_ai_h) AS num_cons_horas
+                    FROM core.t_consumos_horarios
+                    WHERE fec_inicio >= :fecha_inicio
+                        AND fec_inicio < :fecha_fin 
+                        AND id_cups <> id_cnt
+                        AND val_ai_h IS NOT NULL
+                    GROUP BY id_cups, id_cnt
+                )
+
+                SELECT 
+                    d.id_cups,
+                    d.id_cnt,
+                    d.suma_diarios,
+                    d.num_cons_dia,
+                    m.suma_mensual,
+                    m.num_cons_mes,
+                    h.suma_horas,
+                    h.num_cons_horas,
+                    ABS(d.suma_diarios - m.suma_mensual) AS dif_diario_mensual,
+                    ABS(d.suma_diarios - h.suma_horas) AS dif_diario_horario,
+                    ABS(m.suma_mensual - h.suma_horas) AS dif_mensual_horario
+                FROM diarios d
+                INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
+                INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
+                WHERE( 
+                    ABS(d.suma_diarios - m.suma_mensual) >= 2
+                    OR ABS(m.suma_mensual - h.suma_horas) >= 2
+                    OR ABS(d.suma_diarios - h.suma_horas) >= 2)
+                    AND (
+                        (d.num_cons_dia  = :total_dias)
+                        AND (h.num_cons_horas = :total_horas) 
+                    )
+                ORDER BY d.id_cups;";
+
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+                $params['total_dias'] = $total_dias;
+                $params['total_horas'] = $total_horas;
+
+                $exportDiferenciaConsumo = DB::connection($connection)->select($query, $params);
+
+                if ($exportDiferenciaConsumo) {
+                    return Excel::download(new DiferenciaConsumosExport($exportDiferenciaConsumo), 'diferencia_consumos.' . $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
             } else {
                 return ['message' => 'No hay datos'];
             }
@@ -5360,9 +5491,10 @@ public function exportReportesCalidad(Request $request)
         }
     }
 
-    Public function getTramos(Request $request, $connection) {
+    public function getTramos(Request $request, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_tramos')) {
+            if (Schema::connection($connection)->hasTable('t_tramos')) {
                 $query = "
                 SELECT *
                 FROM core.t_tramos
@@ -5374,13 +5506,13 @@ public function exportReportesCalidad(Request $request)
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos error', $e];
         }
     }
-    
-    
-    
+
+
+
 
 
 }
