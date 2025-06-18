@@ -117,8 +117,8 @@
             </div>
         @else
             <div class="table-responsive w-full" style="display: flex; justify-content: center;">
-                <div id="graficoPuntosNaranja" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
-                    <canvas id="graficoLineaVoltaje1" class="w-full"></canvas>
+                <div id="graficoV1" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
+                    <canvas id="graficoLineaV1" class="w-full"></canvas>
                 </div>
             </div>
         @endif
@@ -154,7 +154,7 @@
         @foreach ($resultados as $resultado)
             @if (isset($resultado->fh) && isset($resultado->v1) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
-                var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d') }}';
+                var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
                 var fechaCompleta = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i:s') }}';
                 var valor = {{ $resultado->v1 }};
 
@@ -177,7 +177,7 @@
             linea.labels.forEach(label => etiquetasGlobalesSet.add(label));
         });
         var etiquetasGlobales = Array.from(etiquetasGlobalesSet).sort();
-        var fechas = @json($fechas_completas); // Desde Blade
+        var fechas = Array.from(etiquetasGlobalesSet).sort();
 
         var datasets = [];
 
@@ -225,17 +225,28 @@
         }
 
 
-        var ctx = document.getElementById('graficoLineaVoltaje1').getContext('2d');
+        var ctx = document.getElementById('graficoLineaV1').getContext('2d');
         var myChartLineVoltaje1 = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: fechas.map(label => label.replace(/\:\d\d$/, 'h')), // eje X
+                labels: fechas, // eje X
                 datasets: datasets
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
+                    title: {
+                        display: true,
+                        text: 'Tension Fase R',
+                        color: 'white',
+                        font: {
+                            size: 18,
+                            weight: 'bold',
+                            family: 'Didact Gothic'
+                        },
+                        
+                    },
                     legend: {
                         position: 'bottom',
                         labels: {
@@ -266,12 +277,332 @@
                         }
                     },
                     y: {
-                        beginAtZero: true,
                         grid: { color: 'rgb(50, 50, 50)' },
                         ticks: {
                             color: '#FFFFFF',
-                            stepSize: 100,
-                            callback: value => [0, 100, 200, 300].includes(value) ? value + ' V' : ''
+                            callback: value => value + ' V'
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+
+    {{-- ELEMENTO CENTRAL GRAFICO DE PUNTOS V2 --}}
+    <div class="card text-white mb-3 col-span-4"
+        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+        @if (isset($resultados[0]) == null)
+            <div class="p-4 h-full flex flex-col justify-center items-center">
+                <p class="text-center text-yellow-500">No hay datos</p>
+            </div>
+        @else
+            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+                <div id="graficoV2" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
+                    <canvas id="graficoLineaVoltaje2" class="w-full"></canvas>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- SCRIPTS PARA EL GRÁFICO VOLTAJE 1 --}}
+    <script>
+        var datosPorLinea = {};
+        var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
+
+        @foreach ($resultados as $resultado)
+            @if (isset($resultado->fh) && isset($resultado->v2) && isset($resultado->id_linea))
+                var linea = '{{ $resultado->id_linea }}';
+                var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
+                var fechaCompleta = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i:s') }}';
+                var valor = {{ $resultado->v2 }};
+
+                if (!datosPorLinea[linea]) {
+                    datosPorLinea[linea] = {
+                        labels: [],
+                        values: []
+                    };
+                    tooltipsPorLinea[linea] = {};
+                }
+
+                datosPorLinea[linea].labels.push(fecha);
+                datosPorLinea[linea].values.push(valor);
+                tooltipsPorLinea[linea][fecha] = fechaCompleta;
+            @endif
+        @endforeach
+
+        var etiquetasGlobalesSet = new Set();
+        Object.values(datosPorLinea).forEach(linea => {
+            linea.labels.forEach(label => etiquetasGlobalesSet.add(label));
+        });
+        var etiquetasGlobales = Array.from(etiquetasGlobalesSet).sort();
+        var fechas = Array.from(etiquetasGlobalesSet).sort();
+
+        var datasets = [];
+
+        Object.keys(datosPorLinea).forEach(lineaId => {
+            const linea = datosPorLinea[lineaId];
+            const datosPorFecha = {};
+            for (let i = 0; i < linea.labels.length; i++) {
+                datosPorFecha[linea.labels[i]] = linea.values[i];
+            }
+            // Mapear el valor según fechas completas
+            const valoresAlineados = fechas.map(fecha => {
+                return datosPorFecha[fecha] !== undefined ? datosPorFecha[fecha] : null;
+            });
+
+            datasets.push({
+                label: 'Línea ' + lineaId,
+                data: valoresAlineados,
+                borderColor: getColor(lineaId),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+                pointRadius: 3,
+                tooltips: fechas.map(f => tooltipsPorLinea[lineaId][f] ?? f)
+            });
+        });
+
+
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return hash;
+        }
+
+        function getColor(lineaId) {
+            const colores = [
+                '#EE9104', '#4BC0C0', '#FF6384', '#36A2EB',
+                '#9966FF', '#FF9F40', '#00cc99', '#ffcc00'
+            ];
+            const hash = hashCode(lineaId);
+            const index = Math.abs(hash) % colores.length;
+            return colores[index];
+        }
+
+
+        var ctx = document.getElementById('graficoLineaVoltaje2').getContext('2d');
+        var myChartLineVoltaje1 = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: fechas, // eje X
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Tension Fase S',
+                        color: 'white',
+                        font: {
+                            size: 18,
+                            weight: 'bold',
+                            family: 'Didact Gothic'
+                        },
+                        
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'white',
+                            font: { family: 'Didact Gothic', weight: 'normal' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function (context) {
+                                // Obtener el índice del punto
+                                const index = context[0].dataIndex;
+                                const dataset = context[0].dataset;
+                                return dataset.tooltips ? dataset.tooltips[index] : context[0].label;
+                            },
+                            label: function (context) {
+                                return 'Valor: ' + context.formattedValue + ' V';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgb(50, 50, 50)' },
+                        ticks: {
+                            color: '#FFFFFF',
+                            stepSize: 2
+                        }
+                    },
+                    y: {
+                        grid: { color: 'rgb(50, 50, 50)' },
+                        ticks: {
+                            color: '#FFFFFF',
+                            callback: value => value + ' V'
+                        }
+                    }
+                }
+            }
+        });
+
+    </script>
+
+
+
+        {{-- ELEMENTO CENTRAL GRAFICO DE PUNTOS V2 --}}
+    <div class="card text-white mb-3 col-span-4"
+        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+        @if (isset($resultados[0]) == null)
+            <div class="p-4 h-full flex flex-col justify-center items-center">
+                <p class="text-center text-yellow-500">No hay datos</p>
+            </div>
+        @else
+            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+                <div id="graficoV3" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
+                    <canvas id="graficoLineaVoltaje3" class="w-full"></canvas>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- SCRIPTS PARA EL GRÁFICO VOLTAJE 3 --}}
+    <script>
+        var datosPorLinea = {};
+        var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
+
+        @foreach ($resultados as $resultado)
+            @if (isset($resultado->fh) && isset($resultado->v3) && isset($resultado->id_linea))
+                var linea = '{{ $resultado->id_linea }}';
+                var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
+                var fechaCompleta = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i:s') }}';
+                var valor = {{ $resultado->v3 }};
+
+                if (!datosPorLinea[linea]) {
+                    datosPorLinea[linea] = {
+                        labels: [],
+                        values: []
+                    };
+                    tooltipsPorLinea[linea] = {};
+                }
+
+                datosPorLinea[linea].labels.push(fecha);
+                datosPorLinea[linea].values.push(valor);
+                tooltipsPorLinea[linea][fecha] = fechaCompleta;
+            @endif
+        @endforeach
+
+        var etiquetasGlobalesSet = new Set();
+        Object.values(datosPorLinea).forEach(linea => {
+            linea.labels.forEach(label => etiquetasGlobalesSet.add(label));
+        });
+        var etiquetasGlobales = Array.from(etiquetasGlobalesSet).sort();
+        var fechas = Array.from(etiquetasGlobalesSet).sort();
+
+        var datasets = [];
+
+        Object.keys(datosPorLinea).forEach(lineaId => {
+            const linea = datosPorLinea[lineaId];
+            const datosPorFecha = {};
+            for (let i = 0; i < linea.labels.length; i++) {
+                datosPorFecha[linea.labels[i]] = linea.values[i];
+            }
+            // Mapear el valor según fechas completas
+            const valoresAlineados = fechas.map(fecha => {
+                return datosPorFecha[fecha] !== undefined ? datosPorFecha[fecha] : null;
+            });
+
+            datasets.push({
+                label: 'Línea ' + lineaId,
+                data: valoresAlineados,
+                borderColor: getColor(lineaId),
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+                pointRadius: 3,
+                tooltips: fechas.map(f => tooltipsPorLinea[lineaId][f] ?? f)
+            });
+        });
+
+
+        function hashCode(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return hash;
+        }
+
+        function getColor(lineaId) {
+            const colores = [
+                '#EE9104', '#4BC0C0', '#FF6384', '#36A2EB',
+                '#9966FF', '#FF9F40', '#00cc99', '#ffcc00'
+            ];
+            const hash = hashCode(lineaId);
+            const index = Math.abs(hash) % colores.length;
+            return colores[index];
+        }
+
+
+        var ctx = document.getElementById('graficoLineaVoltaje3').getContext('2d');
+        var myChartLineVoltaje1 = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: fechas, // eje X
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Tension Fase S',
+                        color: 'white',
+                        font: {
+                            size: 18,
+                            weight: 'bold',
+                            family: 'Didact Gothic'
+                        },
+                        
+                    },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: 'white',
+                            font: { family: 'Didact Gothic', weight: 'normal' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function (context) {
+                                // Obtener el índice del punto
+                                const index = context[0].dataIndex;
+                                const dataset = context[0].dataset;
+                                return dataset.tooltips ? dataset.tooltips[index] : context[0].label;
+                            },
+                            label: function (context) {
+                                return 'Valor: ' + context.formattedValue + ' V';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgb(50, 50, 50)' },
+                        ticks: {
+                            color: '#FFFFFF',
+                            stepSize: 2
+                        }
+                    },
+                    y: {
+                        grid: { color: 'rgb(50, 50, 50)' },
+                        ticks: {
+                            color: '#FFFFFF',
+                            callback: value => value + ' V'
                         }
                     }
                 }
