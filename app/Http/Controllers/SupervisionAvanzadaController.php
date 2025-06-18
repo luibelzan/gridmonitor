@@ -693,7 +693,7 @@ class SupervisionAvanzadaController extends Controller {
             $id_ct = $request->input('id_ct');
 
             $query = "
-                SELECT DISTINCT s.* 
+                SELECT DISTINCT s.*, e.id_linea 
                 FROM core.t_s52 s
                 INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
                 WHERE 1=1
