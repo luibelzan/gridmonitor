@@ -596,7 +596,9 @@ class SupervisionAvanzadaController extends Controller {
             $query = "
                 SELECT DISTINCT s.*, e.id_linea
                 FROM core.t_s64 s
-                INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
+                INNER JOIN core.t_equipos_sabt e 
+                    ON s.rtu_id = e.id_rtu 
+                    AND s.lvs_id = e.id_equipo
                 WHERE 1=1
             ";
 
@@ -623,7 +625,7 @@ class SupervisionAvanzadaController extends Controller {
                 $query .= " AND s.fh >= NOW() - INTERVAL '24 hours'";
             }
 
-            $query .= " ORDER BY s.fh DESC LIMIT 1000";
+            $query .= " ORDER BY s.fh DESC, e.id_linea ASC LIMIT 1000";
 
             $resultadosS64 = DB::connection($connection)->select($query, $params);
 
@@ -695,7 +697,9 @@ class SupervisionAvanzadaController extends Controller {
             $query = "
                 SELECT DISTINCT s.*, e.id_linea 
                 FROM core.t_s52 s
-                INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
+                INNER JOIN core.t_equipos_sabt e 
+                    ON s.rtu_id = e.id_rtu 
+                    AND s.lvs_id = e.id_equipo
                 WHERE 1=1
             ";
 
@@ -721,7 +725,7 @@ class SupervisionAvanzadaController extends Controller {
                 $query .= " AND fec_inicio >= NOW() - INTERVAL '24 hours'";
             }
 
-            $query .= " ORDER BY fec_inicio DESC LIMIT 20";
+            $query .= " ORDER BY s.fec_inicio, s.hor_inicio DESC, e.id_linea ASC LIMIT 1000";
 
             $resultadosS52 = DB::connection($connection)->select($query, $params);
 
