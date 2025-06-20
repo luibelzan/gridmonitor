@@ -263,3 +263,21 @@
         </tbody>
     </table>
 </div>
+
+@php
+    use Carbon\Carbon;
+    $fechaInicio = request()->query('fecha_inicio')
+        ? Carbon::parse(request()->query('fecha_inicio'))
+        : Carbon::now()->subHours(48);
+
+    $fechaFin = request()->query('fecha_fin')
+        ? Carbon::parse(request()->query('fecha_fin'))
+        : Carbon::now();
+
+    $fechas = [];
+    $fechaActual = $fechaInicio->copy();
+    while ($fechaActual <= $fechaFin) {
+        $fechas[] = $fechaActual->format('d-m-Y');
+        $fechaActual->addDay();
+    }
+@endphp
