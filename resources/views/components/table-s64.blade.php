@@ -560,7 +560,7 @@
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Tension Fase S',
+                        text: 'Tension Fase T',
                         color: 'white',
                         font: {
                             size: 18,
