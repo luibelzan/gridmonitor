@@ -285,21 +285,28 @@
 
     foreach ($resultados as $r) {
         $fecha = \Carbon\Carbon::parse($r->fh)->format('Y-m-d');
+
         if (!isset($valoresAgrupados[$fecha])) {
-            $valoresAgrupados[$fecha] = [];
+            $valoresAgrupados[$fecha] = ['hr_thd' => [], 'hs_thd' => [], 'ht_thd' => []];
         }
-        $valoresAgrupados[$fecha][] = $r->hr_thd;
+
+        $valoresAgrupados[$fecha]['hr_thd'][] = $r->hr_thd;
+        $valoresAgrupados[$fecha]['hs_thd'][] = $r->hs_thd;
+        $valoresAgrupados[$fecha]['ht_thd'][] = $r->ht_thd;
     }
 
-    $valoresPorFecha = [];
+    $valoresHrPorFecha = [];
+    $valoresHsPorFecha = [];
+    $valoresHtPorFecha = [];
 
     foreach ($fechas_completas as $fecha) {
-        if (isset($valoresAgrupados[$fecha])) {
-            $promedio = array_sum($valoresAgrupados[$fecha]) / count($valoresAgrupados[$fecha]);
-            $valoresPorFecha[$fecha] = round($promedio, 2); // Redondeado a 2 decimales
-        } else {
-            $valoresPorFecha[$fecha] = 0; // Sin datos
-        }
+        $hr = $valoresAgrupados[$fecha]['hr_thd'] ?? [];
+        $hs = $valoresAgrupados[$fecha]['hs_thd'] ?? [];
+        $ht = $valoresAgrupados[$fecha]['ht_thd'] ?? [];
+
+        $valoresHrPorFecha[$fecha] = count($hr) ? round(array_sum($hr) / count($hr), 2) : 0;
+        $valoresHsPorFecha[$fecha] = count($hs) ? round(array_sum($hs) / count($hs), 2) : 0;
+        $valoresHtPorFecha[$fecha] = count($ht) ? round(array_sum($ht) / count($ht), 2) : 0;
     }
 
 @endphp
@@ -338,7 +345,7 @@
         @else
             <div class="table-responsive w-full" style="display: flex; justify-content: center;">
                 <div id="graficoV1" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
-                    <canvas id="graficoDistorsionesArmonicas" class="w-full"></canvas>
+                    <canvas id="graficoDistorsionesArmonicasR" class="w-full"></canvas>
                 </div>
             </div>
         @endif
@@ -355,11 +362,11 @@
 
             const hrThd = [
                 @foreach ($fechas_completas as $f)
-                    {{ $valoresPorFecha[$f] ?? 0 }},
+                    {{ $valoresHrPorFecha[$f] }},
                 @endforeach
         ];
 
-            const ctx = document.getElementById('graficoDistorsionesArmonicas').getContext('2d');
+            const ctx = document.getElementById('graficoDistorsionesArmonicasR').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -367,6 +374,150 @@
                     datasets: [{
                         label: 'HR_THD',
                         data: hrThd,
+                        backgroundColor: 'rgba(88, 226, 194, 0.6)',
+                        borderColor: 'rgba(88, 226, 194, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#ffffff',
+                                stepSize: 2,
+                                autoSkip: false,
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#ffffff' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    {{-- ELEMENTO CENTRAL GRAFICO DISTORSIONES ARMONICAS S --}}
+    <div class="card text-white mb-3 col-span-4"
+        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+        @if (isset($resultados[0]) == null)
+            <div class="p-4 h-full flex flex-col justify-center items-center">
+                <p class="text-center text-yellow-500">No hay datos</p>
+            </div>
+        @else
+            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+                <div id="graficoV2" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
+                    <canvas id="graficoDistorsionesArmonicasS" class="w-full"></canvas>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const fechas = [
+                @foreach ($fechas_completas as $f)
+                    "{{ $f }}",
+                @endforeach
+        ];
+
+            const hsThd = [
+                @foreach ($fechas_completas as $f)
+                    {{ $valoresHsPorFecha[$f] }},
+                @endforeach
+        ];
+
+            const ctx = document.getElementById('graficoDistorsionesArmonicasS').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'HS_THD',
+                        data: hsThd,
+                        backgroundColor: 'rgba(88, 226, 194, 0.6)',
+                        borderColor: 'rgba(88, 226, 194, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#ffffff',
+                                stepSize: 2,
+                                autoSkip: false,
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#ffffff' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    {{-- ELEMENTO CENTRAL GRAFICO DISTORSIONES ARMONICAS T --}}
+    <div class="card text-white mb-3 col-span-4"
+        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+        @if (isset($resultados[0]) == null)
+            <div class="p-4 h-full flex flex-col justify-center items-center">
+                <p class="text-center text-yellow-500">No hay datos</p>
+            </div>
+        @else
+            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+                <div id="graficoV2" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
+                    <canvas id="graficoDistorsionesArmonicasT" class="w-full"></canvas>
+                </div>
+            </div>
+        @endif
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const fechas = [
+                @foreach ($fechas_completas as $f)
+                    "{{ $f }}",
+                @endforeach
+        ];
+
+            const htThd = [
+                @foreach ($fechas_completas as $f)
+                    {{ $valoresHtPorFecha[$f] }},
+                @endforeach
+        ];
+
+            const ctx = document.getElementById('graficoDistorsionesArmonicasT').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: fechas,
+                    datasets: [{
+                        label: 'HT_THD',
+                        data: htThd,
                         backgroundColor: 'rgba(88, 226, 194, 0.6)',
                         borderColor: 'rgba(88, 226, 194, 1)',
                         borderWidth: 1
