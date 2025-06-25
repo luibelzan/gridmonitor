@@ -775,7 +775,7 @@ class SupervisionAvanzadaController extends Controller {
                 $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
             }
 
-            $query .= " ORDER BY fh DESC LIMIT 20";
+            $query .= " ORDER BY fh DESC LIMIT 1000";
 
             // Ejecutar consulta segura con parámetros
             $resultadosS96 = DB::connection($connection)->select($query, $params);
