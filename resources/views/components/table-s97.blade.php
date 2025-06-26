@@ -1,11 +1,9 @@
 <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
     style="max-height: 400px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
-    <div class="mb-4"
-        style="border-bottom: 3px solid transparent;
+    <div class="mb-4" style="border-bottom: 3px solid transparent;
                 border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
     </div>
-    <table id="tabla-eventos" class="w-full text-white text-center"
-        style="border-spacing: 0 5px;">
+    <table id="tabla-eventos" class="w-full text-white text-center" style="border-spacing: 0 5px;">
         <thead style="border-bottom: 1px solid #ffffff;">
             <tr>
                 <th class="text-xl font-bold text-center" style="color:rgb(88,226,194); padding: 10px;">RTU ID</th>
@@ -36,26 +34,26 @@
                 </tr>
             @else
                 @foreach($resultados as $resultado)
-                <tr>
-                    <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
-                    </td>
-                    <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
-                    </td>
-                    <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->nr) ? $resultado->nr : '0' }}
-                    </td>
-                    <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->ns) ? $resultado->ns : '0' }}
-                    </td>
-                    <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->nt) ? $resultado->nt : '0' }}
-                    </td>
-                    <td class="py-2" style="padding: 10px;">
-                        {{ !empty($resultado->bc) ? $resultado->bc : '0' }}
-                    </td>
-                </tr>
+                    <tr>
+                        <td class="py-2" style="padding: 10px;">
+                            {{ !empty($resultado->rtu_id) ? $resultado->rtu_id : 'No hay datos' }}
+                        </td>
+                        <td class="py-2" style="padding: 10px;">
+                            {{ !empty($resultado->fh) ? $resultado->fh : 'No hay datos' }}
+                        </td>
+                        <td class="py-2" style="padding: 10px;">
+                            {{ !empty($resultado->nr) ? $resultado->nr : '0' }}
+                        </td>
+                        <td class="py-2" style="padding: 10px;">
+                            {{ !empty($resultado->ns) ? $resultado->ns : '0' }}
+                        </td>
+                        <td class="py-2" style="padding: 10px;">
+                            {{ !empty($resultado->nt) ? $resultado->nt : '0' }}
+                        </td>
+                        <td class="py-2" style="padding: 10px;">
+                            {{ !empty($resultado->bc) ? $resultado->bc : '0' }}
+                        </td>
+                    </tr>
                 @endforeach
             @endif
         </tbody>
@@ -109,6 +107,10 @@
         $valoresNtPorFecha[$fecha] = count($nt) ? array_sum($nt) : 0;
     }
 
+    $sumaTotalNr = array_sum($valoresNrPorFecha);
+    $sumaTotalNs = array_sum($valoresNsPorFecha);
+    $sumaTotalNt = array_sum($valoresNtPorFecha);
+
 @endphp
 
 
@@ -143,9 +145,12 @@
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
         @else
-            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+            <div class="table-responsive w-full" style="display: flex; flex-direction: column; align-items: center;">
                 <div id="graficoV1" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
                     <canvas id="graficoNumeroVariacionesTensionR" class="w-full"></canvas>
+                </div>
+                <div style="text-align: center; margin-top: 1em;">
+                    <strong>Numero variaciones Fase R:  {{ $sumaTotalNr }} </strong>
                 </div>
             </div>
         @endif
@@ -214,9 +219,12 @@
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
         @else
-            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+            <div class="table-responsive w-full" style="display: flex; flex-direction: column; align-items: center;">
                 <div id="graficoV1" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
                     <canvas id="graficoNumeroVariacionesTensionS" class="w-full"></canvas>
+                </div>
+                <div style="text-align: center; margin-top: 1em;">
+                    <strong>Numero variaciones Fase S:  {{ $sumaTotalNs }} </strong>
                 </div>
             </div>
         @endif
@@ -285,9 +293,12 @@
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
         @else
-            <div class="table-responsive w-full" style="display: flex; justify-content: center;">
+            <div class="table-responsive w-full" style="display: flex; flex-direction: column; align-items: center;">
                 <div id="graficoV1" style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">
                     <canvas id="graficoNumeroVariacionesTensionT" class="w-full"></canvas>
+                </div>
+                <div style="text-align: center; margin-top: 1em;">
+                    <strong>Numero variaciones Fase T:  {{ $sumaTotalNt }} </strong>
                 </div>
             </div>
         @endif
