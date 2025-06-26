@@ -406,6 +406,28 @@
                                                             %
                                                         </span>
                                                     </div>
+
+                                                    <!-- Círculos por fase -->
+                                                    <div style="display: flex; justify-content: center; margin-top: 10px; gap: 10px;">
+                                                        @php
+                                                            $fasesPorLinea = collect($balancesFasesSABT)->keyBy('id_linea');
+                                                            $fases = $fasesPorLinea[$resultado->id_linea] ?? null;
+                                                        @endphp
+
+                                                        @foreach (['r', 's', 't'] as $fase)
+                                                            @php
+                                                                $valor = $fases ? ($fases->{'porcentaje_perdida_' . $fase} ?? 0) : 0;
+                                                                $colorFase = ($valor > 6) ? 'red' : 'green';
+                                                            @endphp
+                                                            <div style="display: flex; flex-direction: column; align-items: center;">
+                                                                <div style="border-radius: 50%; border: 2px solid {{ $colorFase }}; width: 3.125rem; height: 3.125rem; display: flex; align-items: center; justify-content: center; font-size: 12px;">
+                                                                    {{ $valor }}%
+                                                                </div>
+                                                                <strong style="margin-top: 4px; font-size: 12px;">{{ strtoupper($fase) }}</strong>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+
                                                 </div>
                                                 
 
@@ -520,6 +542,156 @@
                                 </div>
                             </div>
                         </div>
+
+                        {{-- TERCERA FILA --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                            <div class="card text-white  mb-2"
+                                style="
+                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                <div class="overflow-x-auto">
+
+                                    <div class="container">
+                                        @if (count($balancesFasesSABT) > 0)
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                <table id="testTableBalancesCt"
+                                                    class="w-full text-white text-center">
+                                                    <thead style="border-bottom: 1px solid #ffffff;">
+                                                        <tr>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                CT ID</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Linea</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia Generada (R)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia Generada (S)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia Generada (T)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia (Exceso R)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia (Exceso S)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia (Exceso T)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Total generacion (R)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Total generacion (S)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Total generacion (T)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia Consumida (R)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia Consumida (S)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Energia Consumida (T)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Perdida (R)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Perdida (S)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Perdida (T)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach ($balancesFasesSABT as $resultado)
+                                                            <tr class="highlight-row ">
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->id_ct) ? $resultado->id_ct : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ai_lvs_r) ? intval($resultado->total_ai_lvs_r/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ai_lvs_s) ? intval($resultado->total_ai_lvs_s/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ai_lvs_t) ? intval($resultado->total_ai_lvs_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ae_lvs_r) ? intval($resultado->total_ae_lvs_r/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ae_lvs_s) ? intval($resultado->total_ae_lvs_s/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ae_lvs_t) ? intval($resultado->total_ae_lvs_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_lvs_r) ? intval($resultado->total_lvs_r/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_lvs_s) ? intval($resultado->total_lvs_s/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_lvs_t) ? intval($resultado->total_lvs_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ai_cnt_r) ? intval($resultado->total_ai_cnt_r/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ai_cnt_s) ? intval($resultado->total_ai_cnt_s/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ai_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->perdida_energia_r) ? intval($resultado->perdida_energia_r/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->perdida_energia_s) ? intval($resultado->perdida_energia_s/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->perdida_energia_t) ? intval($resultado->perdida_energia_t/1000) : '0' }}
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @else
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                <p class="mt-0 text-xl  text-center"
+                                                    style="color:rgb(88,226,194)">No hay
+                                                    datos
+                                                </p>
+                                            </div>
+                                        @endif
+                                        <!-- Contenedor del botón de descarga -->
+                                        <div class="text-right mt-4">
+                                            <input type="button"
+                                                onclick="tableToExcel('testTableBalancesCt', 'W3C Example Table')"
+                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+
 
                     </div>
                 </div>
