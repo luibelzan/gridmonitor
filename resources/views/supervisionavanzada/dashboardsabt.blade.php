@@ -346,7 +346,7 @@
                                                                                     FASE T</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    RTU ID</th>
+                                                                                    Trifasicos</th>
                                                                             </tr>
                                                                         </thead>
 
