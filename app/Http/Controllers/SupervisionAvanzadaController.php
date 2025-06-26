@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
 
-class SupervisionAvanzadaController extends Controller {
+class SupervisionAvanzadaController extends Controller
+{
 
-    public function dashboardsabt(Request $request) {
-        if(!Auth::check()) {
+    public function dashboardsabt(Request $request)
+    {
+        if (!Auth::check()) {
             return redirect()->route('login')->with('message', 'Tu sesion ha expirado por inactividad');
         }
 
@@ -21,20 +23,21 @@ class SupervisionAvanzadaController extends Controller {
 
         $connection = User::conexion();
 
-        if($connection == 'psql') {
+        if ($connection == 'psql') {
             return view('admin/admin');
         } else {
             $dashboardSABTInfo = $this->getDashboardSABTInfo($request, $connection);
-            
+
             return view('supervisionavanzada/dashboardsabt', [
                 'dashboardSABTInfo' => $dashboardSABTInfo,
             ]);
         }
     }
 
-    public function supervisionavanzada(Request $request) {
+    public function supervisionavanzada(Request $request)
+    {
         //Verificar si el usuario esta autenticado
-        if(!Auth::check()) {
+        if (!Auth::check()) {
             return redirect()->route('login')->with('message', 'Tu sesion ha expirado por inactividad');
         }
 
@@ -44,26 +47,26 @@ class SupervisionAvanzadaController extends Controller {
         //Obtener la conexion dinamica
         $connection = User::conexion();
 
-        if($connection == 'psql') {
+        if ($connection == 'psql') {
             //Si la conexion es la predeterminada, retornar un mensaje de bienvenida para el admin
             return view('admin/admin');
         } else {
             //Obtener los datos de todos los G53, S64, S52, S96, S97
-            $tipo_evento = $request -> input('tipo_evento');
-            $id_ct = $request -> input('id_ct');
+            $tipo_evento = $request->input('tipo_evento');
+            $id_ct = $request->input('id_ct');
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
             $numTrafosAndCapacity = $this->getNumTrafosAndCapacity($id_ct, $connection);
-            $numCups = $this-> getNumCups($id_ct, $connection);
-            $numAutoconsumos = $this -> getNumAutoconsumos($id_ct, $connection);
-            $numLineas = $this-> getNumLineas($id_ct, $connection);
-            $comunicaciones = $this -> getComunicaciones($id_ct, $connection);
-            $datosSABT = $this -> getDatosSABT($id_ct, $connection);
+            $numCups = $this->getNumCups($id_ct, $connection);
+            $numAutoconsumos = $this->getNumAutoconsumos($id_ct, $connection);
+            $numLineas = $this->getNumLineas($id_ct, $connection);
+            $comunicaciones = $this->getComunicaciones($id_ct, $connection);
+            $datosSABT = $this->getDatosSABT($id_ct, $connection);
 
-            if($tipo_evento == null) {
+            if ($tipo_evento == null) {
                 $tipo_evento = 'S64';
             }
 
-            if($tipo_evento == 'S64') {
+            if ($tipo_evento == 'S64') {
                 $resultadosS64 = $this->getAllS64($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS64' => $resultadosS64,
@@ -73,9 +76,10 @@ class SupervisionAvanzadaController extends Controller {
                     'numCups' => $numCups,
                     'numAutoconsumos' => $numAutoconsumos,
                     'numLineas' => $numLineas,
-                    'comunicaciones' => $comunicaciones, 
-                    'datosSABT' => $datosSABT]);
-            } else if($tipo_evento == 'G53') {
+                    'comunicaciones' => $comunicaciones,
+                    'datosSABT' => $datosSABT
+                ]);
+            } else if ($tipo_evento == 'G53') {
                 $resultadosG53 = $this->getAllG53($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosG53' => $resultadosG53,
@@ -86,8 +90,9 @@ class SupervisionAvanzadaController extends Controller {
                     'numAutoconsumos' => $numAutoconsumos,
                     'numLineas' => $numLineas,
                     'comunicaciones' => $comunicaciones,
-                    'datosSABT' => $datosSABT]);
-            } else if($tipo_evento == 'S52') {
+                    'datosSABT' => $datosSABT
+                ]);
+            } else if ($tipo_evento == 'S52') {
                 $resultadosS52 = $this->getAllS52($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS52' => $resultadosS52,
@@ -98,8 +103,9 @@ class SupervisionAvanzadaController extends Controller {
                     'numAutoconsumos' => $numAutoconsumos,
                     'numLineas' => $numLineas,
                     'comunicaciones' => $comunicaciones,
-                    'datosSABT' => $datosSABT]);
-            } else if($tipo_evento == 'S96') {
+                    'datosSABT' => $datosSABT
+                ]);
+            } else if ($tipo_evento == 'S96') {
                 $resultadosS96 = $this->getAllS96($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS96' => $resultadosS96,
@@ -110,8 +116,9 @@ class SupervisionAvanzadaController extends Controller {
                     'numAutoconsumos' => $numAutoconsumos,
                     'numLineas' => $numLineas,
                     'comunicaciones' => $comunicaciones,
-                    'datosSABT' => $datosSABT]);
-            } else if($tipo_evento == 'S97') {
+                    'datosSABT' => $datosSABT
+                ]);
+            } else if ($tipo_evento == 'S97') {
                 $resultadosS97 = $this->getAllS97($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
                     'resultadosS97' => $resultadosS97,
@@ -122,20 +129,22 @@ class SupervisionAvanzadaController extends Controller {
                     'numAutoconsumos' => $numAutoconsumos,
                     'numLineas' => $numLineas,
                     'comunicaciones' => $comunicaciones,
-                    'datosSABT' => $datosSABT]);
+                    'datosSABT' => $datosSABT
+                ]);
             } else {
                 return view('supervisionavanzada/supervisionavanzada', []);
             }
-            
 
 
-            
+
+
         }
     }
 
-    public function indicadoressabt(Request $request) {
-        
-        if(!Auth::check()) {
+    public function indicadoressabt(Request $request)
+    {
+
+        if (!Auth::check()) {
             return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
         }
 
@@ -144,7 +153,7 @@ class SupervisionAvanzadaController extends Controller {
 
         $connection = User::conexion();
 
-        if($connection == 'psql') {
+        if ($connection == 'psql') {
             return view('admin');
         } else {
 
@@ -176,7 +185,8 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    public function fasessabt(Request $request) {
+    public function fasessabt(Request $request)
+    {
         // Verificar si el usuario está autenticado
         if (!Auth::check()) {
             // Si no está autenticado, redirigir a la página de inicio de sesión
@@ -214,7 +224,8 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    public function calidadsabt(Request $request) {
+    public function calidadsabt(Request $request)
+    {
         // Verificar si el usuario está autenticado
         if (!Auth::check()) {
             // Si no está autenticado, redirigir a la página de inicio de sesión
@@ -239,13 +250,14 @@ class SupervisionAvanzadaController extends Controller {
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
 
             return view('supervisionavanzada/calidadsabt', [
-                
+
             ]);
         }
     }
 
-    public function balancessabt(Request $request) {
-        if(!Auth::check()) {
+    public function balancessabt(Request $request)
+    {
+        if (!Auth::check()) {
             return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
         }
 
@@ -253,23 +265,28 @@ class SupervisionAvanzadaController extends Controller {
 
         $connection = User::conexion();
 
-        if($connection == 'pgsql') {
+        if ($connection == 'pgsql') {
             return view('admin/admin');
         } else {
             $balancesSABT = $this->getBalancesSABT($request, $connection);
+            $balancesFasesSABT = $this->getBalancesFaseSABT($request, $connection);
 
             return view('supervisionavanzada/balancessabt', [
                 'balancesSABT' => $balancesSABT,
+                'balancesFasesSABT' => $balancesFasesSABT,
             ]);
         }
     }
 
-    public function getDashboardSABTInfo(Request $request, $connection) {
+    public function getDashboardSABTInfo(Request $request, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_ct')
-            && Schema::connection($connection)->hasTable('t_trafos')
-            && Schema::connection($connection)->hasTable('t_lineas')
-            && Schema::connection($connection)->hasTable('t_cups')) {
+            if (
+                Schema::connection($connection)->hasTable('t_ct')
+                && Schema::connection($connection)->hasTable('t_trafos')
+                && Schema::connection($connection)->hasTable('t_lineas')
+                && Schema::connection($connection)->hasTable('t_cups')
+            ) {
                 $nom_ct = $request->input('nom_ct');
                 $params = [];
 
@@ -293,7 +310,7 @@ class SupervisionAvanzadaController extends Controller {
                 WHERE ind_sabt = 'true'
                 ";
 
-                if($nom_ct) {
+                if ($nom_ct) {
                     $query .= " AND ct.nom_ct ILIKE :nom_ct";
                     $params = ['nom_ct' => '%' . $nom_ct . '%'];
                 }
@@ -311,19 +328,20 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
     }
 
-    public function getBalancesSABT(Request $request, $connection) {
+    public function getBalancesSABT(Request $request, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
+            if (Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
                 $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin = $request->input('fecha_fin');
 
                 $params = [];
-                
+
                 $query = "
                 SELECT
                 id_ct,
@@ -373,10 +391,96 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    //KPI1
-    public function getDistorsionesArmonicas($connection) {
+    public function getBalancesFaseSABT(Request $request, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s96')) {
+            if (Schema::connection($connection)->hasTable('t_balances_horarios_fases')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+
+                $params = [];
+
+                $query = "
+                SELECT
+                    id_ct,
+                    id_linea,
+                    
+                    -- FASE R
+                    SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
+                    SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
+                    SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
+                    SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
+                    SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
+                    SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) AS perdida_energia_r,
+                    CASE
+                        WHEN SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) = 0 THEN 0
+                        ELSE ROUND(
+                            (SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) * 100.0)
+                            / SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)), 2)
+                    END AS porcentaje_perdida_r,
+
+                    -- FASE S
+                    SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
+                    SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
+                    SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
+                    SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
+                    SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
+                    SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) AS perdida_energia_s,
+                    CASE
+                        WHEN SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) = 0 THEN 0
+                        ELSE ROUND(
+                            (SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) * 100.0)
+                            / SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)), 2)
+                    END AS porcentaje_perdida_s,
+
+                    -- FASE T
+                    SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
+                    SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
+                    SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
+                    SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
+                    SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
+                    SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) AS perdida_energia_t,
+                    CASE
+                        WHEN SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) = 0 THEN 0
+                        ELSE ROUND(
+                            (SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) * 100.0)
+                            / SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)), 2)
+                    END AS porcentaje_perdida_t
+
+                FROM
+                    core.t_balances_horarios_fases
+                WHERE";
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                    $params = ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                } else {
+                    $query .= " fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+                }
+
+                $query .= " GROUP BY
+                            id_ct,
+                            id_linea
+                        ORDER BY
+                            id_ct,
+                            id_linea;";
+
+                $balancesFasesSABT = DB::connection($connection)->select($query, $params);
+
+                return $balancesFasesSABT ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    //KPI1
+    public function getDistorsionesArmonicas($connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_s96')) {
                 $distorsionesArmonicas = DB::connection($connection)->select("
                 SELECT  
                     AVG(hr_thd) AS avg_hr_thd,  
@@ -388,16 +492,17 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
 
     }
 
     //KPI1
-    public function getNumDistorsionesArmonicas($connection) {
+    public function getNumDistorsionesArmonicas($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s96')) {
+            if (Schema::connection($connection)->hasTable('t_s96')) {
                 $numDistorsionesArmonicas = DB::connection($connection)->select("
                 SELECT COUNT(*) AS total_distorsiones 
                 FROM core.t_s96 
@@ -407,15 +512,16 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
     }
 
     //KPI1
-    public function getInfoDistorsionesArmonicas($connection) {
+    public function getInfoDistorsionesArmonicas($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s96')) {
+            if (Schema::connection($connection)->hasTable('t_s96')) {
                 $infoDistorsionesArmonicas = DB::connection($connection)->select("
                 SELECT *  
                 FROM core.t_s96 
@@ -425,15 +531,16 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
     }
 
     //KPI2
-    public function getPromedioFase($connection) {
+    public function getPromedioFase($connection)
+    {
         try {
-            if(Schema::connection($connection)-> hasTable('t_s94')) {
+            if (Schema::connection($connection)->hasTable('t_s94')) {
                 $promedioFase = DB::connection($connection)->select("
                 SELECT  
                     AVG(fr) AS avg_fr, 
@@ -446,15 +553,16 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
     }
 
     //KPI2
-    public function getNumFlickers($connection) {
+    public function getNumFlickers($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s94')) {
+            if (Schema::connection($connection)->hasTable('t_s94')) {
                 $numFlickers = DB::connection($connection)->select("
                 SELECT COUNT(*) AS total_flickers 
                 FROM core.t_s94 
@@ -471,9 +579,10 @@ class SupervisionAvanzadaController extends Controller {
     }
 
     //KPI2
-    public function getInfoFlickers($connection) {
+    public function getInfoFlickers($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s94')) {
+            if (Schema::connection($connection)->hasTable('t_s94')) {
                 $infoFlickers = DB::connection($connection)->select("
                 SELECT * 
                 FROM core.t_s94 
@@ -490,9 +599,10 @@ class SupervisionAvanzadaController extends Controller {
     }
 
     //KPI3
-    public function getDesbalancesTension($connection) {
+    public function getDesbalancesTension($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s95')) {
+            if (Schema::connection($connection)->hasTable('t_s95')) {
                 $desbalancesTension = DB::connection($connection)->select("
                 SELECT AVG(vu) AS avg_desbalance_tension 
                 FROM core.t_s95 
@@ -509,9 +619,10 @@ class SupervisionAvanzadaController extends Controller {
     }
 
     //KPI3
-    public function getNumDesbalancesTension($connection) {
+    public function getNumDesbalancesTension($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s95')) {
+            if (Schema::connection($connection)->hasTable('t_s95')) {
                 $numDesbalancesTension = DB::connection($connection)->select("
                 SELECT COUNT(*) AS total_desbalances 
                 FROM core.t_s95 
@@ -528,9 +639,10 @@ class SupervisionAvanzadaController extends Controller {
     }
 
     //KPI3
-    public function getInfoDesbalancesTension($connection) {
+    public function getInfoDesbalancesTension($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s95')) {
+            if (Schema::connection($connection)->hasTable('t_s95')) {
                 $infoDesbalancesTension = DB::connection($connection)->select("
                 SELECT * 
                 FROM core.t_s95 
@@ -547,9 +659,10 @@ class SupervisionAvanzadaController extends Controller {
     }
 
     //KPI4
-    public function getVariacionesTension($connection) {
+    public function getVariacionesTension($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s97')) {
+            if (Schema::connection($connection)->hasTable('t_s97')) {
                 $variacionesTension = DB::connection($connection)->select("
                 SELECT SUM(nr) AS total_variaciones_r, 
                     SUM(ns) AS total_variaciones_s, 
@@ -566,14 +679,15 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    public function getNumVariacionesTension($connection) {
+    public function getNumVariacionesTension($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_s97')) {
+            if (Schema::connection($connection)->hasTable('t_s97')) {
                 $numVariacionesTension = DB::connection($connection)->select("
                 SELECT id_rtu, sum(nr) , sum(ns), sum(nt)  
                 FROM core.t_s97 
                 group by 1; ");
-                
+
                 return $numVariacionesTension ?: ['message' => 'No hay datos'];
             } else {
                 return ['message' => 'No hay datos'];
@@ -585,15 +699,16 @@ class SupervisionAvanzadaController extends Controller {
     }
 
 
-    public function getAllS64(Request $request, $connection) {
-    try {
-        if(Schema::connection($connection)->hasTable('t_s64')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
-            $id_ct = $request->input('id_ct');
+    public function getAllS64(Request $request, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_s64')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
 
-            // Inicia el query con JOIN para filtrar por id_ct
-            $query = "
+                // Inicia el query con JOIN para filtrar por id_ct
+                $query = "
                 SELECT DISTINCT s.*, e.id_linea
                 FROM core.t_s64 s
                 INNER JOIN core.t_equipos_sabt e 
@@ -602,99 +717,104 @@ class SupervisionAvanzadaController extends Controller {
                 WHERE 1=1
             ";
 
-            $params = [];
+                $params = [];
 
-            // Filtro por ID_CT si viene en el request
-            if ($id_ct) {
-                $query .= " AND e.id_ct = :id_ct";
-                $params['id_ct'] = $id_ct;
-            }
+                // Filtro por ID_CT si viene en el request
+                if ($id_ct) {
+                    $query .= " AND e.id_ct = :id_ct";
+                    $params['id_ct'] = $id_ct;
+                }
 
-            // Filtros por fecha
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND s.fh BETWEEN TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD') AND TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $query .= " AND s.fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $query .= " AND s.fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_fin'] = $fecha_fin;
+                // Filtros por fecha
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND s.fh BETWEEN TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD') AND TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } elseif ($fecha_inicio) {
+                    $query .= " AND s.fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } elseif ($fecha_fin) {
+                    $query .= " AND s.fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND s.fh >= NOW() - INTERVAL '24 hours'";
+                }
+
+                $query .= " ORDER BY s.fh DESC, e.id_linea ASC LIMIT 1000";
+
+                $resultadosS64 = DB::connection($connection)->select($query, $params);
+
+                return $resultadosS64 ?: ['message' => 'No hay datos'];
             } else {
-                $query .= " AND s.fh >= NOW() - INTERVAL '24 hours'";
+                return ['message' => 'No hay datos'];
             }
-
-            $query .= " ORDER BY s.fh DESC, e.id_linea ASC LIMIT 1000";
-
-            $resultadosS64 = DB::connection($connection)->select($query, $params);
-
-            return $resultadosS64 ?: ['message' => 'No hay datos'];
-        } else {
-            return ['message' => 'No hay datos'];
+        } catch (\Exception $e) {
+            return ['message' => 'Error al consultar', 'error' => $e->getMessage()];
         }
-    } catch(\Exception $e) {
-        return ['message' => 'Error al consultar', 'error' => $e->getMessage()];
     }
-}
 
 
-    public function getAllG53(Request $request, $connection) {
-    try {
-        if(Schema::connection($connection)->hasTable('t_g53')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
-            $id_ct = $request->input('id_ct');
+    public function getAllG53(Request $request, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_g53')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
 
-            $query = "
+                $query = "
                 SELECT DISTINCT s.* 
                 FROM core.t_g53 s
                 INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
                 WHERE 1=1
             ";
 
-            // Construcción dinámica
-            if ($id_ct) {
-                $query .= " AND e.id_ct = :id_ct";
-            }
+                // Construcción dinámica
+                if ($id_ct) {
+                    $query .= " AND e.id_ct = :id_ct";
+                }
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-            } elseif ($fecha_inicio) {
-                $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-            } elseif ($fecha_fin) {
-                $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                } elseif ($fecha_inicio) {
+                    $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                } elseif ($fecha_fin) {
+                    $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                } else {
+                    $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                }
+
+                $query .= " ORDER BY fh DESC LIMIT 20";
+
+                $params = [];
+                if ($id_ct)
+                    $params['id_ct'] = $id_ct;
+                if ($fecha_inicio)
+                    $params['fecha_inicio'] = $fecha_inicio;
+                if ($fecha_fin)
+                    $params['fecha_fin'] = $fecha_fin;
+
+                return DB::connection($connection)->select($query, $params);
             } else {
-                $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                return ['message' => 'No hay datos'];
             }
-
-            $query .= " ORDER BY fh DESC LIMIT 20";
-
-            $params = [];
-            if ($id_ct) $params['id_ct'] = $id_ct;
-            if ($fecha_inicio) $params['fecha_inicio'] = $fecha_inicio;
-            if ($fecha_fin) $params['fecha_fin'] = $fecha_fin;
-
-            return DB::connection($connection)->select($query, $params);
-        } else {
-            return ['message' => 'No hay datos'];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage()];
     }
-}
 
 
 
-    public function getAllS52(Request $request, $connection) {
-    try {
-        if (Schema::connection($connection)->hasTable('t_s52')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
-            $id_ct = $request->input('id_ct');
+    public function getAllS52(Request $request, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_s52')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
 
-            $query = "
+                $query = "
                 SELECT DISTINCT s.*, e.id_linea 
                 FROM core.t_s52 s
                 INNER JOIN core.t_equipos_sabt e 
@@ -703,163 +823,167 @@ class SupervisionAvanzadaController extends Controller {
                 WHERE 1=1
             ";
 
-            $params = [];
+                $params = [];
 
-            if ($id_ct) {
-                $query .= " AND e.id_ct = :id_ct";
-                $params['id_ct'] = $id_ct;
-            }
+                if ($id_ct) {
+                    $query .= " AND e.id_ct = :id_ct";
+                    $params['id_ct'] = $id_ct;
+                }
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND fec_inicio >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $query .= " AND fec_fin <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $query .= " AND fec_inicio >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $query .= " AND fec_fin <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_fin'] = $fecha_fin;
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fec_inicio >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $query .= " AND fec_fin <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } elseif ($fecha_inicio) {
+                    $query .= " AND fec_inicio >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } elseif ($fecha_fin) {
+                    $query .= " AND fec_fin <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fec_inicio >= NOW() - INTERVAL '24 hours'";
+                }
+
+                $query .= " ORDER BY s.fec_inicio, s.hor_inicio DESC, e.id_linea ASC LIMIT 1000";
+
+                $resultadosS52 = DB::connection($connection)->select($query, $params);
+
+                return $resultadosS52 ?: ['message' => 'No hay datos db'];
             } else {
-                $query .= " AND fec_inicio >= NOW() - INTERVAL '24 hours'";
+                return ['message' => 'La tabla t_s52 no existe'];
             }
-
-            $query .= " ORDER BY s.fec_inicio, s.hor_inicio DESC, e.id_linea ASC LIMIT 1000";
-
-            $resultadosS52 = DB::connection($connection)->select($query, $params);
-
-            return $resultadosS52 ?: ['message' => 'No hay datos db'];
-        } else {
-            return ['message' => 'La tabla t_s52 no existe'];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage()];
     }
-}
 
 
-    public function getAllS96(Request $request, $connection) {
-    try {
-        if (Schema::connection($connection)->hasTable('t_s96')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
-            $id_ct = $request->input('id_ct');
+    public function getAllS96(Request $request, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_s96')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
 
-            $query = "
+                $query = "
                 SELECT DISTINCT s.*
                 FROM core.t_s96 s
                 INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
                 WHERE 1=1
             ";
 
-            $params = [];
+                $params = [];
 
-            if ($id_ct) {
-                $query .= " AND e.id_ct = :id_ct";
-                $params['id_ct'] = $id_ct;
-            }
+                if ($id_ct) {
+                    $query .= " AND e.id_ct = :id_ct";
+                    $params['id_ct'] = $id_ct;
+                }
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_fin'] = $fecha_fin;
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } elseif ($fecha_inicio) {
+                    $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } elseif ($fecha_fin) {
+                    $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                }
+
+                $query .= " ORDER BY fh DESC LIMIT 1000";
+
+                // Ejecutar consulta segura con parámetros
+                $resultadosS96 = DB::connection($connection)->select($query, $params);
+
+                return $resultadosS96 ?: ['message' => 'No hay datos db'];
             } else {
-                $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                return ['message' => 'La tabla t_s96 no existe'];
             }
-
-            $query .= " ORDER BY fh DESC LIMIT 1000";
-
-            // Ejecutar consulta segura con parámetros
-            $resultadosS96 = DB::connection($connection)->select($query, $params);
-
-            return $resultadosS96 ?: ['message' => 'No hay datos db'];
-        } else {
-            return ['message' => 'La tabla t_s96 no existe'];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage()];
     }
-}
 
 
-    public function getAllS97(Request $request, $connection) {
-    try {
-        if (Schema::connection($connection)->hasTable('t_s97')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
-            $id_ct = $request->input('id_ct');
+    public function getAllS97(Request $request, $connection)
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_s97')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
 
-            $query = "
+                $query = "
                 SELECT DISTINCT s.*
                 FROM core.t_s97 s
                 INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
                 WHERE 1=1
             ";
 
-            $params = [];
+                $params = [];
 
-            if ($id_ct) {
-                $query .= " AND e.id_ct = :id_ct";
-                $params['id_ct'] = $id_ct;
-            }
+                if ($id_ct) {
+                    $query .= " AND e.id_ct = :id_ct";
+                    $params['id_ct'] = $id_ct;
+                }
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
-                $params['fecha_fin'] = $fecha_fin;
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } elseif ($fecha_inicio) {
+                    $query .= " AND fh >= TO_TIMESTAMP(:fecha_inicio, 'YYYY-MM-DD')";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                } elseif ($fecha_fin) {
+                    $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                }
+
+                $query .= " ORDER BY fh DESC LIMIT 20";
+
+                $resultadosS97 = DB::connection($connection)->select($query, $params);
+
+                return $resultadosS97 ?: ['message' => 'No hay datos db'];
             } else {
-                $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                return ['message' => 'La tabla t_s97 no existe'];
             }
-
-            $query .= " ORDER BY fh DESC LIMIT 20";
-
-            $resultadosS97 = DB::connection($connection)->select($query, $params);
-
-            return $resultadosS97 ?: ['message' => 'No hay datos db'];
-        } else {
-            return ['message' => 'La tabla t_s97 no existe'];
+        } catch (\Exception $e) {
+            return ['error' => $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['error' => $e->getMessage()];
     }
-}
 
 
-    public function getFasesSABT($id_ct, $connection) {
+    public function getFasesSABT($id_ct, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_cups')) {
-                 $fasessabt = DB::connection($connection)->select("
+            if (Schema::connection($connection)->hasTable('t_cups')) {
+                $fasessabt = DB::connection($connection)->select("
                  SELECT * FROM core.t_cups 
                  WHERE id_ct = :id_ct", ['id_ct' => $id_ct]);
 
-                 return $fasessabt ?: ['message' => 'No hay datos'];
+                return $fasessabt ?: ['message' => 'No hay datos'];
             } else {
                 // Una de las tablas no existe, retornar un mensaje específico 
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
     }
 
-    public function getCTSABT($id_ct, $connection) {
+    public function getCTSABT($id_ct, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_ct')) {
+            if (Schema::connection($connection)->hasTable('t_ct')) {
                 $ctSABT = DB::connection($connection)->select("
                 SELECT * FROM core.t_ct
                 WHERE id_ct = :id_ct", ['id_ct' => $id_ct]);
@@ -869,16 +993,17 @@ class SupervisionAvanzadaController extends Controller {
                 // Una de las tablas no existe, retornar un mensaje específico 
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos'];
         }
     }
 
 
 
-    Public function getTramos(Request $request, $connection) {
+    public function getTramos(Request $request, $connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_tramos')) {
+            if (Schema::connection($connection)->hasTable('t_tramos')) {
                 $query = "
                 SELECT *
                 FROM core.t_tramos
@@ -890,7 +1015,7 @@ class SupervisionAvanzadaController extends Controller {
             } else {
                 return ['message' => 'No hay datos'];
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
             return ['message' => 'No hay datos error', $e];
         }
     }
@@ -1056,12 +1181,15 @@ class SupervisionAvanzadaController extends Controller {
         }
     }
 
-    public function getDatosSABT($id_ct, $connection) {
-        if($id_ct) {
-            if(Schema::connection($connection)->hasTable('t_equipos_sabt') && 
-            Schema::connection($connection)->hasTable('t_s62')) {
+    public function getDatosSABT($id_ct, $connection)
+    {
+        if ($id_ct) {
+            if (
+                Schema::connection($connection)->hasTable('t_equipos_sabt') &&
+                Schema::connection($connection)->hasTable('t_s62')
+            ) {
                 $datosSABT = DB::connection($connection)
-                ->select("
+                    ->select("
                     SELECT
                         sabt.id_rtu AS id,
                         s62.mod AS modelo,
@@ -1079,7 +1207,7 @@ class SupervisionAvanzadaController extends Controller {
                 ", [$id_ct]);
 
                 return $datosSABT ?: [];
-            } 
+            }
         }
         return [];
     }
