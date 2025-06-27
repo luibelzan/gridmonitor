@@ -168,6 +168,8 @@ class SupervisionAvanzadaController extends Controller
             $infoDistorsionesArmonicas = $this->getInfoDistorsionesArmonicas($connection);
             $infoFlickers = $this->getInfoFlickers($connection);
             $infoDesbalancesTension = $this->getInfoDesbalancesTension($connection);
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
+            $id_ct = $request->input('id_ct');
 
             return view('supervisionavanzada/indicadoressabt', [
                 'distorsionesArmonicas' => $distorsionesArmonicas,
@@ -181,6 +183,8 @@ class SupervisionAvanzadaController extends Controller
                 'infoDistorsionesArmonicas' => $infoDistorsionesArmonicas,
                 'infoFlickers' => $infoFlickers,
                 'infoDesbalancesTension' => $infoDesbalancesTension,
+                'ct_info' => $ct_info,
+                'id_ct' => $id_ct,
             ]);
         }
     }
