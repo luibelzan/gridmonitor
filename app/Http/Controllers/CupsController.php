@@ -2269,39 +2269,68 @@ class CupsController extends Controller
     }
 
     public function getConsumoDiario($id_cups, $connection, Request $request)
-    {
-        $id_cups = strtoupper(($request->input('id_cups')));
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
-        if (Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
-            if ($id_cups) {
-                $consumoDiario = DB::connection($connection)->select("
-                WITH meses AS (
-                    SELECT generate_series(
-                        (SELECT MAX(fec_fin) FROM core.t_consumos_diarios) - INTERVAL '1 month',
-                        (SELECT MAX(fec_fin) FROM core.t_consumos_diarios),
-                        INTERVAL '1 day'
-                    )::date AS mes
-                )
-                SELECT 
-					TO_CHAR(c.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
-                    TO_CHAR(m.mes, 'DD/MM/YYYY') AS fec_fin,
-                    COALESCE(c.val_ai_d, 0) AS val_ai_d,
-                    COALESCE(c.val_ae_d, 0) AS val_ae_d
-                FROM meses m
-                LEFT JOIN core.t_consumos_diarios c 
-                    ON c.fec_fin = m.mes
-                    AND c.id_cups LIKE :id_cups
-                ORDER BY m.mes ASC;
+    if (Schema::connection($connection)->hasTable('t_consumos_totales_diarios')) {
+        if ($id_cups) {
+            $params = ['id_cups' => "%$id_cups%"];
 
-
-                ", bindings: ['id_cups' => "%$id_cups%"]);
-
-                return $consumoDiario ?: [];
+            if ($fecha_inicio && $fecha_fin) {
+                $query = "
+                    WITH fechas AS (
+                        SELECT generate_series(
+                            :fecha_inicio::date,
+                            :fecha_fin::date,
+                            INTERVAL '1 day'
+                        )::date AS dia
+                    )
+                    SELECT 
+                        TO_CHAR(c.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
+                        TO_CHAR(f.dia, 'DD/MM/YYYY') AS fec_fin,
+                        COALESCE(c.val_ai_d, 0) AS val_ai_d,
+                        COALESCE(c.val_ae_d, 0) AS val_ae_d
+                    FROM fechas f
+                    LEFT JOIN core.t_consumos_diarios c 
+                        ON c.fec_fin = f.dia + INTERVAL '1 day'
+                        AND c.id_cups LIKE :id_cups
+                    ORDER BY f.dia ASC;
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
             } else {
-                return ['message' => 'No hay datos'];
+                $query = "
+                    WITH fechas AS (
+                        SELECT generate_series(
+                            (SELECT MAX(fec_fin) FROM core.t_consumos_diarios) - INTERVAL '1 month',
+                            (SELECT MAX(fec_fin) FROM core.t_consumos_diarios),
+                            INTERVAL '1 day'
+                        )::date AS dia
+                    )
+                    SELECT 
+                        TO_CHAR(c.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
+                        TO_CHAR(f.dia, 'DD/MM/YYYY') AS fec_fin,
+                        COALESCE(c.val_ai_d, 0) AS val_ai_d,
+                        COALESCE(c.val_ae_d, 0) AS val_ae_d
+                    FROM fechas f
+                    LEFT JOIN core.t_consumos_diarios c 
+                        ON c.fec_fin = f.dia
+                        AND c.id_cups LIKE :id_cups
+                    ORDER BY f.dia ASC;
+                ";
             }
+
+            $consumoDiario = DB::connection($connection)->select($query, $params);
+
+            return $consumoDiario ?: [];
+        } else {
+            return ['message' => 'No hay datos'];
         }
     }
+}
+
 
     public function getConsumosTotalesDiarios($id_cups, $connection, Request $request) {
         $id_cups = strtoupper($request->input('id_cups'));
