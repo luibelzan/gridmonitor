@@ -397,7 +397,21 @@ document.addEventListener("DOMContentLoaded", function () {
                                 style="border-bottom: 3px solid transparent; border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                             </div>
                             <div class="container">
-                                <h2 class="text-center text-1xl mt-2" style="color: white;">Últimos mes</h2>
+                                <h2 class="text-center text-1xl w-full mb-2" style="color: white;">
+                                    @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
+                                        Del
+                                        {{ \Carbon\Carbon::parse(request()->query('fecha_inicio'))->format('d/m/Y') }}
+                                        al
+                                        {{ \Carbon\Carbon::parse(request()->query('fecha_fin'))->format('d/m/Y') }}
+                                    @elseif (request()->query('fecha_inicio'))
+                                        Del
+                                        {{ \Carbon\Carbon::parse(request()->query('fecha_inicio'))->format('d/m/Y') }}
+                                        al
+                                        {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                                    @else
+                                        (Último mes)
+                                    @endif
+                                </h2>
                                 <div class="table-responsive w-full"
                                     style="display: flex; justify-content: center;">
 
