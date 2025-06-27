@@ -272,12 +272,16 @@ class SupervisionAvanzadaController extends Controller
         if ($connection == 'pgsql') {
             return view('admin/admin');
         } else {
-            $balancesSABT = $this->getBalancesSABT($request, $connection);
-            $balancesFasesSABT = $this->getBalancesFaseSABT($request, $connection);
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
+            $id_ct = $request->input('id_ct');
+            $balancesSABT = $this->getBalancesSABT($request, $connection, $id_ct);
+            $balancesFasesSABT = $this->getBalancesFaseSABT($request, $connection, $id_ct);
 
             return view('supervisionavanzada/balancessabt', [
                 'balancesSABT' => $balancesSABT,
                 'balancesFasesSABT' => $balancesFasesSABT,
+                'ct_info' => $ct_info,
+                'id_ct' => $id_ct,
             ]);
         }
     }
@@ -337,17 +341,17 @@ class SupervisionAvanzadaController extends Controller
         }
     }
 
-    public function getBalancesSABT(Request $request, $connection)
-    {
-        try {
-            if (Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
+    public function getBalancesSABT(Request $request, $connection, $id_ct)
+{
+    try {
+        if (Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
 
-                $params = [];
+            $params = ['id_ct' => $id_ct];
 
-                $query = "
-                SELECT
+            $query = "
+            SELECT
                 id_ct,
                 id_linea,
                 AVG(num_cnt) AS total_cnt,
@@ -368,117 +372,123 @@ class SupervisionAvanzadaController extends Controller
                 END AS porcentaje_perdida
             FROM
                 core.t_balances_horarios_lineas
-            WHERE";
+            WHERE
+                id_ct = :id_ct";
 
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= " fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
-                    $params = ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    $query .= " fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
-                }
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+            }
 
-                $query .= " GROUP BY
+            $query .= " GROUP BY
                             id_ct,
                             id_linea
                         ORDER BY
                             id_ct,
                             id_linea;";
 
-                $balancesSABT = DB::connection($connection)->select($query, $params);
+            $balancesSABT = DB::connection($connection)->select($query, $params);
 
-                return $balancesSABT ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+            return $balancesSABT ?: ['message' => 'No hay datos'];
+        } else {
+            return ['message' => 'No hay datos'];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
 
-    public function getBalancesFaseSABT(Request $request, $connection)
-    {
-        try {
-            if (Schema::connection($connection)->hasTable('t_balances_horarios_fases')) {
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
 
-                $params = [];
+    public function getBalancesFaseSABT(Request $request, $connection, $id_ct)
+{
+    try {
+        if (Schema::connection($connection)->hasTable('t_balances_horarios_fases')) {
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
 
-                $query = "
-                SELECT
-                    id_ct,
-                    id_linea,
-                    
-                    -- FASE R
-                    SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
-                    SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
-                    SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
-                    SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
-                    SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
-                    SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) AS perdida_energia_r,
-                    CASE
-                        WHEN SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) = 0 THEN 0
-                        ELSE ROUND(
-                            (SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) * 100.0)
-                            / SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)), 2)
-                    END AS porcentaje_perdida_r,
+            $params = ['id_ct' => $id_ct];
 
-                    -- FASE S
-                    SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
-                    SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
-                    SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
-                    SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
-                    SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
-                    SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) AS perdida_energia_s,
-                    CASE
-                        WHEN SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) = 0 THEN 0
-                        ELSE ROUND(
-                            (SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) * 100.0)
-                            / SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)), 2)
-                    END AS porcentaje_perdida_s,
+            $query = "
+            SELECT
+                id_ct,
+                id_linea,
 
-                    -- FASE T
-                    SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
-                    SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
-                    SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
-                    SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
-                    SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
-                    SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) AS perdida_energia_t,
-                    CASE
-                        WHEN SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) = 0 THEN 0
-                        ELSE ROUND(
-                            (SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) * 100.0)
-                            / SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)), 2)
-                    END AS porcentaje_perdida_t
+                -- FASE R
+                SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
+                SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
+                SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
+                SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
+                SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
+                SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) AS perdida_energia_r,
+                CASE
+                    WHEN SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) = 0 THEN 0
+                    ELSE ROUND(
+                        (SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) * 100.0)
+                        / SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)), 2)
+                END AS porcentaje_perdida_r,
 
-                FROM
-                    core.t_balances_horarios_fases
-                WHERE";
+                -- FASE S
+                SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
+                SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
+                SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
+                SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
+                SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
+                SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) AS perdida_energia_s,
+                CASE
+                    WHEN SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) = 0 THEN 0
+                    ELSE ROUND(
+                        (SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) * 100.0)
+                        / SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)), 2)
+                END AS porcentaje_perdida_s,
 
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= " fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
-                    $params = ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    $query .= " fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
-                }
+                -- FASE T
+                SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
+                SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
+                SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
+                SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
+                SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
+                SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) AS perdida_energia_t,
+                CASE
+                    WHEN SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) = 0 THEN 0
+                    ELSE ROUND(
+                        (SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) * 100.0)
+                        / SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)), 2)
+                END AS porcentaje_perdida_t
 
-                $query .= " GROUP BY
+            FROM
+                core.t_balances_horarios_fases
+            WHERE
+                id_ct = :id_ct";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+            }
+
+            $query .= " GROUP BY
                             id_ct,
                             id_linea
                         ORDER BY
                             id_ct,
                             id_linea;";
 
-                $balancesFasesSABT = DB::connection($connection)->select($query, $params);
+            $balancesFasesSABT = DB::connection($connection)->select($query, $params);
 
-                return $balancesFasesSABT ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+            return $balancesFasesSABT ?: ['message' => 'No hay datos'];
+        } else {
+            return ['message' => 'No hay datos'];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
 
     //KPI1
     public function getDistorsionesArmonicas($connection)
