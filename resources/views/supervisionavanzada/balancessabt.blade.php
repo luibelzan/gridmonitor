@@ -602,6 +602,15 @@
                                                                 Energia Consumida (T)</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
+                                                                Autoconsumos (R)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Autoconsumos (S)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                Autoconsumos (T)</th>
+                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                style="color:rgb(88,226,194); padding: 10px">
                                                                 Perdida (R)</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 10px">
@@ -655,6 +664,15 @@
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->total_ai_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ae_cnt_s) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                </td>
+                                                                <td class="py-2">
+                                                                    {{ !empty($resultado->total_ae_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->perdida_energia_r) ? intval($resultado->perdida_energia_r/1000) : '0' }}
