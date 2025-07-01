@@ -1019,9 +1019,14 @@ class CupsController extends Controller
                         t_contadores.des_companion,
                         t_modelos_contadores.nom_fabricante,
                         t_modelos_contadores.num_fases,
-                        t_modelos_contadores.tipo_cnt
+                        t_modelos_contadores.tipo_cnt,
+                        t_cups.id_linea,
+                        t_cups.cod_fase
                     FROM core.t_contadores
-                    JOIN core.t_modelos_contadores ON t_contadores.mod_cnt::text = t_modelos_contadores.mod_cnt::text  
+                    JOIN core.t_modelos_contadores 
+                        ON t_contadores.mod_cnt::text = t_modelos_contadores.mod_cnt::text
+                    JOIN core.t_cups 
+                        ON t_contadores.id_cnt::text = t_cups.id_cnt::text  
                     WHERE t_contadores.id_cnt = :id_cnt
                 ', ['id_cnt' => $id_cnt]);
                     //  dd($resultadosQ2cups);
