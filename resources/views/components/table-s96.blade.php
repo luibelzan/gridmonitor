@@ -313,9 +313,7 @@
 
 
 <div>
-    <h1 class="text-center text-3xl mt-4" style="color: white;">TENSIONES
-        DEL
-        CT </h1>
+    <h1 class="text-center text-3xl mt-4" style="color: white;">ARMONICOS POR FASE </h1>
     <h2 class="text-center text-1xl w-full mb-2" style="color: white;">
         @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
             Del
