@@ -62,6 +62,9 @@ class SupervisionAvanzadaController extends Controller
             $comunicaciones = $this->getComunicaciones($id_ct, $connection);
             $datosSABT = $this->getDatosSABT($id_ct, $connection);
 
+            Session::put('id_ct', $id_ct);
+
+
             if ($tipo_evento == null) {
                 $tipo_evento = 'S64';
             }
@@ -163,13 +166,15 @@ class SupervisionAvanzadaController extends Controller
             $numFlickers = $this->getNumFlickers($request, $connection);
             $desbalancesTension = $this->getDesbalancesTension($request, $connection);
             $numDesbalancesTension = $this->getNumDesbalancesTension($request, $connection);
-            $variacionesTension = $this->getVariacionesTension($request,$connection);
+            $variacionesTension = $this->getVariacionesTension($request, $connection);
             $numVariacionesTension = $this->getNumVariacionesTension($request, $connection);
             $infoDistorsionesArmonicas = $this->getInfoDistorsionesArmonicas($request, $connection);
             $infoFlickers = $this->getInfoFlickers($request, $connection);
             $infoDesbalancesTension = $this->getInfoDesbalancesTension($request, $connection);
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
             $id_ct = $request->input('id_ct');
+
+            Session::put('id_ct', $id_ct);
 
             return view('supervisionavanzada/indicadoressabt', [
                 'distorsionesArmonicas' => $distorsionesArmonicas,
@@ -208,6 +213,7 @@ class SupervisionAvanzadaController extends Controller
         // Obtener la conexión dinámica
         $connection = User::conexion();
 
+
         if ($connection == 'pgsql') {
             // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
             return view('admin/admin');
@@ -243,6 +249,7 @@ class SupervisionAvanzadaController extends Controller
 
         // Guardar el nombre de la vista actual en la sesión
         Session::put('vista_actual', 'calidadsabt');
+        $id_ct = session('id_ct');
 
         // Obtener la conexión dinámica
         $connection = User::conexion();
@@ -276,6 +283,8 @@ class SupervisionAvanzadaController extends Controller
             $id_ct = $request->input('id_ct');
             $balancesSABT = $this->getBalancesSABT($request, $connection, $id_ct);
             $balancesFasesSABT = $this->getBalancesFaseSABT($request, $connection, $id_ct);
+
+            Session::put('id_ct', $id_ct);
 
             return view('supervisionavanzada/balancessabt', [
                 'balancesSABT' => $balancesSABT,
@@ -342,15 +351,15 @@ class SupervisionAvanzadaController extends Controller
     }
 
     public function getBalancesSABT(Request $request, $connection, $id_ct)
-{
-    try {
-        if (Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
 
-            $params = ['id_ct' => $id_ct];
+                $params = ['id_ct' => $id_ct];
 
-            $query = "
+                $query = "
             SELECT
                 id_ct,
                 id_linea,
@@ -375,43 +384,43 @@ class SupervisionAvanzadaController extends Controller
             WHERE
                 id_ct = :id_ct";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } else {
-                $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
-            }
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+                }
 
-            $query .= " GROUP BY
+                $query .= " GROUP BY
                             id_ct,
                             id_linea
                         ORDER BY
                             id_ct,
                             id_linea;";
 
-            $balancesSABT = DB::connection($connection)->select($query, $params);
+                $balancesSABT = DB::connection($connection)->select($query, $params);
 
-            return $balancesSABT ?: ['message' => 'No hay datos'];
-        } else {
-            return ['message' => 'No hay datos'];
+                return $balancesSABT ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['message' => 'Error: ' . $e->getMessage()];
     }
-}
 
 
     public function getBalancesFaseSABT(Request $request, $connection, $id_ct)
-{
-    try {
-        if (Schema::connection($connection)->hasTable('t_balances_horarios_fases')) {
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
+    {
+        try {
+            if (Schema::connection($connection)->hasTable('t_balances_horarios_fases')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
 
-            $params = ['id_ct' => $id_ct];
+                $params = ['id_ct' => $id_ct];
 
-            $query = "
+                $query = "
             SELECT
                 id_ct,
                 id_linea,
@@ -463,44 +472,44 @@ class SupervisionAvanzadaController extends Controller
             WHERE
                 id_ct = :id_ct";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
-                $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
-            } else {
-                $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
-            }
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+                }
 
-            $query .= " GROUP BY
+                $query .= " GROUP BY
                             id_ct,
                             id_linea
                         ORDER BY
                             id_ct,
                             id_linea;";
 
-            $balancesFasesSABT = DB::connection($connection)->select($query, $params);
+                $balancesFasesSABT = DB::connection($connection)->select($query, $params);
 
-            return $balancesFasesSABT ?: ['message' => 'No hay datos'];
-        } else {
-            return ['message' => 'No hay datos'];
+                return $balancesFasesSABT ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
         }
-    } catch (\Exception $e) {
-        return ['message' => 'Error: ' . $e->getMessage()];
     }
-}
 
 
     //KPI1
     public function getDistorsionesArmonicas(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s96')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s96')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT  
                 s.rtu_id,
                 AVG(s.hr_thd) AS avg_hr_thd,  
@@ -511,105 +520,105 @@ class SupervisionAvanzadaController extends Controller
             WHERE s.fh >= NOW() - INTERVAL '72 hours'
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $query .= " GROUP BY s.rtu_id";
+
+            $distorsionesArmonicas = DB::connection($connection)->select($query, $params);
+
+            return $distorsionesArmonicas ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $query .= " GROUP BY s.rtu_id";
-
-        $distorsionesArmonicas = DB::connection($connection)->select($query, $params);
-
-        return $distorsionesArmonicas ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI1
     public function getNumDistorsionesArmonicas(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s96')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s96')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT COUNT(*) AS total_distorsiones 
             FROM core.t_s96 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE (s.hr_thd > 8 OR s.hs_thd > 8 OR s.ht_thd > 8)
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
 
     //KPI1
     public function getInfoDistorsionesArmonicas(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s96')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s96')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT s.*
             FROM core.t_s96 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE s.hr_thd > 8 OR s.hs_thd > 8 OR s.ht_thd > 8
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI2
     public function getPromedioFase(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s94')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s94')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT  
                 AVG(s.fr) AS avg_fr, 
                 AVG(s.fs) AS avg_fs, 
@@ -619,204 +628,204 @@ class SupervisionAvanzadaController extends Controller
             WHERE s.fh >= NOW() - INTERVAL '3 days'
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI2
     public function getNumFlickers(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s94')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s94')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT COUNT(*) AS total_flickers 
             FROM core.t_s94 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE (s.fr > 1 OR s.fs > 1 OR s.ft > 1)
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI2
     public function getInfoFlickers(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s94')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s94')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT s.*
             FROM core.t_s94 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE s.fr > 1 OR s.fs > 1 OR s.ft > 1
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI3
     public function getDesbalancesTension(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s95')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s95')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT AVG(s.vu) AS avg_desbalance_tension
             FROM core.t_s95 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE s.fh >= NOW() - INTERVAL '72 hours'
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI3
     public function getNumDesbalancesTension(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s95')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s95')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT COUNT(*) AS total_desbalances 
             FROM core.t_s95 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE s.vu > 2
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI3
     public function getInfoDesbalancesTension(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s95')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s95')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT s.* 
             FROM core.t_s95 s
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
             WHERE s.vu > 2
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     //KPI4
     public function getVariacionesTension(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s97')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s97')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT 
                 SUM(s.nr) AS total_variaciones_r, 
                 SUM(s.ns) AS total_variaciones_s, 
@@ -826,33 +835,33 @@ class SupervisionAvanzadaController extends Controller
             WHERE s.fh >= NOW() - INTERVAL '72 hours'
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " AND e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " AND e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
     public function getNumVariacionesTension(Request $request, $connection)
-{
-    try {
-        if (!Schema::connection($connection)->hasTable('t_s97')) {
-            return ['message' => 'No hay datos'];
-        }
+    {
+        try {
+            if (!Schema::connection($connection)->hasTable('t_s97')) {
+                return ['message' => 'No hay datos'];
+            }
 
-        $id_ct = $request->input('id_ct');
+            $id_ct = $request->input('id_ct');
 
-        $query = "
+            $query = "
             SELECT 
                 s.id_rtu, 
                 SUM(s.nr) AS sum_nr, 
@@ -862,23 +871,23 @@ class SupervisionAvanzadaController extends Controller
             INNER JOIN core.t_equipos_sabt e ON s.rtu_id = e.id_rtu
         ";
 
-        $params = [];
+            $params = [];
 
-        if ($id_ct) {
-            $query .= " WHERE e.id_ct = :id_ct";
-            $params['id_ct'] = $id_ct;
+            if ($id_ct) {
+                $query .= " WHERE e.id_ct = :id_ct";
+                $params['id_ct'] = $id_ct;
+            }
+
+            $query .= " GROUP BY s.id_rtu";
+
+            $result = DB::connection($connection)->select($query, $params);
+
+            return $result ?: ['message' => 'No hay datos'];
+
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
-
-        $query .= " GROUP BY s.id_rtu";
-
-        $result = DB::connection($connection)->select($query, $params);
-
-        return $result ?: ['message' => 'No hay datos'];
-
-    } catch (\Exception $e) {
-        return ['message' => 'No hay datos'];
     }
-}
 
 
 
@@ -920,7 +929,7 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND s.fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
-                    $query .= " AND s.fh >= NOW() - INTERVAL '24 hours'";
+                    $query .= " AND s.fh >= NOW() - INTERVAL '48 hours'";
                 }
 
                 $query .= " ORDER BY s.fh DESC, e.id_linea ASC LIMIT 1000";
@@ -965,7 +974,7 @@ class SupervisionAvanzadaController extends Controller
                 } elseif ($fecha_fin) {
                     $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
                 } else {
-                    $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                    $query .= " AND fh >= NOW() - INTERVAL '48 hours'";
                 }
 
                 $query .= " ORDER BY fh DESC LIMIT 20";
@@ -1025,7 +1034,7 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fec_fin <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
-                    $query .= " AND fec_inicio >= NOW() - INTERVAL '24 hours'";
+                    $query .= " AND fec_inicio >= NOW() - INTERVAL '48 hours'";
                 }
 
                 $query .= " ORDER BY s.fec_inicio, s.hor_inicio DESC, e.id_linea ASC LIMIT 1000";
@@ -1076,7 +1085,7 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
-                    $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                    $query .= " AND fh >= NOW() - INTERVAL '48 hours'";
                 }
 
                 $query .= " ORDER BY fh DESC LIMIT 1000";
@@ -1128,7 +1137,7 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fh <= TO_TIMESTAMP(:fecha_fin, 'YYYY-MM-DD')";
                     $params['fecha_fin'] = $fecha_fin;
                 } else {
-                    $query .= " AND fh >= NOW() - INTERVAL '24 hours'";
+                    $query .= " AND fh >= NOW() - INTERVAL '48 hours'";
                 }
 
                 $query .= " ORDER BY fh DESC LIMIT 20";
