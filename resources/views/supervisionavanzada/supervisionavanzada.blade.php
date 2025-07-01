@@ -625,23 +625,23 @@
                                         </div>
 
                                         @if(isset($resultadosS64) && count($resultadosS64) > 0)
-                                            <x-table-s64 :resultados="$resultadosS64" />
+                                            <x-table-s64 :resultados="$resultadosS64" :resultados2="$resultadosS64Full"/>
                                         @endif
 
                                         @if(isset($resultadosG53) && count($resultadosG53) > 0)
-                                            <x-table-g53 :resultados="$resultadosG53" />
+                                            <x-table-g53 :resultados="$resultadosG53" :resultados2="$resultadosG53Full"/>
                                         @endif
 
                                         @if(isset($resultadosS52) && count($resultadosS52) > 0)
-                                            <x-table-s52 :resultados="$resultadosS52" />
+                                            <x-table-s52 :resultados="$resultadosS52" :resultados2="$resultadosS52Full" />
                                         @endif
 
                                         @if(isset($resultadosS96) && count($resultadosS96) > 0)
-                                            <x-table-s96 :resultados="$resultadosS96" />
+                                            <x-table-s96 :resultados="$resultadosS96" :resultados2="$resultadosS96Full"/>
                                         @endif
 
                                         @if(isset($resultadosS97) && count($resultadosS97) > 0)
-                                            <x-table-s97 :resultados="$resultadosS97" />
+                                            <x-table-s97 :resultados="$resultadosS97" :resultados2="$resultadosS97Full"/>
                                         @endif
 
                                     </div>

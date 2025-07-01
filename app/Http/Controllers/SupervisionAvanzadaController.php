@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Ct;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
@@ -72,7 +74,8 @@ class SupervisionAvanzadaController extends Controller
             if ($tipo_evento == 'S64') {
                 $resultadosS64 = $this->getAllS64($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
-                    'resultadosS64' => $resultadosS64,
+                    'resultadosS64' => $resultadosS64['paginatedS64'],
+                    'resultadosS64Full' => $resultadosS64['allS64'],
                     'id_ct' => $id_ct,
                     'ct_info' => $ct_info,
                     'numTrafosAndCapacity' => $numTrafosAndCapacity,
@@ -85,7 +88,8 @@ class SupervisionAvanzadaController extends Controller
             } else if ($tipo_evento == 'G53') {
                 $resultadosG53 = $this->getAllG53($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
-                    'resultadosG53' => $resultadosG53,
+                    'resultadosG53' => $resultadosG53['paginatedG53'],
+                    'resultadosG53Full' => $resultadosG53['allG53'],
                     'id_ct' => $id_ct,
                     'ct_info' => $ct_info,
                     'numTrafosAndCapacity' => $numTrafosAndCapacity,
@@ -98,7 +102,8 @@ class SupervisionAvanzadaController extends Controller
             } else if ($tipo_evento == 'S52') {
                 $resultadosS52 = $this->getAllS52($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
-                    'resultadosS52' => $resultadosS52,
+                    'resultadosS52' => $resultadosS52['paginatedS52'],
+                    'resultadosS52Full' => $resultadosS52['allS52'],
                     'id_ct' => $id_ct,
                     'ct_info' => $ct_info,
                     'numTrafosAndCapacity' => $numTrafosAndCapacity,
@@ -111,7 +116,8 @@ class SupervisionAvanzadaController extends Controller
             } else if ($tipo_evento == 'S96') {
                 $resultadosS96 = $this->getAllS96($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
-                    'resultadosS96' => $resultadosS96,
+                    'resultadosS96' => $resultadosS96['paginatedS96'],
+                    'resultadosS96Full' => $resultadosS96['allS96'],
                     'id_ct' => $id_ct,
                     'ct_info' => $ct_info,
                     'numTrafosAndCapacity' => $numTrafosAndCapacity,
@@ -124,7 +130,8 @@ class SupervisionAvanzadaController extends Controller
             } else if ($tipo_evento == 'S97') {
                 $resultadosS97 = $this->getAllS97($request, $connection);
                 return view('supervisionavanzada/supervisionavanzada', [
-                    'resultadosS97' => $resultadosS97,
+                    'resultadosS97' => $resultadosS97['paginatedS97'],
+                    'resultadosS97Full' => $resultadosS97['allS97'],
                     'id_ct' => $id_ct,
                     'ct_info' => $ct_info,
                     'numTrafosAndCapacity' => $numTrafosAndCapacity,
@@ -932,11 +939,24 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND s.fh >= NOW() - INTERVAL '48 hours'";
                 }
 
-                $query .= " ORDER BY s.fh DESC, e.id_linea ASC LIMIT 1000";
+                $query .= " ORDER BY s.fh DESC, e.id_linea ASC";
 
                 $resultadosS64 = DB::connection($connection)->select($query, $params);
+                $resultadosS64Collection = new Collection($resultadosS64);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosS64Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                
+                $resultadosS64 = new LengthAwarePaginator($currentItems, count($resultadosS64Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                $resultadosS64Full = DB::connection($connection)->select($query, $params);
 
-                return $resultadosS64 ?: ['message' => 'No hay datos'];
+                return [
+                    'paginatedS64' => $resultadosS64,
+                    'allS64' => $resultadosS64Full
+                ];
             } else {
                 return ['message' => 'No hay datos'];
             }
@@ -977,7 +997,7 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fh >= NOW() - INTERVAL '48 hours'";
                 }
 
-                $query .= " ORDER BY fh DESC LIMIT 20";
+                $query .= " ORDER BY fh DESC";
 
                 $params = [];
                 if ($id_ct)
@@ -987,7 +1007,23 @@ class SupervisionAvanzadaController extends Controller
                 if ($fecha_fin)
                     $params['fecha_fin'] = $fecha_fin;
 
-                return DB::connection($connection)->select($query, $params);
+                $resultadosG53 = DB::connection($connection)->select($query, $params);
+                $resultadosG53Collection = new Collection($resultadosG53);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosG53Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                
+                $resultadosG53 = new LengthAwarePaginator($currentItems, count($resultadosG53Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                $resultadosG53Full = DB::connection($connection)->select($query, $params);
+
+                return [
+                    'paginatedG53' => $resultadosG53,
+                    'allG53' => $resultadosG53Full
+                ];
+
             } else {
                 return ['message' => 'No hay datos'];
             }
@@ -1037,11 +1073,24 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fec_inicio >= NOW() - INTERVAL '48 hours'";
                 }
 
-                $query .= " ORDER BY s.fec_inicio, s.hor_inicio DESC, e.id_linea ASC LIMIT 1000";
+                $query .= " ORDER BY s.fec_inicio, s.hor_inicio DESC, e.id_linea ASC";
 
                 $resultadosS52 = DB::connection($connection)->select($query, $params);
+                $resultadosS52Collection = new Collection($resultadosS52);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosS52Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                
+                $resultadosS52 = new LengthAwarePaginator($currentItems, count($resultadosS52Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                $resultadosS52Full = DB::connection($connection)->select($query, $params);
 
-                return $resultadosS52 ?: ['message' => 'No hay datos db'];
+                return [
+                    'paginatedS52' => $resultadosS52,
+                    'allS52' => $resultadosS52Full
+                ];
             } else {
                 return ['message' => 'La tabla t_s52 no existe'];
             }
@@ -1088,12 +1137,25 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fh >= NOW() - INTERVAL '48 hours'";
                 }
 
-                $query .= " ORDER BY fh DESC LIMIT 1000";
+                $query .= " ORDER BY fh DESC";
 
                 // Ejecutar consulta segura con parámetros
                 $resultadosS96 = DB::connection($connection)->select($query, $params);
+                $resultadosS96Collection = new Collection($resultadosS96);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosS96Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                
+                $resultadosS96 = new LengthAwarePaginator($currentItems, count($resultadosS96Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                $resultadosS96Full = DB::connection($connection)->select($query, $params);
 
-                return $resultadosS96 ?: ['message' => 'No hay datos db'];
+                return [
+                    'paginatedS96' => $resultadosS96,
+                    'allS96' => $resultadosS96Full
+                ];
             } else {
                 return ['message' => 'La tabla t_s96 no existe'];
             }
@@ -1140,11 +1202,24 @@ class SupervisionAvanzadaController extends Controller
                     $query .= " AND fh >= NOW() - INTERVAL '48 hours'";
                 }
 
-                $query .= " ORDER BY fh DESC LIMIT 20";
+                $query .= " ORDER BY fh DESC";
 
                 $resultadosS97 = DB::connection($connection)->select($query, $params);
+                $resultadosS97Collection = new Collection($resultadosS97);
+                $currentPage = LengthAwarePaginator::resolveCurrentPage();
+                $perPage = 100;
+                $currentItems = $resultadosS97Collection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+                
+                $resultadosS97 = new LengthAwarePaginator($currentItems, count($resultadosS97Collection), $perPage, $currentPage, [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]);
+                $resultadosS97Full = DB::connection($connection)->select($query, $params);
 
-                return $resultadosS97 ?: ['message' => 'No hay datos db'];
+                return [
+                    'paginatedS97' => $resultadosS97,
+                    'allS97' => $resultadosS97Full
+                ];
             } else {
                 return ['message' => 'La tabla t_s97 no existe'];
             }

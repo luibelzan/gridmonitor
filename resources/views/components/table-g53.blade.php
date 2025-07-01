@@ -65,3 +65,9 @@
 </table>
 
 </div>
+
+<div class="pagination-container mt-4 flex justify-center items-center">
+    <div class="pagination">
+        {{ $resultados->links() }}
+    </div>
+</div>
