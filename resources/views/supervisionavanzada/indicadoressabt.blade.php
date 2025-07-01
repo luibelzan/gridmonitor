@@ -209,14 +209,8 @@
                                                                 <p class="text-2xl font-bold max-w-full">HR</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/harmonics-no-bg.png') }}" width="60" height="80">
                                                                     {{ !empty($distorsionesArmonicas[0]->avg_hr_thd) ? number_format($distorsionesArmonicas[0]->avg_hr_thd, 2) : '0.00' }}
-
                                                                 </p>
                                                             </div>
 
@@ -224,12 +218,7 @@
                                                                 <p class="text-2xl font-bold max-w-full">HS</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/harmonics-no-bg.png') }}" width="60" height="80">
                                                                     {{ !empty($distorsionesArmonicas[0]->avg_hs_thd) ? number_format($distorsionesArmonicas[0]->avg_hs_thd, 2) : '0.00' }}
 
                                                                 </p>
@@ -239,12 +228,7 @@
                                                                 <p class="text-2xl font-bold max-w-full">HT</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/harmonics-no-bg.png') }}" width="60" height="80">
                                                                     {{ !empty($distorsionesArmonicas[0]->avg_ht_thd) ? number_format($distorsionesArmonicas[0]->avg_ht_thd, 2) : '0.00' }}
 
                                                                 </p>
@@ -287,12 +271,7 @@
                                                                 <p class="text-2xl font-bold max-w-full">FR</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/flickers-no-bg.png') }}" width="60" height="80">
                                                                     {{ !empty($promedioFase[0]->avg_hr_thd) ? number_format($promedioFase[0]->avg_fr, 2) : '0.00' }}
 
                                                                 </p>
@@ -302,12 +281,7 @@
                                                                 <p class="text-2xl font-bold max-w-full">FS</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/flickers-no-bg.png') }}" width="60" height="80">
                                                                     {{ !empty($promedioFase[0]->avg_fs) ? number_format($promedioFase[0]->avg_fs, 2) : '0.00' }}
 
                                                                 </p>
@@ -317,12 +291,7 @@
                                                                 <p class="text-2xl font-bold max-w-full">FT</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/flickers-no-bg.png') }}" width="60" height="80">
                                                                     {{ !empty($promedioFase[0]->avg_ft) ? number_format($promedioFase[0]->avg_ft, 2) : '0.00' }}
 
                                                                 </p>
@@ -367,12 +336,7 @@
                                                                 </p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="40"
-                                                                        height="40" viewBox="0 0 24 24"
-                                                                        style="margin-right: 10px;">
-                                                                        <path fill="rgb(88,226,194)"
-                                                                            d="M6 3a2 2 0 0 0-2 2v11h2v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h6v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h2V5a2 2 0 0 0-2-2zm6 4V5h6v2zm0 2h6v2h-6zM8 5v4h2l-3 6v-4H5zm14 15v2H2v-2z" />
-                                                                    </svg>
+                                                                    <img src="{{ asset('images/unbalance-no-bg.png') }}" width="80" height="80" class="mt-5">
                                                                     {{ !empty($desbalancesTension[0]->avg_desbalance_tension) ? number_format($desbalancesTension[0]->avg_desbalance_tension, 2) : '0.00' }}
 
                                                                 </p>
