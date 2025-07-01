@@ -659,6 +659,33 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    {{-- LINEA CENTRAL --}}
+                                                    <div
+                                                        style="border-bottom: 3px solid transparent;
+                                                     border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                    </div>
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <!-- Cuadrado para Número de Fases -->
+                                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
+                                                                <h2 class="text-sm text-center font-normal">Linea</h2>
+                                                                <p class="mt-2 text-sm  text-center"
+                                                                    style="color:rgb(88,226,194);">
+                                                                    {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col">
+                                                            <!-- Cuadrado para Tipo de Contador -->
+                                                            <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
+                                                                <h2 class="text-sm text-center font-normal">Fase</h2>
+                                                                <p class="mt-2 text-sm  text-center"
+                                                                    style="color:rgb(88,226,194);">
+                                                                    {{ !empty($resultado->cod_fase) ? $resultado->cod_fase : 'No hay datos' }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             @endforeach
                                         @else
