@@ -262,6 +262,12 @@
     </table>
 </div>
 
+<div class="pagination-container mt-4 flex justify-center items-center">
+    <div class="pagination">
+        {{ $resultados->links() }}
+    </div>
+</div>
+
 @php
     use Carbon\Carbon;
 
@@ -283,7 +289,7 @@
 
     $valoresAgrupados = [];
 
-    foreach ($resultados as $r) {
+    foreach ($resultados2 as $r) {
         $fecha = \Carbon\Carbon::parse($r->fh)->format('Y-m-d');
 
         if (!isset($valoresAgrupados[$fecha])) {
@@ -336,7 +342,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -409,7 +415,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -481,7 +487,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
