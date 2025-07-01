@@ -206,7 +206,7 @@
                                                         <div
                                                             class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-wrap justify-center">
                                                             <div class="flex flex-col items-center pr-4">
-                                                                <p class="text-2xl font-bold max-w-full">HR</p>
+                                                                <p class="text-2xl font-bold max-w-full">Fase R</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                                     <img src="{{ asset('images/harmonics-no-bg.png') }}" width="60" height="80">
@@ -215,7 +215,7 @@
                                                             </div>
 
                                                             <div class="flex flex-col items-center pr-4 pl-4">
-                                                                <p class="text-2xl font-bold max-w-full">HS</p>
+                                                                <p class="text-2xl font-bold max-w-full">Fase S</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                                     <img src="{{ asset('images/harmonics-no-bg.png') }}" width="60" height="80">
@@ -225,7 +225,7 @@
                                                             </div>
 
                                                             <div class="flex flex-col items-center pl-4">
-                                                                <p class="text-2xl font-bold max-w-full">HT</p>
+                                                                <p class="text-2xl font-bold max-w-full">Fase T</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                                     <img src="{{ asset('images/harmonics-no-bg.png') }}" width="60" height="80">
@@ -268,7 +268,7 @@
                                                         <div
                                                             class="p-2 #205E86 text-white rounded-lg shadow-xl flex flex-row flex-wrap justify-center">
                                                             <div class="flex flex-col items-center pr-4">
-                                                                <p class="text-2xl font-bold max-w-full">FR</p>
+                                                                <p class="text-2xl font-bold max-w-full">Fase R</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                                     <img src="{{ asset('images/flickers-no-bg.png') }}" width="60" height="80">
@@ -278,7 +278,7 @@
                                                             </div>
 
                                                             <div class="flex flex-col items-center pr-4 pl-4">
-                                                                <p class="text-2xl font-bold max-w-full">FS</p>
+                                                                <p class="text-2xl font-bold max-w-full">Fase S</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                                     <img src="{{ asset('images/flickers-no-bg.png') }}" width="60" height="80">
@@ -288,7 +288,7 @@
                                                             </div>
 
                                                             <div class="flex flex-col items-center pl-4">
-                                                                <p class="text-2xl font-bold max-w-full">FT</p>
+                                                                <p class="text-2xl font-bold max-w-full">Fase T</p>
                                                                 <p class="mt-0 text-3xl text-center max-w-full"
                                                                     style="color:rgb(88,226,194); display: flex; justify-content: center; align-items: center;">
                                                                     <img src="{{ asset('images/flickers-no-bg.png') }}" width="60" height="80">

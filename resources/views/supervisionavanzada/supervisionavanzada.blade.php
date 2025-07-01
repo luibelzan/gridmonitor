@@ -523,7 +523,7 @@
                                                 </div>
 
                                                 <!-- Formulario para filtros -->
-                                                <form action="{{ route('supervisionavanzada') }}" method="GET"
+                                                <form id="sabtform" action="{{ route('supervisionavanzada') }}" method="GET"
                                                     class="flex flex-col items-center space-y-4 mb-4 mt-4">
                                                     <input type="hidden" name="id_ct" value="{{ $id_ct }}">
                                                     <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
@@ -617,6 +617,10 @@
                                                                 selectedButton.classList.add('text-white');
                                                                 selectedButton.style.backgroundColor = 'rgb(88,226,194)';
                                                             }
+
+                                                            // Hacer submit automático SOLO para cambiar tipo_evento
+                                                            // Para no perder fecha_inicio y fecha_fin actuales
+                                                            document.querySelector('#sabtform').submit();
                                                         }
 
                                                     </script>
