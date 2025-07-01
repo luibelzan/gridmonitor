@@ -136,14 +136,14 @@
 
     {{-- GRAFICO DE ENERGIA LINEA 1 --}}
     @foreach ($agrupado as $linea => $valores)
-        @if (empty($resultados[0]))
-            <div class="card text-white mb-3 col-span-4"
-                    style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));"></div>
-                <div class="p-4 h-full flex flex-col justify-center items-center">
-                    <p class="text-center text-yellow-500">No hay datos</p>
+            @if (empty($resultados2[0]))
+                    <div class="card text-white mb-3 col-span-4"
+                        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));"></div>
+                    <div class="p-4 h-full flex flex-col justify-center items-center">
+                        <p class="text-center text-yellow-500">No hay datos</p>
+                    </div>
                 </div>
-            </div>
-        @else
+            @else
             <div class="card text-white mb-3 col-span-4"
                 style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                 <div class="table-responsive w-full" style="display: flex; justify-content: center;">
@@ -161,20 +161,54 @@
 
 {{-- Datos JS --}}
 <script>
-    console.log(@json($resultados2));
     const datos = @json($agrupado);
     const fechas = @json($fechas);
-    console.log(@json($resultados));
 </script>
 
 {{-- Script para gráficos --}}
 <script>
     const colores = {
-        ai: ['#58e2c2', '#3498db', '#9b59b6'],
-        ae: ['#e74c3c', '#e67e22', '#1abc9c']
+        ai: [
+            '#1f77b4', // azul fuerte
+            '#ff7f0e', // naranja
+            '#2ca02c', // verde
+            '#d62728', // rojo
+            '#9467bd', // morado
+            '#8c564b', // marrón
+            '#e377c2', // rosa fuerte
+            '#7f7f7f'  // gris oscuro
+        ],
+        ae: [
+            '#ff4500', // naranja rojizo
+            '#bcbd22', // verde lima
+            '#ff9896', // rojo claro
+            '#98df8a', // verde claro
+            '#c5b0d5', // lila claro
+            '#c49c94', // beige
+            '#f7b6d2', // rosa claro
+            '#c7c7c7'  // gris claro
+        ]
     };
 
+
+
     document.addEventListener("DOMContentLoaded", function () {
+        const allAi = [];
+        const allAe = [];
+
+        // Recolectar todos los valores de ai y ae en todas las líneas
+        for (const linea in datos) {
+            for (const f of fechas) {
+                allAi.push(datos[linea]?.[f]?.ai ?? 0);
+                allAe.push(datos[linea]?.[f]?.ae ?? 0);
+            }
+        }
+
+        // Calcular el máximo global entre todos los datos
+        const maxAi = Math.max(...allAi);
+        const maxAe = Math.max(...allAe);
+        const maxY = Math.max(maxAi, maxAe);
+
         let lineaIndex = 0;
 
         for (const linea in datos) {
@@ -216,9 +250,11 @@
                             }
                         },
                         y: {
+                            min: 0,
+                            max: maxY,
                             ticks: {
                                 color: 'white',
-                                callback: val => val + " kWh"
+                                callback: val => Math.round(val / 1000) + " kWh"
                             }
                         }
                     },
@@ -230,7 +266,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: ctx => ctx.dataset.label + ": " + ctx.raw + " kWh"
+                                label: ctx => ctx.dataset.label + ": " + Math.round(ctx.raw / 1000) + " kWh"
                             }
                         }
                     }
