@@ -285,7 +285,7 @@
                                     <div class="table-responsive" style="display: flex; justify-content: center;">
                                         <div class="overflow-x-auto w-full">
                                             <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                                                {{-- FILTRO FECHAS --}}
+                                                {{-- FILTRO --}}
                                                 <div class="container ">
                                                     <form
                                                         action="{{ route('dashboardsabt') }}"
@@ -328,64 +328,95 @@
                                                                                     NOMBRE CT</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO TRAFOS</th>
+                                                                                    TRAFOS</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO LINEAS</th>
+                                                                                    LINEAS</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    NUMERO CONTADORES</th>
+                                                                                    CONTADORES</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    CONTADORES FASE R</th>
+                                                                                    FASE R</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    CONTADORES FASE S</th>
+                                                                                    FASE S</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    CONTADORES FASE T</th>
+                                                                                    FASE T</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
-                                                                                    RTU ID</th>
+                                                                                    Trifasicos</th>
                                                                             </tr>
                                                                         </thead>
 
 
                                                                         <tbody>
-                
-                                                                                @foreach ($dashboardSABTInfo as $resultado)
-                                                                                    <tr class="highlight-row ">
+                                                                            @foreach ($dashboardSABTInfo as $resultado)
+                                                                                @php
+                                                                                    if (is_object($resultado)) {
+                                                                                        $link = route('supervisionavanzada', ['id_ct' => $resultado->id_ct]);
+                                                                                    } else {
+                                                                                        $link = '#'; // o null, o manejar el error de otra forma
+                                                                                    }
+                                                                                @endphp
+                                                                                @if(is_object($resultado))
+                                                                                    <tr class="highlight-row cursor-pointer hover:bg-gray-800">
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->id_ct) ? $resultado->id_ct : 'No hay datos' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->id_ct ?? 'No hay datos' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nom_ct ?? 'No hay datos' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_trafos) ? $resultado->nro_trafos : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_trafos ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_lineas) ? $resultado->nro_lineas : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_lineas ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_contadores) ? $resultado->nro_contadores : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_contadores_r) ? $resultado->nro_contadores_r : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_r ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_contadores_s) ? $resultado->nro_contadores_s : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_s ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_contadores_t) ? $resultado->nro_contadores_t : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_t ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->nro_contadores_3) ? $resultado->nro_contadores_3 : '0' }}
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_3 ?? '0' }}
+                                                                                            </a>
                                                                                         </td>
                                                                                     </tr>
-                                                                                @endforeach
-                                                                            
+                                                                                @else
+                                                                                    <tr>
+                                                                                        <td colspan="9" class="py-4 text-center text-gray-400">No hay datos</td>
+                                                                                    </tr>
+                                                                                @endif
+                                                                            @endforeach
                                                                         </tbody>
+
+
                                                                     </table>
                                                                 </div>
                                                                 

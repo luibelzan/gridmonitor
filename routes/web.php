@@ -91,7 +91,7 @@ Route::get('/exportar-actualizaciones', [ctController::class, 'exportReportesInv
 Route::get('/exportar-reportes-inventario', [ctController::class, 'exportReportesInventario'])->name('exportar.reportes.inventario');
 Route::get('/exportar-cierres-mensuales', [PuntoFronteraController::class, 'exportCierresMensuales'])->name('exportar.cierres.mensuales.pf');
 Route::get('/exportar-curvas-cuartihorarias', [PuntoFronteraController::class, 'exportCurvasCuartihorarias'])->name('exportar.curvas.cuartihorarias.pf');
-
+Route::get('/exportar-diferencia-consumos', [ctController::class, 'exportDiferenciaConsumo'])->name('exportar.diferencia.consumos');
 
 
 //*********************************
