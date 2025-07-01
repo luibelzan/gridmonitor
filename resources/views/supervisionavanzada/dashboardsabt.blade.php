@@ -285,7 +285,7 @@
                                     <div class="table-responsive" style="display: flex; justify-content: center;">
                                         <div class="overflow-x-auto w-full">
                                             <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                                                {{-- FILTRO FECHAS --}}
+                                                {{-- FILTRO --}}
                                                 <div class="container ">
                                                     <form
                                                         action="{{ route('dashboardsabt') }}"
@@ -354,55 +354,65 @@
                                                                         <tbody>
                                                                             @foreach ($dashboardSABTInfo as $resultado)
                                                                                 @php
-                                                                                    $link = route('supervisionavanzada', ['id_ct' => $resultado->id_ct]);
+                                                                                    if (is_object($resultado)) {
+                                                                                        $link = route('supervisionavanzada', ['id_ct' => $resultado->id_ct]);
+                                                                                    } else {
+                                                                                        $link = '#'; // o null, o manejar el error de otra forma
+                                                                                    }
                                                                                 @endphp
-                                                                                <tr class="highlight-row cursor-pointer hover:bg-gray-800">
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->id_ct ?? 'No hay datos' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nom_ct ?? 'No hay datos' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_trafos ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_lineas ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_contadores ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_contadores_r ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_contadores_s ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_contadores_t ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                    <td class="py-2">
-                                                                                        <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
-                                                                                            {{ $resultado->nro_contadores_3 ?? '0' }}
-                                                                                        </a>
-                                                                                    </td>
-                                                                                </tr>
+                                                                                @if(is_object($resultado))
+                                                                                    <tr class="highlight-row cursor-pointer hover:bg-gray-800">
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->id_ct ?? 'No hay datos' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nom_ct ?? 'No hay datos' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_trafos ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_lineas ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_r ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_s ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_t ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                        <td class="py-2">
+                                                                                            <a href="{{ $link }}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+                                                                                                {{ $resultado->nro_contadores_3 ?? '0' }}
+                                                                                            </a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                @else
+                                                                                    <tr>
+                                                                                        <td colspan="9" class="py-4 text-center text-gray-400">No hay datos</td>
+                                                                                    </tr>
+                                                                                @endif
                                                                             @endforeach
                                                                         </tbody>
 
