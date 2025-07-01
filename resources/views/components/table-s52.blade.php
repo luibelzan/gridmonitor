@@ -72,6 +72,12 @@
     </table>
 </div>
 
+<div class="pagination-container mt-4 flex justify-center items-center">
+    <div class="pagination">
+        {{ $resultados->links() }}
+    </div>
+</div>
+
 @php
     use Carbon\Carbon;
     $fechaInicio = request()->query('fecha_inicio')
@@ -91,8 +97,8 @@
 
     $agrupado = [];
 
-    if (is_array($resultados) && isset($resultados[0]) && is_object($resultados[0])) {
-        foreach ($resultados as $r) {
+    if (is_array($resultados2) && isset($resultados2[0]) && is_object($resultados2[0])) {
+        foreach ($resultados2 as $r) {
             $linea = $r->id_linea;
             $fecha = \Carbon\Carbon::parse($r->fec_inicio)->format('d-m-Y');
             $agrupado[$linea][$fecha]['ai'] = ($agrupado[$linea][$fecha]['ai'] ?? 0) + ($r->ai ?? 0);
@@ -155,8 +161,10 @@
 
 {{-- Datos JS --}}
 <script>
+    console.log(@json($resultados2));
     const datos = @json($agrupado);
     const fechas = @json($fechas);
+    console.log(@json($resultados));
 </script>
 
 {{-- Script para gráficos --}}

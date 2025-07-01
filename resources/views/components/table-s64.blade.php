@@ -84,6 +84,12 @@
     </table>
 </div>
 
+<div class="pagination-container mt-4 flex justify-center items-center">
+    <div class="pagination">
+        {{ $resultados->links() }}
+    </div>
+</div>
+
 <div>
     <h1 class="text-center text-3xl mt-4" style="color: white;">TENSIONES POR LINEA Y FASE </h1>
     <h2 class="text-center text-1xl w-full mb-2" style="color: white;">
@@ -109,7 +115,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -149,7 +155,7 @@
         var datosPorLinea = {};
         var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
-        @foreach ($resultados as $resultado)
+        @foreach ($resultados2 as $resultado)
             @if (isset($resultado->fh) && isset($resultado->v1) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
@@ -291,7 +297,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -309,7 +315,7 @@
         var datosPorLinea = {};
         var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
-        @foreach ($resultados as $resultado)
+        @foreach ($resultados2 as $resultado)
             @if (isset($resultado->fh) && isset($resultado->v2) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
@@ -453,7 +459,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -471,7 +477,7 @@
         var datosPorLinea = {};
         var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
-        @foreach ($resultados as $resultado)
+        @foreach ($resultados2 as $resultado)
             @if (isset($resultado->fh) && isset($resultado->v3) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
@@ -639,7 +645,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -658,7 +664,7 @@
         var datosPorLinea = {};
         var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
-        @foreach ($resultados as $resultado)
+        @foreach ($resultados2 as $resultado)
             @if (isset($resultado->fh) && isset($resultado->i1) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
@@ -807,7 +813,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -826,7 +832,7 @@
         var datosPorLinea = {};
         var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
-        @foreach ($resultados as $resultado)
+        @foreach ($resultados2 as $resultado)
             @if (isset($resultado->fh) && isset($resultado->i2) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
@@ -975,7 +981,7 @@
     <div class="card text-white mb-3 col-span-4"
         style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
 
-        @if (isset($resultados[0]) == null)
+        @if (isset($resultados2[0]) == null)
             <div class="p-4 h-full flex flex-col justify-center items-center">
                 <p class="text-center text-yellow-500">No hay datos</p>
             </div>
@@ -994,7 +1000,7 @@
         var datosPorLinea = {};
         var tooltipsPorLinea = {}; // NUEVO objeto para guardar fecha con hora
 
-        @foreach ($resultados as $resultado)
+        @foreach ($resultados2 as $resultado)
             @if (isset($resultado->fh) && isset($resultado->i3) && isset($resultado->id_linea))
                 var linea = '{{ $resultado->id_linea }}';
                 var fecha = '{{ \Carbon\Carbon::parse($resultado->fh)->format('Y-m-d H:i') }}';
