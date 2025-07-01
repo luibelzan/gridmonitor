@@ -85,9 +85,7 @@
 </div>
 
 <div>
-    <h1 class="text-center text-3xl mt-4" style="color: white;">TENSIONES
-        DEL
-        CT </h1>
+    <h1 class="text-center text-3xl mt-4" style="color: white;">TENSIONES POR LINEA Y FASE </h1>
     <h2 class="text-center text-1xl w-full mb-2" style="color: white;">
         @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
             Del
@@ -617,9 +615,7 @@
 {{-- INTENSIDADES DEL CT --}}
 
 <div>
-    <h1 class="text-center text-3xl mt-4" style="color: white;">INTENSIDADES
-        DEL
-        CT </h1>
+    <h1 class="text-center text-3xl mt-4" style="color: white;">INTENSIDADES POR LINEA Y FASE</h1>
     <h2 class="text-center text-1xl w-full mb-2" style="color: white;">
         @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
             Del
