@@ -72,6 +72,15 @@ return [
             'after_commit' => false,
         ],
 
+        'mysql_talayuelas' => [
+        'driver' => 'database',
+        'connection' => 'mysql_talayuelas',  // debe coincidir con la conexión de base de datos configurada en config/database.php
+        'table' => 'jobs',
+        'queue' => 'default',
+        'retry_after' => 90,
+        'after_commit' => false,
+    ],
+
     ],
 
     /*

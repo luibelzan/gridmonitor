@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 use App\Exports\EventosPFExport;
 use App\Exports\ReportesPFCierresMensualesExport;
 use App\Exports\ReportesPFCurvasCuartihorariasExport;
+use App\Jobs\ExportCurvasCuartihorariasJob;
 use App\Exports\ResultsExport;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel; 
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+
 
 
 
@@ -391,6 +394,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ25pf = $this->consultaVeintiCincopf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnts, $connectionpf);
         $exportCierresMensuales = $this->exportCierresMensuales($request);
+        $exportCurvasCuartihorarias = $this->exportCurvasCuartihorarias($request);
 
 
 
@@ -409,6 +413,7 @@ class PuntoFronteraController extends Controller
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
             'exportCierresMensuales' => $exportCierresMensuales,
             'connection' => $connectionpf,
+            'exportCurvasCuartihorarias' => $exportCurvasCuartihorarias,
 
 
         ]);
@@ -2139,7 +2144,6 @@ class PuntoFronteraController extends Controller
     {
         set_time_limit(0);
 
-
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
@@ -2203,7 +2207,7 @@ class PuntoFronteraController extends Controller
                 'query' => $request->query(),
             ]);
 
-
+            //dd(strval($connectionpf));
             return $paginatedResults;
         }
 
@@ -2215,15 +2219,14 @@ class PuntoFronteraController extends Controller
 public function exportCurvasCuartihorarias(Request $request)
 {
     try {
-        $connection = User::conexionPuntoFrontera();
+        $connectionName = User::conexionPuntoFrontera(); // Esta variable se usa más abajo también
 
-        if (!Schema::connection($connection)->hasTable('t_dat_iec870_load_profile_1')) {
+        if (!Schema::connection($connectionName)->hasTable('t_dat_iec870_load_profile_1')) {
             return response()->json(['message' => 'La tabla no existe'], 404);
         }
 
         $format = $request->input('format', 'excel');
         $extension = $format === 'csv' ? 'csv' : 'xlsx';
-        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
@@ -2233,45 +2236,26 @@ public function exportCurvasCuartihorarias(Request $request)
             return response()->json(['message' => 'Debe proporcionar id_cnts'], 422);
         }
 
-        // ✅ Construir consulta con query builder
-        $query = DB::connection($connection)->table('t_dat_iec870_load_profile_1')
-            ->join('t_meter_params_iec870', 't_dat_iec870_load_profile_1.id_cnt', '=', 't_meter_params_iec870.id_cnt')
-            ->whereIn('t_dat_iec870_load_profile_1.id_cnt', $id_cnts)
-            ->when($fecha_inicio && $fecha_fin, function ($q) use ($fecha_inicio, $fecha_fin) {
-                $q->whereBetween('t_dat_iec870_load_profile_1.fh', [$fecha_inicio, $fecha_fin]);
-            })
-            ->selectRaw("
-                t_meter_params_iec870.cups as CUPS,
-                t_dat_iec870_load_profile_1.id_cnt,
-                DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as Fecha,
-                DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as Hora,
-                t_dat_iec870_load_profile_1.e_act_imp as Energia_Activa_Importada_A,
-                t_dat_iec870_load_profile_1.e_act_imp_cualif as Bit_Calidad_Activa_A,
-                t_dat_iec870_load_profile_1.e_act_exp as Energia_Activa_Exportada_A,
-                t_dat_iec870_load_profile_1.e_act_exp_cualif as Bit_Calidad_Activa_A2,
-                t_dat_iec870_load_profile_1.e_react_ind_imp as Energia_Reactiva_Inductiva_Importada_Ri,
-                t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as Bit_Calidad_Reactiva_Imp_Ri,
-                t_dat_iec870_load_profile_1.e_react_ind_exp as Energia_Reactiva_Inductiva_Exportada_Ri,
-                t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as Bit_Calidad_Reactiva_Imp_Ri2,
-                t_dat_iec870_load_profile_1.e_react_cap_imp as Energia_Reactiva_Capacitiva_Importada_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as Bit_Calidad_Reactiva_Imp_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_exp as Energia_Reactiva_Capacitiva_Exportada_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as Bit_Calidad_Reactiva_Exp_Rc
-            ")
-            ->orderByDesc('t_meter_params_iec870.cups')
-            ->orderByDesc('t_dat_iec870_load_profile_1.fh');
+        $fileName = 'exports/curvas_cuartihorarias_' . time() . '.' . $extension;
 
-        // ✅ Usar el exportador basado en FromQuery
-        return Excel::download(
-            new ReportesPFCurvasCuartihorariasExport($query),
-            'curvas_cuartihorarias.' . $extension,
-            $exportFormat
-        );
+        // Aquí se pasa correctamente el nombre de la conexión
+        ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $format, $connectionName)
+            ->onQueue('default') // <- Asegura que caiga en la cola correcta si usas múltiples
+            ->onConnection('database'); // <- Aquí especificas que use la cola basada en BD
+
+        $url = Storage::disk('public')->url($fileName);
+
+        return response()->json([
+            'message' => 'Exportación iniciada. El archivo estará disponible pronto.',
+            'download_url' => $url
+        ]);
 
     } catch (\Exception $e) {
         return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
     }
 }
+
+
 
 
 
