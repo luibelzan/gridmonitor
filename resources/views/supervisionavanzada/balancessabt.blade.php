@@ -388,9 +388,10 @@
                             <div class="container">
                                 {{-- FILTRO AQUI --}}
                                 <form
-                                    action="{{ route('balancessabt') }}"
+                                    action="{{ route('balancessabt', ['id_ct' => $id_ct]) }}"
                                     method="GET"
                                     class="flex flex-wrap items-center justify-start gap-2 mt-6">
+                                    <input type="hidden" name="id_ct" value="{{ $id_ct }}">
                                     {{-- FILTRO FECHAS --}}
                                                                             
                                     <div class="form-group flex items-center">

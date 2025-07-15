@@ -3197,184 +3197,147 @@ class ctController extends Controller
 
 
     public function consultaTreintayOcho(Request $request, $connection)
-    {
-        try {
-            if (
-                Schema::connection($connection)->hasTable('t_ct') &&
-                Schema::connection($connection)->hasTable('t_cups')
-            ) {
+{
+    try {
+        if (
+            Schema::connection($connection)->hasTable('t_ct') &&
+            Schema::connection($connection)->hasTable('t_cups')
+        ) {
+            $params = [];
 
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
 
-
-
-                // Inicializar el array de parámetros
-                $params = [];
-
-
-
-
-                // Obtener las fechas de inicio y fin del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-
-
-
-
-                // Construir la consulta SQL base
-                $query = "
+            $query = "
+                SELECT
+                    sub.nom_ct,
+                    sub.total_cups,
+                    sub.apagones,
+                    sub.sobrevoltajes,
+                    sub.sub_voltajes,
+                    sub.micro_cortes,
+                    sub.total_eventos,
+                    ROUND((sub.total_eventos / NULLIF(sub.total_cups, 0)), 2) AS ratio
+                FROM (
                     SELECT
-                        sub.nom_ct,
-                        sub.total_cups,
-                        sub.apagones,
-                        sub.sobrevoltajes,
-                        sub.sub_voltajes,
-                        sub.micro_cortes,
-                        sub.total_eventos,
-                        ROUND((sub.total_eventos / sub.total_cups), 2) AS ratio
-                    FROM (
-                        SELECT
-                            t.nom_ct,
-                            COUNT(c.id_cups) AS total_cups,
-                            COALESCE(SUM(p.apagones), 0) AS apagones,
-                            COALESCE(SUM(s.sobrevoltajes), 0) AS sobrevoltajes,
-                            COALESCE(SUM(a.sub_voltajes), 0) AS sub_voltajes,
-                            COALESCE(SUM(m.micro_cortes), 0) AS micro_cortes,
-                            COALESCE(SUM(p.apagones), 0) + COALESCE(SUM(s.sobrevoltajes), 0) + COALESCE(SUM(a.sub_voltajes), 0) + COALESCE(SUM(m.micro_cortes), 0) AS total_eventos
-                        FROM core.t_cups c
-                        JOIN core.t_ct t ON c.id_ct = t.id_ct
-                        LEFT JOIN (
-                            SELECT id_cups, COUNT(fec_evento) AS apagones
-                            FROM core.v_apagones
-                            WHERE 1 = 1 "; // Iniciar con WHERE siempre verdadero para facilitar construcción de condiciones adicionales
+                        t.nom_ct,
+                        COUNT(c.id_cups) AS total_cups,
 
+                        -- Apagones
+                        COALESCE(p.apagones, 0) AS apagones,
 
+                        -- Sobretensiones
+                        COALESCE(s.sobrevoltajes, 0) AS sobrevoltajes,
 
+                        -- Subtensiones
+                        COALESCE(a.sub_voltajes, 0) AS sub_voltajes,
 
-                // Añadir filtro de fecha por defecto (últimos 30 días) si no se especifica en el formulario
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "AND fec_evento >= :fecha_inicio
-                        AND fec_evento <= :fecha_fin";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                } else if ($fecha_inicio) {
-                    $query .= " AND fec_evento >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } else if ($fecha_fin) {
-                    $query .= "AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                } else {
-                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
+                        -- Microcortes
+                        COALESCE(m.micro_cortes, 0) AS micro_cortes,
 
+                        -- Total eventos
+                        COALESCE(p.apagones, 0) + COALESCE(s.sobrevoltajes, 0) + 
+                        COALESCE(a.sub_voltajes, 0) + COALESCE(m.micro_cortes, 0) AS total_eventos
 
+                    FROM core.t_cups c
+                    JOIN core.t_ct t ON c.id_ct = t.id_ct
 
-                $query .= "
-                            GROUP BY id_cups
-                        ) p ON c.id_cups = p.id_cups
-                        LEFT JOIN (
-                            SELECT id_cups, COUNT(fec_evento) AS sobrevoltajes
-                            FROM core.v_sobre_voltajes
-                            WHERE 1 = 1 ";
+                    -- Apagones
+                    LEFT JOIN (
+                        SELECT c.id_ct, COUNT(*) AS apagones
+                        FROM core.v_apagones v
+                        JOIN core.t_cups c ON v.id_cups = c.id_cups
+                        WHERE 1=1";
 
-
-
-
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= " AND fec_evento >= :fecha_inicio
-                            AND fec_evento <= :fecha_fin";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                } else if ($fecha_inicio) {
-                    $query .= " AND fec_evento >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } else if ($fecha_fin) {
-                    $query .= "AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                } else {
-                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                $query .= "
-                            GROUP BY id_cups
-                        ) s ON c.id_cups = s.id_cups
-                        LEFT JOIN (
-                            SELECT id_cups, COUNT(fec_evento) AS sub_voltajes
-                            FROM core.v_sub_voltajes
-                            WHERE 1 = 1 ";
-
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= " AND fec_evento >= :fecha_inicio
-                        AND fec_evento <= :fecha_fin";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                } else if ($fecha_inicio) {
-                    $query .= " AND fec_evento >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } else if ($fecha_fin) {
-                    $query .= "AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                } else {
-                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                $query .= "
-                            GROUP BY id_cups
-                        ) a ON c.id_cups = a.id_cups
-                        LEFT JOIN (
-                            SELECT id_cups, COUNT(fec_evento) AS micro_cortes
-                            FROM core.v_micro_cortes
-                            WHERE 1 = 1 ";
-
-
-
-
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= " AND fec_evento >= :fecha_inicio
-                        AND fec_evento <= :fecha_fin";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                } else if ($fecha_inicio) {
-                    $query .= " AND fec_evento >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } else if ($fecha_fin) {
-                    $query .= "AND fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                } else {
-                    $query .= " AND fec_evento >= NOW() - INTERVAL '30 days'";
-                }
-
-
-
-
-                $query .= "
-                            GROUP BY id_cups
-                        ) m ON c.id_cups = m.id_cups
-                        GROUP BY t.nom_ct
-                    ) sub
-                    ORDER BY sub.nom_ct";
-
-
-
-
-                // Ejecutar la consulta
-                $resultadosQ38 = DB::connection($connection)->select($query, $params);
-                //dd($query);
-                return $resultadosQ38 ?: ['message' => 'No hay datos'];
+            if ($fecha_inicio) {
+                $query .= " AND v.fec_evento >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
             } else {
-                // Una de las tablas no existe, retornar un mensaje específico 
-                return ['message' => 'No hay datos'];
+                $query .= " AND v.fec_evento >= NOW() - INTERVAL '30 days'";
             }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
+
+            if ($fecha_fin) {
+                $query .= " AND v.fec_evento <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            $query .= " GROUP BY c.id_ct
+                    ) p ON p.id_ct = t.id_ct
+
+                    -- Sobretensiones
+                    LEFT JOIN (
+                        SELECT c.id_ct, COUNT(*) AS sobrevoltajes
+                        FROM core.v_sobre_voltajes v
+                        JOIN core.t_cups c ON v.id_cups = c.id_cups
+                        WHERE 1=1";
+
+            if ($fecha_inicio) {
+                $query .= " AND v.fec_evento >= :fecha_inicio";
+            } else {
+                $query .= " AND v.fec_evento >= NOW() - INTERVAL '30 days'";
+            }
+
+            if ($fecha_fin) {
+                $query .= " AND v.fec_evento <= :fecha_fin";
+            }
+
+            $query .= " GROUP BY c.id_ct
+                    ) s ON s.id_ct = t.id_ct
+
+                    -- Subtensiones
+                    LEFT JOIN (
+                        SELECT c.id_ct, COUNT(*) AS sub_voltajes
+                        FROM core.v_sub_voltajes v
+                        JOIN core.t_cups c ON v.id_cups = c.id_cups
+                        WHERE 1=1";
+
+            if ($fecha_inicio) {
+                $query .= " AND v.fec_evento >= :fecha_inicio";
+            } else {
+                $query .= " AND v.fec_evento >= NOW() - INTERVAL '30 days'";
+            }
+
+            if ($fecha_fin) {
+                $query .= " AND v.fec_evento <= :fecha_fin";
+            }
+
+            $query .= " GROUP BY c.id_ct
+                    ) a ON a.id_ct = t.id_ct
+
+                    -- Microcortes
+                    LEFT JOIN (
+                        SELECT c.id_ct, COUNT(*) AS micro_cortes
+                        FROM core.v_micro_cortes v
+                        JOIN core.t_cups c ON v.id_cups = c.id_cups
+                        WHERE 1=1";
+
+            if ($fecha_inicio) {
+                $query .= " AND v.fec_evento >= :fecha_inicio";
+            } else {
+                $query .= " AND v.fec_evento >= NOW() - INTERVAL '30 days'";
+            }
+
+            if ($fecha_fin) {
+                $query .= " AND v.fec_evento <= :fecha_fin";
+            }
+
+            $query .= " GROUP BY c.id_ct
+                    ) m ON m.id_ct = t.id_ct
+
+                    GROUP BY t.nom_ct, p.apagones, s.sobrevoltajes, a.sub_voltajes, m.micro_cortes
+                ) sub
+                ORDER BY sub.nom_ct
+            ";
+
+            $resultadosQ38 = DB::connection($connection)->select($query, $params);
+            return $resultadosQ38 ?: ['message' => 'No hay datos'];
+        } else {
             return ['message' => 'No hay datos'];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
     }
+}
 
 
 
@@ -3399,7 +3362,8 @@ class ctController extends Controller
             $query = "
                 SELECT COUNT(fec_evento) AS cantidad,
                     TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
-                FROM core.v_apagones
+                FROM core.v_apagones m
+                JOIN core.t_cups c ON m.id_cups = c.id_cups
             ";
 
 
@@ -3473,9 +3437,10 @@ class ctController extends Controller
 
             // Construir la consulta SQL
             $query = "
-            SELECT COUNT(fec_evento) AS cantidad,
-                    TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
-            FROM core.v_micro_cortes
+            SELECT COUNT(m.fec_evento) AS cantidad,
+                TO_CHAR(m.fec_evento, 'DD/MM/YYYY') AS fec_evento
+            FROM core.v_micro_cortes m
+            JOIN core.t_cups c ON m.id_cups = c.id_cups
         ";
 
 
@@ -3554,7 +3519,8 @@ class ctController extends Controller
             $query = "
             SELECT COUNT(fec_evento) AS cantidad,
                     TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
-            FROM core.v_sub_voltajes
+            FROM core.v_sub_voltajes m
+            JOIN core.t_cups c ON m.id_cups = c.id_cups
         ";
 
 
@@ -3630,7 +3596,8 @@ class ctController extends Controller
             $query = "
             SELECT COUNT(fec_evento) AS cantidad,
                     TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
-            FROM core.v_sobre_voltajes
+            FROM core.v_sobre_voltajes m
+            JOIN core.t_cups c ON m.id_cups = c.id_cups
         ";
 
 
@@ -3800,7 +3767,8 @@ class ctController extends Controller
             ),
             total_eventos AS (
                 SELECT COUNT(v_micro_cortes.fec_evento) AS total_eventos
-                FROM core.v_micro_cortes
+                FROM core.v_micro_cortes 
+                JOIN core.t_cups ON v_micro_cortes.id_cups = core.t_cups.id_cups
         ";
 
 
@@ -3887,6 +3855,7 @@ class ctController extends Controller
             total_eventos AS (
                 SELECT COUNT(v_sub_voltajes.fec_evento) AS total_eventos
                 FROM core.v_sub_voltajes
+                JOIN core.t_cups ON v_sub_voltajes.id_cups = core.t_cups.id_cups
         ";
 
 
@@ -3973,6 +3942,7 @@ class ctController extends Controller
             total_eventos AS (
                 SELECT COUNT(v_sobre_voltajes.fec_evento) AS total_eventos
                 FROM core.v_sobre_voltajes
+                JOIN core.t_cups ON v_sobre_voltajes.id_cups = core.t_cups.id_cups
         ";
 
 
