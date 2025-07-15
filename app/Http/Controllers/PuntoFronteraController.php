@@ -394,7 +394,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ25pf = $this->consultaVeintiCincopf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnts, $connectionpf);
         $exportCierresMensuales = $this->exportCierresMensuales($request);
-        $exportCurvasCuartihorarias = $this->exportCurvasCuartihorarias($request);
+        //$exportCurvasCuartihorarias = $this->exportCurvasCuartihorarias($request);
 
 
 
@@ -413,7 +413,7 @@ class PuntoFronteraController extends Controller
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
             'exportCierresMensuales' => $exportCierresMensuales,
             'connection' => $connectionpf,
-            'exportCurvasCuartihorarias' => $exportCurvasCuartihorarias,
+            //'exportCurvasCuartihorarias' => $exportCurvasCuartihorarias,
 
 
         ]);
@@ -2239,7 +2239,7 @@ public function exportCurvasCuartihorarias(Request $request)
         $fileName = 'exports/curvas_cuartihorarias_' . time() . '.' . $extension;
 
         // Aquí se pasa correctamente el nombre de la conexión
-        ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $format, $connectionName)
+        ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $connectionName)
             ->onQueue('default') // <- Asegura que caiga en la cola correcta si usas múltiples
             ->onConnection('database'); // <- Aquí especificas que use la cola basada en BD
 

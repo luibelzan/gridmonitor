@@ -17,6 +17,12 @@ use Illuminate\Support\Facades\Log;
 class ExportCurvasCuartihorariasJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    /**
+     * El número de segundos que el job puede ejecutar antes de que se agote el tiempo.
+     *
+     * @var int
+     */
+    public $timeout = 1200; // 10 minutos (600 segundos)
 
     protected $id_cnts;
     protected $fecha_inicio;
@@ -25,13 +31,12 @@ class ExportCurvasCuartihorariasJob implements ShouldQueue
     protected $format;
     protected $dbConnectionName;
 
-    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $format, $dbConnectionName)
+    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName)
     {
         $this->id_cnts = $id_cnts;
         $this->fecha_inicio = $fecha_inicio;
         $this->fecha_fin = $fecha_fin;
         $this->fileName = $fileName;
-        $this->format = $format;
         $this->dbConnectionName = $dbConnectionName;
     }
 
@@ -49,8 +54,7 @@ class ExportCurvasCuartihorariasJob implements ShouldQueue
                 $this->fecha_inicio,
                 $this->fecha_fin,
                 $this->fileName,
-                $this->format,
-                $this->dbConnectionName
+                $this->dbConnectionName,
             );
 
             Excel::store(

@@ -16,16 +16,14 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
     protected $fecha_inicio;
     protected $fecha_fin;
     protected $fileName;
-    protected $format;
     protected $dbConnectionName;
 
-    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $format, $dbConnectionName)
+    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName)
     {
         $this->id_cnts = $id_cnts;
         $this->fecha_inicio = $fecha_inicio;
         $this->fecha_fin = $fecha_fin;
         $this->fileName = $fileName;
-        $this->format = $format;
         $this->dbConnectionName = $dbConnectionName;
     }
 
@@ -103,6 +101,6 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
 
     public function chunkSize(): int
     {
-        return 2000; // Define tamaño del chunk para evitar cargar mucho en memoria
+        return 5000; // Define tamaño del chunk para evitar cargar mucho en memoria
     }
 }
