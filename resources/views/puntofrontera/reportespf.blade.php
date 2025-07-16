@@ -737,120 +737,121 @@
     </style>
 
     <script>
-document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
 
-    function exportarArchivo(formato) {
-        const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
-        const fecFin = document.querySelector('input[name="fecha_fin"]').value;
+            function exportarArchivo(formato) {
+                const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+                const fecFin = document.querySelector('input[name="fecha_fin"]').value;
 
-        // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
-        let idCnts = [];
+                // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
+                let idCnts = [];
 
-        document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
-            idCnts.push(el.value);
+                document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
+                    idCnts.push(el.value);
+                });
+
+                // Armar URL base
+                var url = "{{ route('exportar.cierres.mensuales.pf') }}?";
+
+                // Agregar parámetros a la URL
+                if (fecInicio) {
+                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+                }
+
+                if (fecFin) {
+                    url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+                }
+
+                // Agregar todos los id_cnts como parámetros
+                idCnts.forEach(id => {
+                    url += "id_cnts[]=" + encodeURIComponent(id) + "&";
+                });
+
+                url += "format=" + formato;
+
+                // Redirigir para descargar el archivo
+                window.location.href = url;
+            }
+
+            const exportExcelBtn = document.getElementById('exportarExcel');
+            const exportCsvBtn = document.getElementById('exportarCsv');
+
+            if (exportExcelBtn) {
+                exportExcelBtn.addEventListener('click', function () {
+                    exportarArchivo('excel');
+                });
+            } else {
+                console.error("El botón exportarExcel no existe en el DOM.");
+            }
+
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function () {
+                    exportarArchivo('csv');
+                });
+            } else {
+                console.error("El botón exportarCsv no existe en el DOM.");
+            }
         });
+    </script>
 
-        // Armar URL base
-        var url = "{{ route('exportar.cierres.mensuales.pf') }}?";
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
 
-        // Agregar parámetros a la URL
-        if (fecInicio) {
-            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
-        }
+            function exportarArchivo(formato) {
+                const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+                const fecFin = document.querySelector('input[name="fecha_fin"]').value;
 
-        if (fecFin) {
-            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
-        }
+                // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
+                let idCnts = [];
 
-        // Agregar todos los id_cnts como parámetros
-        idCnts.forEach(id => {
-            url += "id_cnts[]=" + encodeURIComponent(id) + "&";
+                document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
+                    idCnts.push(el.value);
+                });
+
+                // Armar URL base
+                var url = "{{ route('exportar.curvas.cuartihorarias.pf') }}?";
+
+                // Agregar parámetros a la URL
+                if (fecInicio) {
+                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+                }
+
+                if (fecFin) {
+                    url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+                }
+
+                // Agregar todos los id_cnts como parámetros
+                idCnts.forEach(id => {
+                    url += "id_cnts[]=" + encodeURIComponent(id) + "&";
+                });
+
+                url += "format=" + formato;
+
+                // Redirigir para descargar el archivo
+                window.location.href = url;
+            }
+
+            //const exportExcelBtn = document.getElementById('exportarExcel2');
+            const exportCsvBtn = document.getElementById('exportarCsv2');
+            /*
+            if (exportExcelBtn) {
+                exportExcelBtn.addEventListener('click', function () {
+                    exportarArchivo('excel');
+                });
+            } else {
+                console.error("El botón exportarExcel no existe en el DOM.");
+            }
+                */
+
+            if (exportCsvBtn) {
+                exportCsvBtn.addEventListener('click', function () {
+                    exportarArchivo('csv');
+                });
+            } else {
+                console.error("El botón exportarCsv no existe en el DOM.");
+            }
         });
-
-        url += "format=" + formato;
-
-        // Redirigir para descargar el archivo
-        window.location.href = url;
-    }
-
-    const exportExcelBtn = document.getElementById('exportarExcel');
-    const exportCsvBtn = document.getElementById('exportarCsv');
-
-    if (exportExcelBtn) {
-        exportExcelBtn.addEventListener('click', function () {
-            exportarArchivo('excel');
-        });
-    } else {
-        console.error("El botón exportarExcel no existe en el DOM.");
-    }
-
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', function () {
-            exportarArchivo('csv');
-        });
-    } else {
-        console.error("El botón exportarCsv no existe en el DOM.");
-    }
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    function exportarArchivo(formato) {
-        const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
-        const fecFin = document.querySelector('input[name="fecha_fin"]').value;
-
-        // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
-        let idCnts = [];
-
-        document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
-            idCnts.push(el.value);
-        });
-
-        // Armar URL base
-        var url = "{{ route('exportar.curvas.cuartihorarias.pf') }}?";
-
-        // Agregar parámetros a la URL
-        if (fecInicio) {
-            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
-        }
-
-        if (fecFin) {
-            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
-        }
-
-        // Agregar todos los id_cnts como parámetros
-        idCnts.forEach(id => {
-            url += "id_cnts[]=" + encodeURIComponent(id) + "&";
-        });
-
-        url += "format=" + formato;
-
-        // Redirigir para descargar el archivo
-        window.location.href = url;
-    }
-
-    const exportExcelBtn = document.getElementById('exportarExcel2');
-    const exportCsvBtn = document.getElementById('exportarCsv2');
-
-    if (exportExcelBtn) {
-        exportExcelBtn.addEventListener('click', function () {
-            exportarArchivo('excel');
-        });
-    } else {
-        console.error("El botón exportarExcel no existe en el DOM.");
-    }
-
-    if (exportCsvBtn) {
-        exportCsvBtn.addEventListener('click', function () {
-            exportarArchivo('csv');
-        });
-    } else {
-        console.error("El botón exportarCsv no existe en el DOM.");
-    }
-});
-</script>
+    </script>
 
 
 
@@ -872,20 +873,20 @@ document.addEventListener("DOMContentLoaded", function () {
             curvaHorariaTable.style.display = curvaHorariaChecked ? 'block' : 'none';
             curvaCuartihorariaTable.style.display = curvaCuartihorariaChecked ? 'block' : 'none';
         }
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             toggleReportVisibility();
             var checkboxes = document.querySelectorAll('input[name="tipo_reporte[]"]');
-            checkboxes.forEach(function(checkbox) {
+            checkboxes.forEach(function (checkbox) {
                 checkbox.addEventListener('change', toggleReportVisibility);
             });
         });
     </script>
     <script>
         //seleccionar todos
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const toggleAllBtn = document.getElementById('toggleAllBtn');
             let allChecked = false;
-            toggleAllBtn.addEventListener('click', function() {
+            toggleAllBtn.addEventListener('click', function () {
                 const checkboxes = document.querySelectorAll('.form-check-input');
                 checkboxes.forEach(checkbox => {
                     checkbox.checked = !allChecked;
@@ -895,6 +896,81 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     </script>
+
+    <script>
+        function checkExportProgress(exportId) {
+            const interval = setInterval(() => {
+                fetch(`/export-progress/${exportId}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        console.log('Progreso:', data);
+
+                        if (data.status === 'completed') {
+                            clearInterval(interval);
+                            alert('¡Exportación completada!');
+
+                            // Mostrar enlace de descarga
+                            const link = document.createElement('a');
+                            link.href = data.download_url;
+                            link.textContent = 'Descargar archivo';
+                            link.style.display = 'block';
+                            link.style.marginTop = '10px';
+
+                            document.getElementById('downloadArea').appendChild(link);
+                        } else if (data.status === 'failed') {
+                            clearInterval(interval);
+                            alert('La exportación falló.');
+                        } else {
+                            document.getElementById('progressText').innerText = `Progreso: ${data.progress}%`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al consultar el progreso:', error);
+                    });
+            }, 2000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('exportarExcel2').addEventListener('click', (event) => {
+                event.preventDefault(); // ✅ Ahora sí está definido
+
+                const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+                const fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+                // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
+                let idCnts = [];
+
+                document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
+                    idCnts.push(el.value);
+                });
+
+                fetch('/exportar-curvas-cuartihorarias', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        format: 'excel',
+                        id_cnts: idCnts,
+                        fecha_inicio: fecInicio,
+                        fecha_fin: fecFin,
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.export_id) {
+                            document.getElementById('progressText').innerText = 'Progreso: 0%';
+                            document.getElementById('downloadArea').innerHTML = ''; // Limpia descargas anteriores
+                            checkExportProgress(data.export_id);
+                        }
+                    });
+            });
+        });
+    </script>
+
+
+
 
     <title>Reportes</title>
 </head>
@@ -951,8 +1027,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <span class="nav-indicator"></span>
                     </nav>
                     <h1 class="text-center text-3xl w-full " style="color: white;">REPORTES</h1>
-                    <div
-                        style="border-bottom: 3px solid transparent;
+                    <div style="border-bottom: 3px solid transparent;
                     border-image: linear-gradient(to right, transparent, rgb(27,32,38), transparent) 1;">
                     </div>
                     {{-- Vista modificada para usar checkboxes --}}
@@ -967,7 +1042,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 </div>
                                 <!-- Filtro de fechas -->
                                 <div class="flex-container m-4" style="display: flex; flex-wrap: wrap; gap: 20px;">
-                                    
+
                                     <div class="form-group">
                                         <label for="fecha_inicio" class="text-white">Fecha de inicio:</label>
                                         <input type="date" id="fecha_inicio" name="fecha_inicio"
@@ -993,8 +1068,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     style="display: flex; align-items: center; gap: 5px; margin-top: 0; margin-bottom: 0;">
                                                     <input class="form-check-input custom-checkbox" type="checkbox"
                                                         name="id_cnts[]" value="{{ $cnt->id_cnt }}"
-                                                        id="cnt{{ $cnt->id_cnt }}"
-                                                        {{ in_array($cnt->id_cnt, (array) request('id_cnts', [])) ? 'checked' : '' }}>
+                                                        id="cnt{{ $cnt->id_cnt }}" {{ in_array($cnt->id_cnt, (array) request('id_cnts', [])) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="cnt{{ $cnt->id_cnt }}"
                                                         style="word-break: break-word; margin-top: 0; margin-bottom: 0;">{{ $cnt->cups }}</label>
                                                 </div>
@@ -1016,8 +1090,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     style="display: flex; align-items: center; gap: 5px;">
                                                     <input class="form-check-input" type="checkbox"
                                                         name="tipo_reporte[]" value="cierres_mensuales"
-                                                        id="reporteCierresMensuales"
-                                                        {{ in_array('cierres_mensuales', (array) request('tipo_reporte', [])) ? 'checked' : '' }}>
+                                                        id="reporteCierresMensuales" {{ in_array('cierres_mensuales', (array) request('tipo_reporte', [])) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="reporteCierresMensuales"
                                                         style="color: rgb(88, 226, 194); word-break: break-word;">Cierres
                                                         Mensuales</label>
@@ -1026,8 +1099,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     style="display: flex; align-items: center; gap: 5px;">
                                                     <input class="form-check-input" type="checkbox"
                                                         name="tipo_reporte[]" value="curvas_cuartihorarias"
-                                                        id="reporteCurvasCuartihorarias"
-                                                        {{ in_array('curvas_cuartihorarias', (array) request('tipo_reporte', [])) ? 'checked' : '' }}>
+                                                        id="reporteCurvasCuartihorarias" {{ in_array('curvas_cuartihorarias', (array) request('tipo_reporte', [])) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="reporteCurvasCuartihorarias"
                                                         style="color: rgb(88, 226, 194); word-break: break-word;">Curvas
                                                         Cuartihorarias</label>
@@ -1071,10 +1143,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     @if ($id_cnts)
                         @if (count($resultadosQ1pf) === 0)
                             <div class="flex justify-center">
-                                <div class="alert alert-danger text-center max-w-max flex items-center space-x-2"
-                                    role="alert">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25"
-                                        viewBox="0 0 15 15">
+                                <div class="alert alert-danger text-center max-w-max flex items-center space-x-2" role="alert">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" viewBox="0 0 15 15">
                                         <path fill="#e11d48" fill-rule="evenodd"
                                             d="M0 7.5a7.5 7.5 0 1 1 15 0a7.5 7.5 0 0 1-15 0m10.147 3.354L7.5 8.207l-2.646 2.647l-.708-.707L6.793 7.5L4.146 4.854l.708-.708L7.5 6.793l2.646-2.647l.708.708L8.207 7.5l2.647 2.646z"
                                             clip-rule="evenodd" />
@@ -1093,324 +1163,318 @@ document.addEventListener("DOMContentLoaded", function () {
                                         id=cierres_mensuales>
                                         <div class="card text-white  mb-2"
                                             style="
-                                                    background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                             <h1 class="text-center text-2xl" style="color: white;">
                                                 CIERRES MENSUALES </h1>
                                             <div
                                                 style="border-bottom: 3px solid transparent;
-                                                    border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                                                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                             </div>
                                             <!-- Contenido de PL3 -->
                                             <div class="table-responsive" style="display: flex; justify-content: center;">
                                                 <div class="overflow-x-auto">
                                                     <div class="container">
-                                                        
-                                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
-                                                                style="max-height: 500px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
-                                                                <table id="testTableCierresMensuales"
-                                                                    class="w-full text-white text-center">
-                                                                    <thead style="border-bottom: 1px solid #ffffff;">
-                                                                        <tr>
-                                                                            <th class="m-4 small  text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Cups</th>
-                                                                            <th class="m-4 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Contador</th>
-                                                                            <th class="m-4 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Contrato</th>
-                                                                            <th class="mt-0 small  text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Periodo Tarifario</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Fecha Inicio</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Fecha<br> Fin</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Energía<br>Activa Absoluta
-                                                                            </th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Energía Activa<br>
-                                                                                Incremental
-                                                                            </th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Bit Calidad Activa</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Energía Reactiva Inductiva
-                                                                                Absoluta
-                                                                            </th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Energía Reactiva Inductiva
-                                                                                Incremental</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Bit Calidad Reactiva
-                                                                                Inductiva
-                                                                            </th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Energía Reactiva Capacitiva
-                                                                                Absoluta
-                                                                            </th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Energía Reactiva Capacitiva
-                                                                                Incremental</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Bit Calidad Reactiva
-                                                                                Capacitiva
-                                                                            </th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Excesos de Potencias</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Bit Calidad Excesos</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Maxímetros</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Fecha Maxímetros</th>
-                                                                            <th class="mt-0 small text-center"
-                                                                                style="color:rgb(88,226,194)">
-                                                                                Bit Calidad Maxímetros</th>
+
+                                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                                            style="max-height: 500px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                                            <table id="testTableCierresMensuales"
+                                                                class="w-full text-white text-center">
+                                                                <thead style="border-bottom: 1px solid #ffffff;">
+                                                                    <tr>
+                                                                        <th class="m-4 small  text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Cups</th>
+                                                                        <th class="m-4 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Contador</th>
+                                                                        <th class="m-4 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Contrato</th>
+                                                                        <th class="mt-0 small  text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Periodo Tarifario</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Fecha Inicio</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Fecha<br> Fin</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Energía<br>Activa Absoluta
+                                                                        </th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Energía Activa<br>
+                                                                            Incremental
+                                                                        </th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Bit Calidad Activa</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Energía Reactiva Inductiva
+                                                                            Absoluta
+                                                                        </th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Energía Reactiva Inductiva
+                                                                            Incremental</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Bit Calidad Reactiva
+                                                                            Inductiva
+                                                                        </th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Energía Reactiva Capacitiva
+                                                                            Absoluta
+                                                                        </th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Energía Reactiva Capacitiva
+                                                                            Incremental</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Bit Calidad Reactiva
+                                                                            Capacitiva
+                                                                        </th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Excesos de Potencias</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Bit Calidad Excesos</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Maxímetros</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Fecha Maxímetros</th>
+                                                                        <th class="mt-0 small text-center"
+                                                                            style="color:rgb(88,226,194)">
+                                                                            Bit Calidad Maxímetros</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    @foreach ($resultadosQ23pf as $resultado)
+                                                                        <tr class="highlight-row ">
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->CUPS) ? $resultado->CUPS : 'No hay datos' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Contrato) ? $resultado->Contrato : 'No hay datos' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Periodo_Tarifario) ? $resultado->Periodo_Tarifario : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Fecha_Inicio) ? $resultado->Fecha_Inicio : 'No hay datos' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Fecha_Fin) ? $resultado->Fecha_Fin : 'No hay datos' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Energia_Activa_Absoluta) ? $resultado->Energia_Activa_Absoluta : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Energia_Activa_Incremental) ? $resultado->Energia_Activa_Incremental : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Bit_Calidad_Activa) ? $resultado->Bit_Calidad_Activa : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Energia_Reactiva_Inductiva_Absoluta) ? $resultado->Energia_Reactiva_Inductiva_Absoluta : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Energia_Reactiva_Inductiva_Incremental) ? $resultado->Energia_Reactiva_Inductiva_Incremental : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Bit_Calidad_Reactiva_Inductiva) ? $resultado->Bit_Calidad_Reactiva_Inductiva : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Energia_Reactiva_Capacitiva_Absoluta) ? $resultado->Energia_Reactiva_Capacitiva_Absoluta : '0' }}
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Energia_Reactiva_Capacitiva_Incremental) ? $resultado->Energia_Reactiva_Capacitiva_Incremental : '0' }}
+                                                                            </td>
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Bit_Calidad_Reactiva_Capacitiva) ? $resultado->Bit_Calidad_Reactiva_Capacitiva : '0' }}
+                                                                            </td>
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Excesos_de_Potencias) ? $resultado->Excesos_de_Potencias : '0' }}
+                                                                            </td>
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Bit_Calidad_Excesos) ? $resultado->Bit_Calidad_Excesos : '0' }}
+                                                                            </td>
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Maximetros) ? $resultado->Maximetros : '0' }}
+                                                                            </td>
+                                                                            </td>
+                                                                            <td class="py-6 small">
+                                                                                {{ !empty($resultado->Fecha_Maximetros) ? $resultado->Fecha_Maximetros : 'No hay datos' }}
+                                                                            </td>
+                                                                            <td class="py-2">
+                                                                                {{ !empty($resultado->Bit_Calidad_Maximetros) ? $resultado->Bit_Calidad_Maximetros : '0' }}
+                                                                            </td>
+                                                                            </td>
                                                                         </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        @foreach ($resultadosQ23pf as $resultado)
-                                                                            <tr class="highlight-row ">
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->CUPS) ? $resultado->CUPS : 'No hay datos' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Contrato) ? $resultado->Contrato : 'No hay datos' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Periodo_Tarifario) ? $resultado->Periodo_Tarifario : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Fecha_Inicio) ? $resultado->Fecha_Inicio : 'No hay datos' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Fecha_Fin) ? $resultado->Fecha_Fin : 'No hay datos' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Activa_Absoluta) ? $resultado->Energia_Activa_Absoluta : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Activa_Incremental) ? $resultado->Energia_Activa_Incremental : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Activa) ? $resultado->Bit_Calidad_Activa : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Inductiva_Absoluta) ? $resultado->Energia_Reactiva_Inductiva_Absoluta : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Inductiva_Incremental) ? $resultado->Energia_Reactiva_Inductiva_Incremental : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Reactiva_Inductiva) ? $resultado->Bit_Calidad_Reactiva_Inductiva : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Capacitiva_Absoluta) ? $resultado->Energia_Reactiva_Capacitiva_Absoluta : '0' }}
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Capacitiva_Incremental) ? $resultado->Energia_Reactiva_Capacitiva_Incremental : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Reactiva_Capacitiva) ? $resultado->Bit_Calidad_Reactiva_Capacitiva : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Excesos_de_Potencias) ? $resultado->Excesos_de_Potencias : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Excesos) ? $resultado->Bit_Calidad_Excesos : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Maximetros) ? $resultado->Maximetros : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Fecha_Maximetros) ? $resultado->Fecha_Maximetros : 'No hay datos' }}
-                                                                                </td>
-                                                                                <td class="py-2">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Maximetros) ? $resultado->Bit_Calidad_Maximetros : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                            </tr>
-                                                                        @endforeach
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
+                                                                    @endforeach
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
 
-                                                            @if ($resultadosQ23pf->hasPages())
-                                                                <div
-                                                                    class="flex items-center justify-center space-x-3 mt-6">
-                                                                    {{-- Botón "Anterior" --}}
-                                                                    @if ($resultadosQ23pf->onFirstPage())
+                                                        @if ($resultadosQ23pf->hasPages())
+                                                            <div class="flex items-center justify-center space-x-3 mt-6">
+                                                                {{-- Botón "Anterior" --}}
+                                                                @if ($resultadosQ23pf->onFirstPage())
+                                                                    <span
+                                                                        class="px-3 py-2 text-gray-500 bg-custom-300 rounded-full cursor-not-allowed">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                            viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
+                                                                            <path
+                                                                                d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+                                                                        </svg>
+                                                                    </span>
+                                                                @else
+                                                                    <a href="{{ $resultadosQ23pf->previousPageUrl() }}"
+                                                                        class="px-3 py-2 text-sm font-medium text-white bg-custom-300 border-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                            viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
+                                                                            <path
+                                                                                d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                @endif
+
+                                                                {{-- Números de página --}}
+                                                                @php
+                                                                    $currentPage = $resultadosQ23pf->currentPage();
+                                                                    $lastPage = $resultadosQ23pf->lastPage();
+                                                                    $startPage = max(1, $currentPage - 2);
+                                                                    $endPage = min($lastPage, $currentPage + 2);
+                                                                @endphp
+
+                                                                {{-- Mostrar primera página y "..." si es necesario --}}
+                                                                @if ($startPage > 1)
+                                                                    <a href="{{ $resultadosQ23pf->url(1) }}"
+                                                                        class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
+                                                                        1
+                                                                    </a>
+                                                                    @if ($startPage > 2)
                                                                         <span
-                                                                            class="px-3 py-2 text-gray-500 bg-custom-300 rounded-full cursor-not-allowed">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px" viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
-                                                                                <path
-                                                                                    d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-                                                                            </svg>
-                                                                        </span>
-                                                                    @else
-                                                                        <a href="{{ $resultadosQ23pf->previousPageUrl() }}"
-                                                                            class="px-3 py-2 text-sm font-medium text-white bg-custom-300 border-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px" viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
-                                                                                <path
-                                                                                    d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
-                                                                            </svg>
-                                                                        </a>
-                                                                    @endif
-
-                                                                    {{-- Números de página --}}
-                                                                    @php
-                                                                        $currentPage = $resultadosQ23pf->currentPage();
-                                                                        $lastPage = $resultadosQ23pf->lastPage();
-                                                                        $startPage = max(1, $currentPage - 2);
-                                                                        $endPage = min($lastPage, $currentPage + 2);
-                                                                    @endphp
-
-                                                                    {{-- Mostrar primera página y "..." si es necesario --}}
-                                                                    @if ($startPage > 1)
-                                                                        <a href="{{ $resultadosQ23pf->url(1) }}"
-                                                                            class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                            1
-                                                                        </a>
-                                                                        @if ($startPage > 2)
-                                                                            <span
-                                                                                class="px-3 py-2 text-sm font-medium text-gray-500 bg-custom-300 rounded-full">
-                                                                                ...
-                                                                            </span>
-                                                                        @endif
-                                                                    @endif
-
-                                                                    {{-- Mostrar rango de páginas alrededor de la página actual --}}
-                                                                    @for ($page = $startPage; $page <= $endPage; $page++)
-                                                                        @if ($page == $currentPage)
-                                                                            <span
-                                                                                class="px-3 py-2 text-sm font-medium text-white bg-[rgb(88,226,194)] border-custom-300 rounded-full">
-                                                                                {{ $page }}
-                                                                            </span>
-                                                                        @else
-                                                                            <a href="{{ $resultadosQ23pf->url($page) }}"
-                                                                                class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                                {{ $page }}
-                                                                            </a>
-                                                                        @endif
-                                                                    @endfor
-
-                                                                    {{-- Mostrar última página y "..." si es necesario --}}
-                                                                    @if ($endPage < $lastPage)
-                                                                        @if ($endPage < $lastPage - 1)
-                                                                            <span
-                                                                                class="px-3 py-2 text-sm font-medium text-gray-500 bg-custom-300 rounded-full">
-                                                                                ...
-                                                                            </span>
-                                                                        @endif
-                                                                        <a href="{{ $resultadosQ23pf->url($lastPage) }}"
-                                                                            class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                            {{ $lastPage }}
-                                                                        </a>
-                                                                    @endif
-
-                                                                    {{-- Botón "Siguiente" --}}
-                                                                    @if ($resultadosQ23pf->hasMorePages())
-                                                                        <a href="{{ $resultadosQ23pf->nextPageUrl() }}"
-                                                                            class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px" viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
-                                                                                <path
-                                                                                    d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
-                                                                            </svg>
-                                                                        </a>
-                                                                    @else
-                                                                        <span
-                                                                            class="px-3 py-2 text-gray-500 bg-custom-300 rounded-full cursor-not-allowed">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px" viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
-                                                                                <path
-                                                                                    d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
-                                                                            </svg>
+                                                                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-custom-300 rounded-full">
+                                                                            ...
                                                                         </span>
                                                                     @endif
-                                                                </div>
-                                                            @endif
+                                                                @endif
 
-                                                            {{-- Descargar Excel --}}
+                                                                {{-- Mostrar rango de páginas alrededor de la página actual --}}
+                                                                @for ($page = $startPage; $page <= $endPage; $page++)
+                                                                    @if ($page == $currentPage)
+                                                                        <span
+                                                                            class="px-3 py-2 text-sm font-medium text-white bg-[rgb(88,226,194)] border-custom-300 rounded-full">
+                                                                            {{ $page }}
+                                                                        </span>
+                                                                    @else
+                                                                        <a href="{{ $resultadosQ23pf->url($page) }}"
+                                                                            class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
+                                                                            {{ $page }}
+                                                                        </a>
+                                                                    @endif
+                                                                @endfor
 
-                                                            <!-- Botón Excel -->
-                                                            <div class="text-right m-4">
-                                                                    <button id="exportarExcel" 
-                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
-                                                                        title="Exportar a Excel">
-                                                                    </button>
+                                                                {{-- Mostrar última página y "..." si es necesario --}}
+                                                                @if ($endPage < $lastPage)
+                                                                    @if ($endPage < $lastPage - 1)
+                                                                        <span
+                                                                            class="px-3 py-2 text-sm font-medium text-gray-500 bg-custom-300 rounded-full">
+                                                                            ...
+                                                                        </span>
+                                                                    @endif
+                                                                    <a href="{{ $resultadosQ23pf->url($lastPage) }}"
+                                                                        class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
+                                                                        {{ $lastPage }}
+                                                                    </a>
+                                                                @endif
 
-                                                                    <!-- Botón CSV -->
-                                                                    <button id="exportarCsv" 
-                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
-                                                                        title="Exportar a CSV">
-                                                                    </button>
+                                                                {{-- Botón "Siguiente" --}}
+                                                                @if ($resultadosQ23pf->hasMorePages())
+                                                                    <a href="{{ $resultadosQ23pf->nextPageUrl() }}"
+                                                                        class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                            viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
+                                                                            <path
+                                                                                d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                @else
+                                                                    <span
+                                                                        class="px-3 py-2 text-gray-500 bg-custom-300 rounded-full cursor-not-allowed">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                            viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
+                                                                            <path
+                                                                                d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
+                                                                        </svg>
+                                                                    </span>
+                                                                @endif
                                                             </div>
-                                                            <!-- Contenedor del botón de descarga -->
-                                                            {{-- <div class="text-right mt-4">
-                                                                <input type="button"
-                                                                    onclick="tableToExcel('testTableCierresMensuales', 'W3C Example Table')"
-                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
-                                                            </div> --}}
-                                                        
+                                                        @endif
+
+                                                        {{-- Descargar Excel --}}
+
+                                                        <!-- Botón Excel -->
+                                                        <div class="text-right m-4">
+                                                            <button id="exportarExcel"
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;"
+                                                                title="Exportar a Excel">
+                                                            </button>
+
+                                                            <!-- Botón CSV -->
+                                                            <button id="exportarCsv"
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;"
+                                                                title="Exportar a CSV">
+                                                            </button>
+                                                        </div>
+                                                        <!-- Contenedor del botón de descarga -->
+                                                        {{-- <div class="text-right mt-4">
+                                                            <input type="button"
+                                                                onclick="tableToExcel('testTableCierresMensuales', 'W3C Example Table')"
+                                                                style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                        </div> --}}
+
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 @endif
-                
+
 
                                 {{-- SEGUNDA FILA --}}
                                 @if (count($resultadosQ25pf) > 0)
-                                <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6"
-                                    id=curvas_cuartihorarias>
-                                    <div class="card text-white  mb-2"
-                                        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                        <h1 class="text-center text-2xl" style="color: white;">
-                                            CURVAS CUARTIHORARIAS </h1>
-                                        <div
-                                            style="border-bottom: 3px solid transparent;
-                                            border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                                        </div>
-                                        <!-- Contenido  -->
-                                        <div class="container">
-                                            <div class="table-responsive"
-                                                style="display: flex; justify-content: center;">
-                                                <div class="overflow-x-auto">
-                                                    <div class="container">
+                                    <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6"
+                                        id=curvas_cuartihorarias>
+                                        <div class="card text-white  mb-2"
+                                            style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                            <h1 class="text-center text-2xl" style="color: white;">
+                                                CURVAS CUARTIHORARIAS </h1>
+                                            <div
+                                                style="border-bottom: 3px solid transparent;
+                                                                                border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                            </div>
+                                            <!-- Contenido  -->
+                                            <div class="container">
+                                                <div class="table-responsive" style="display: flex; justify-content: center;">
+                                                    <div class="overflow-x-auto">
+                                                        <div class="container">
                                                             <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                                                 style="max-height: 500px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                                                 <table id="testTableCurvasCuartiHorarias"
@@ -1545,16 +1609,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 </table>
                                                             </div>
                                                             @if ($resultadosQ25pf->hasPages())
-                                                                <div
-                                                                    class="flex items-center justify-center space-x-3 mt-6">
+                                                                <div class="flex items-center justify-center space-x-3 mt-6">
                                                                     {{-- Botón "Anterior" --}}
                                                                     @if ($resultadosQ25pf->onFirstPage())
                                                                         <span
                                                                             class="px-3 py-2 text-gray-500 bg-custom-300 rounded-full cursor-not-allowed">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px"
-                                                                                viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                                viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
                                                                                 <path
                                                                                     d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
                                                                             </svg>
@@ -1562,10 +1623,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                     @else
                                                                         <a href="{{ $resultadosQ25pf->previousPageUrl() }}"
                                                                             class="px-3 py-2 text-sm font-medium text-white bg-custom-300 border-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px"
-                                                                                viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                                viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
                                                                                 <path
                                                                                     d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z" />
                                                                             </svg>
@@ -1627,10 +1686,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                     @if ($resultadosQ25pf->hasMorePages())
                                                                         <a href="{{ $resultadosQ25pf->nextPageUrl() }}"
                                                                             class="px-3 py-2 text-sm font-medium text-white bg-custom-300 rounded-full hover:bg-[rgb(88,226,194)] focus:outline-none focus:ring ring-custom-300 focus:border-custom-300 active:bg-[rgb(88,226,194)] active:text-white transition ease-in-out duration-150">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px"
-                                                                                viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                                viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
                                                                                 <path
                                                                                     d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
                                                                             </svg>
@@ -1638,10 +1695,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                     @else
                                                                         <span
                                                                             class="px-3 py-2 text-gray-500 bg-custom-300 rounded-full cursor-not-allowed">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg"
-                                                                                height="24px"
-                                                                                viewBox="0 -960 960 960"
-                                                                                width="24px" fill="#e8eaed">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" height="24px"
+                                                                                viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
                                                                                 <path
                                                                                     d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z" />
                                                                             </svg>
@@ -1654,35 +1709,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                                             <!-- Botón Excel -->
                                                             <div class="text-right m-4">
-                                                                    <button id="exportarExcel2" 
-                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
-                                                                        title="Exportar a Excel">
-                                                                    </button>
+                                                                <button id="exportarExcel2"
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;"
+                                                                    title="Exportar a Excel">
+                                                                </button>
 
-                                                                    <!-- Botón CSV -->
-                                                                    <button id="exportarCsv2" 
-                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
-                                                                        title="Exportar a CSV">
-                                                                    </button>
+                                                                <!-- Botón CSV -->
+                                                                <button id="exportarCsv2"
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;"
+                                                                    title="Exportar a CSV">
+                                                                </button>
                                                             </div>
+                                                            <div id="progressText">Progreso: 0%</div>
+                                                            <div id="downloadArea"></div>
                                                             {{-- <!-- Contenedor del botón de descarga -->
-                                                                <div class="text-right mt-4">
-                                                                    <input type="button"
-                                                                        onclick="tableToExcel('testTableCurvasCuartiHorarias', 'W3C Example Table')"
-                                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
-                                                                </div> --}}
+                                                            <div class="text-right mt-4">
+                                                                <input type="button"
+                                                                    onclick="tableToExcel('testTableCurvasCuartiHorarias', 'W3C Example Table')"
+                                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                            </div> --}}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                                 @endif
 
                                 @if(empty($resultadosQ23pf) && empty($resultadosQ25pf))
                                     <div class="alert alert-warning text-center text-white mt-4"
                                         style="background-color: red; color: black; padding: 15px; border-radius: 8px;">
-                                        <strong>Atención:</strong> Debes seleccionar al menos un tipo de reporte para visualizar resultados.
+                                        <strong>Atención:</strong> Debes seleccionar al menos un tipo de reporte para visualizar
+                                        resultados.
                                     </div>
                                 @endif
 

@@ -23,6 +23,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ExportProgress;
 
 
 
@@ -2219,7 +2220,7 @@ class PuntoFronteraController extends Controller
 public function exportCurvasCuartihorarias(Request $request)
 {
     try {
-        $connectionName = User::conexionPuntoFrontera(); // Esta variable se usa más abajo también
+        $connectionName = User::conexionPuntoFrontera();
 
         if (!Schema::connection($connectionName)->hasTable('t_dat_iec870_load_profile_1')) {
             return response()->json(['message' => 'La tabla no existe'], 404);
@@ -2237,19 +2238,22 @@ public function exportCurvasCuartihorarias(Request $request)
         }
 
         $fileName = 'exports/curvas_cuartihorarias_' . time() . '.' . $extension;
+        $exportId = (string) Str::uuid();
 
-        // Aquí se pasa correctamente el nombre de la conexión
-        ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $connectionName)
-            ->onQueue('default') // <- Asegura que caiga en la cola correcta si usas múltiples
-            ->onConnection('database'); // <- Aquí especificas que use la cola basada en BD
-
-        $url = Storage::disk('public')->url($fileName);
-
-        return response()->json([
-            'message' => 'Exportación iniciada. El archivo estará disponible pronto.',
-            'download_url' => $url
+        ExportProgress::create([
+            'export_id' => $exportId,
+            'status' => 'pending',
+            'progress' => 0,
         ]);
 
+        ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $connectionName, $exportId)
+            ->onQueue('default')
+            ->onConnection('database');
+
+        return response()->json([
+            'message' => 'Exportación iniciada.',
+            'export_id' => $exportId
+        ]);
     } catch (\Exception $e) {
         return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
     }

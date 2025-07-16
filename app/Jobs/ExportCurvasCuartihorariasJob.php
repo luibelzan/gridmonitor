@@ -3,74 +3,140 @@
 namespace App\Jobs;
 
 use App\Exports\ReportesPFCurvasCuartihorariasExport;
+use App\Models\ExportProgress;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ExportCurvasCuartihorariasJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
-    /**
-     * El número de segundos que el job puede ejecutar antes de que se agote el tiempo.
-     *
-     * @var int
-     */
-    public $timeout = 1200; // 10 minutos (600 segundos)
+
+    public $timeout = 1200;
 
     protected $id_cnts;
     protected $fecha_inicio;
     protected $fecha_fin;
     protected $fileName;
-    protected $format;
     protected $dbConnectionName;
+    protected $exportId;
 
-    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName)
+    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName, $exportId)
     {
         $this->id_cnts = $id_cnts;
         $this->fecha_inicio = $fecha_inicio;
         $this->fecha_fin = $fecha_fin;
         $this->fileName = $fileName;
         $this->dbConnectionName = $dbConnectionName;
+        $this->exportId = $exportId;
     }
 
     public function handle()
     {
         try {
-            // Asegurarse de que la carpeta 'exports' exista dentro del disco 'public'
+            // Actualiza a "processing" y progreso 10%
+            ExportProgress::where('export_id', $this->exportId)
+                ->update([
+                    'status' => 'processing',
+                    'progress' => 10
+                ]);
+
+            sleep(3); // Simula trabajo pesado
+
+            // Asegurar carpeta "exports"
             if (!Storage::disk('public')->exists('exports')) {
                 Storage::disk('public')->makeDirectory('exports');
-                Log::info("Carpeta 'exports' creada en el disco 'public'.");
+                Log::info("Carpeta 'exports' creada.");
             }
 
+            // Paso 2: Inicializando exportador (20%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 20]);
+            sleep(3);
+
+            // Crear exportador
             $export = new ReportesPFCurvasCuartihorariasExport(
                 $this->id_cnts,
                 $this->fecha_inicio,
                 $this->fecha_fin,
                 $this->fileName,
-                $this->dbConnectionName,
+                $this->dbConnectionName
             );
 
+            // Guardar archivo
             Excel::store(
                 $export,
                 $this->fileName,
                 'public',
-                $this->format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX
+                \Maatwebsite\Excel\Excel::XLSX
             );
 
-            // Log the absolute path where the file should be saved
+            // Paso 3: Preparando datos (30%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 30]);
+            sleep(3);
+
+            // Paso 4: Preparando datos (40%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 40]);
+            sleep(3);
+
+            // Simulación: progreso al 50%
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 50]);
+
+            sleep(3); // Simula trabajo pesado
+
+            // Paso 6: Preparando datos (60%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 60]);
+            sleep(3);
+
+            // Paso 3: Preparando datos (70%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 70]);
+            sleep(3);
+
+            // Paso 3: Preparando datos (80%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 80]);
+            sleep(3);
+
+            // Paso 3: Preparando datos (90%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 90]);
+                sleep(3);
+
+            // Paso 3: Preparando datos (100%)
+            ExportProgress::where('export_id', $this->exportId)
+                ->update(['progress' => 100]);
+
+            // Finalizar progreso
+            ExportProgress::where('export_id', $this->exportId)
+                ->update([
+                    'status' => 'completed',
+                    'progress' => 100,
+                    'file_path' => $this->fileName
+                ]);
+
             $fullPath = Storage::disk('public')->path($this->fileName);
-            Log::info("Archivo exportado exitosamente a la ruta: " . $fullPath);
+            Log::info("Archivo exportado: " . $fullPath);
 
         } catch (\Exception $e) {
             Log::error("Error al exportar: " . $e->getMessage());
-            throw $e; // <- Importante: relanza la excepción
+
+            ExportProgress::where('export_id', $this->exportId)
+                ->update([
+                    'status' => 'failed',
+                    'progress' => 0
+                ]);
+
+            throw $e;
         }
     }
 }
