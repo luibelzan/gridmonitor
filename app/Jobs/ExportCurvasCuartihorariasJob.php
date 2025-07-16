@@ -39,103 +39,56 @@ class ExportCurvasCuartihorariasJob implements ShouldQueue
     public function handle()
     {
         try {
-            // Actualiza a "processing" y progreso 10%
-            ExportProgress::where('export_id', $this->exportId)
-                ->update([
-                    'status' => 'processing',
-                    'progress' => 10
-                ]);
+            $exportProgressModel = ExportProgress::on('mysql_exports');
 
-            sleep(3); // Simula trabajo pesado
+            // 1. Marcar como "processing" y 10%
+            $exportProgressModel->where('export_id', $this->exportId)->update([
+                'status' => 'processing',
+                'progress' => 10
+            ]);
+            Log::info("Job: Estado inicial de exportación establecido para " . $this->exportId);
 
-            // Asegurar carpeta "exports"
+            // Asegurar carpeta "exports" - esto puede ir aquí o en el controlador si lo prefieres
             if (!Storage::disk('public')->exists('exports')) {
                 Storage::disk('public')->makeDirectory('exports');
-                Log::info("Carpeta 'exports' creada.");
+                Log::info("Job: Carpeta 'exports' creada si no existía.");
             }
+            $exportProgressModel->where('export_id', $this->exportId)->update(['progress' => 20]);
 
-            // Paso 2: Inicializando exportador (20%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 20]);
-            sleep(3);
 
-            // Crear exportador
-            $export = new ReportesPFCurvasCuartihorariasExport(
-                $this->id_cnts,
-                $this->fecha_inicio,
-                $this->fecha_fin,
-                $this->fileName,
-                $this->dbConnectionName
-            );
-
-            // Guardar archivo
-            Excel::store(
-                $export,
+            // 2. Despachar la exportación de Maatwebsite/Excel.
+            // Maatwebsite gestionará sus propios jobs internos.
+            Log::info("Job: Despachando exportador de Maatwebsite para " . $this->exportId);
+            Excel::queue(
+                new ReportesPFCurvasCuartihorariasExport(
+                    $this->id_cnts,
+                    $this->fecha_inicio,
+                    $this->fecha_fin,
+                    $this->fileName,
+                    $this->dbConnectionName,
+                    $this->exportId // Pasa el exportId al exportador
+                ),
                 $this->fileName,
                 'public',
                 \Maatwebsite\Excel\Excel::XLSX
-            );
+            )->chain([
+                // Esto es CRUCIAL. El job que actualiza el estado a "completed"
+                // solo se ejecutará DESPUÉS de que todos los jobs internos de Maatwebsite
+                // (QueueExport, AppendQueryToSheet, StoreQueuedExport) hayan terminado.
+                new FinalizeExportJob($this->exportId, $this->fileName)
+            ]);
 
-            // Paso 3: Preparando datos (30%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 30]);
-            sleep(3);
-
-            // Paso 4: Preparando datos (40%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 40]);
-            sleep(3);
-
-            // Simulación: progreso al 50%
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 50]);
-
-            sleep(3); // Simula trabajo pesado
-
-            // Paso 6: Preparando datos (60%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 60]);
-            sleep(3);
-
-            // Paso 3: Preparando datos (70%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 70]);
-            sleep(3);
-
-            // Paso 3: Preparando datos (80%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 80]);
-            sleep(3);
-
-            // Paso 3: Preparando datos (90%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 90]);
-                sleep(3);
-
-            // Paso 3: Preparando datos (100%)
-            ExportProgress::where('export_id', $this->exportId)
-                ->update(['progress' => 100]);
-
-            // Finalizar progreso
-            ExportProgress::where('export_id', $this->exportId)
-                ->update([
-                    'status' => 'completed',
-                    'progress' => 100,
-                    'file_path' => $this->fileName
-                ]);
-
-            $fullPath = Storage::disk('public')->path($this->fileName);
-            Log::info("Archivo exportado: " . $fullPath);
+            // El Job actual (ExportCurvasCuartihorariasJob) termina aquí.
+            // El resto del progreso y la finalización los manejarán los jobs encadenados y los eventos.
+            Log::info("Job: ExportCurvasCuartihorariasJob completado. Los jobs de Maatwebsite están en cola.");
 
         } catch (\Exception $e) {
-            Log::error("Error al exportar: " . $e->getMessage());
+            Log::error("Error al iniciar la exportación para export_id {$this->exportId}: " . $e->getMessage());
 
-            ExportProgress::where('export_id', $this->exportId)
-                ->update([
-                    'status' => 'failed',
-                    'progress' => 0
-                ]);
-
+            ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
+                'status' => 'failed',
+                'progress' => 0
+            ]);
             throw $e;
         }
     }

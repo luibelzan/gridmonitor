@@ -8,23 +8,30 @@ use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
+use Maatwebsite\Excel\Concerns\WithEvents; // ¡Nuevo! Importa esta interfaz
+use Maatwebsite\Excel\Events\BeforeWriting; // Importa los eventos que usarás
+use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; // Para logging dentro del exportador
+use App\Models\ExportProgress; // Para actualizar el modelo de progreso
 
-class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue, WithCustomChunkSize
+class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue, WithCustomChunkSize, WithEvents // ¡Añadimos WithEvents!
 {
     protected $id_cnts;
     protected $fecha_inicio;
     protected $fecha_fin;
     protected $fileName;
     protected $dbConnectionName;
+    protected $exportId; // ¡Nuevo! Necesitamos el ID de la exportación
 
-    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName)
+    public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName, $exportId) // ¡Añadimos $exportId al constructor!
     {
         $this->id_cnts = $id_cnts;
         $this->fecha_inicio = $fecha_inicio;
         $this->fecha_fin = $fecha_fin;
         $this->fileName = $fileName;
         $this->dbConnectionName = $dbConnectionName;
+        $this->exportId = $exportId; // Asignamos el ID
     }
 
     public function query()
@@ -51,8 +58,8 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
                 t_dat_iec870_load_profile_1.e_react_cap_imp as Energia_Reactiva_Capacitiva_Importada_Rc,
                 t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as Bit_Calidad_Reactiva_Imp_Rc,
                 t_dat_iec870_load_profile_1.e_react_cap_exp as Energia_Reactiva_Capacitiva_Exportada_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as Bit_Calidad_Reactiva_Exp_Rc
-            ");
+                t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as Bit_Calidad_Reactiva_Exp_Rc"
+            );
     }
 
     public function map($row): array
@@ -101,6 +108,26 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
 
     public function chunkSize(): int
     {
-        return 5000; // Define tamaño del chunk para evitar cargar mucho en memoria
+        return 5000;
+    }
+
+ 
+    public function registerEvents(): array
+    {
+        return [
+            // Este evento se dispara justo antes de que Maatwebsite/Excel comience a escribir el archivo
+            // después de haber procesado todos los datos. Es un buen momento para indicar que la
+            // fase de procesamiento de datos ha terminado y se pasa a la escritura final.
+            BeforeWriting::class => function(BeforeWriting $event) {
+                Log::info("Exportador: Evento BeforeWriting para export_id: " . $this->exportId);
+                ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
+                    'progress' => 90, // Por ejemplo, 90% para indicar que está a punto de terminar
+                ]);
+            },
+            // Puedes añadir otros eventos si necesitas actualizaciones de progreso más granulares,
+            // por ejemplo, AfterSheet si manejas múltiples hojas, o AfterBatch si usas WithChunkReading
+            // y quieres un progreso más detallado durante la lectura de chunks.
+            // Para `FromQuery` y `WithCustomChunkSize`, `BeforeWriting` es a menudo suficiente para un progreso final.
+        ];
     }
 }

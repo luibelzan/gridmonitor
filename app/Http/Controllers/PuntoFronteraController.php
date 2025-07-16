@@ -2221,6 +2221,7 @@ public function exportCurvasCuartihorarias(Request $request)
 {
     try {
         $connectionName = User::conexionPuntoFrontera();
+        //$connectionName2 = 'mysql_exports';
 
         if (!Schema::connection($connectionName)->hasTable('t_dat_iec870_load_profile_1')) {
             return response()->json(['message' => 'La tabla no existe'], 404);

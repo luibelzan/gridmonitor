@@ -905,7 +905,7 @@
                     .then(data => {
                         console.log('Progreso:', data);
 
-                        if (data.status === 'completed') {
+                        if (data.status === 'completed' && data.progress === 100) {
                             clearInterval(interval);
                             alert('¡Exportación completada!');
 
