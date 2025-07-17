@@ -3,17 +3,17 @@
 namespace App\Exports;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Database\Query\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomChunkSize;
-use Maatwebsite\Excel\Concerns\WithEvents; // ¡Nuevo! Importa esta interfaz
+use Maatwebsite\Excel\Concerns\WithEvents; 
 use Maatwebsite\Excel\Events\BeforeWriting; // Importa los eventos que usarás
-use Maatwebsite\Excel\Events\AfterSheet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log; // Para logging dentro del exportador
 use App\Models\ExportProgress; // Para actualizar el modelo de progreso
+use Maatwebsite\Excel\Events\AfterBatch;
+
 
 class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue, WithCustomChunkSize, WithEvents // ¡Añadimos WithEvents!
 {
@@ -23,6 +23,8 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
     protected $fileName;
     protected $dbConnectionName;
     protected $exportId; // ¡Nuevo! Necesitamos el ID de la exportación
+    protected $processedChunks = 0; // Contador de chunks procesados
+    protected $maxEstimatedChunks = 20; // ¡Ajusta este valor!
 
     public function __construct($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $dbConnectionName, $exportId) // ¡Añadimos $exportId al constructor!
     {
@@ -115,19 +117,34 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
     public function registerEvents(): array
     {
         return [
-            // Este evento se dispara justo antes de que Maatwebsite/Excel comience a escribir el archivo
-            // después de haber procesado todos los datos. Es un buen momento para indicar que la
-            // fase de procesamiento de datos ha terminado y se pasa a la escritura final.
+            AfterBatch::class => function(AfterBatch $event) {
+                $this->processedChunks++; // Incrementa el contador de chunks
+
+                // Calculamos el progreso basándonos en los chunks procesados.
+                // Asignamos el rango 20% - 89% a la lectura y procesamiento de los chunks.
+                $baseProgress = 20; // Inicio del rango de progreso para chunks
+                $rangeSize = 69;   // 89 - 20 = 69% del total para los chunks
+
+                $progress = $baseProgress;
+                if ($this->maxEstimatedChunks > 0) {
+                    $progress = $baseProgress + (int)(($this->processedChunks / $this->maxEstimatedChunks) * $rangeSize);
+                }
+
+                // Aseguramos que el progreso no exceda el 89% en esta fase
+                $progress = min(89, $progress);
+
+                ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
+                    'progress' => $progress,
+                ]);
+                Log::info("Exportador: AfterBatch event para export_id: {$this->exportId}. Chunks procesados: {$this->processedChunks}. Progreso: {$progress}%");
+            },
+
             BeforeWriting::class => function(BeforeWriting $event) {
                 Log::info("Exportador: Evento BeforeWriting para export_id: " . $this->exportId);
                 ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
-                    'progress' => 90, // Por ejemplo, 90% para indicar que está a punto de terminar
+                    'progress' => 90, // El 90% indica que la escritura final del archivo está a punto de comenzar
                 ]);
             },
-            // Puedes añadir otros eventos si necesitas actualizaciones de progreso más granulares,
-            // por ejemplo, AfterSheet si manejas múltiples hojas, o AfterBatch si usas WithChunkReading
-            // y quieres un progreso más detallado durante la lectura de chunks.
-            // Para `FromQuery` y `WithCustomChunkSize`, `BeforeWriting` es a menudo suficiente para un progreso final.
         ];
     }
 }

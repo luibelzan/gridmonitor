@@ -17,7 +17,7 @@ class ExportCurvasCuartihorariasJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public $timeout = 1200;
+    public $timeout = 3600;
 
     protected $id_cnts;
     protected $fecha_inicio;
