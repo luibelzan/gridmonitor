@@ -734,6 +734,19 @@
                 transform: scale(1);
             }
         }
+
+        @keyframes blinkGreenWhite {
+            0%, 100% {
+                color: white;
+            }
+            50% {
+                color: green;
+            }
+        }
+        .blinking-message {
+            animation: blinkGreenWhite 1s infinite;
+        }
+
     </style>
 
     <script>
@@ -794,68 +807,6 @@
         });
     </script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            function exportarArchivo(formato) {
-                const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
-                const fecFin = document.querySelector('input[name="fecha_fin"]').value;
-
-                // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
-                let idCnts = [];
-
-                document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
-                    idCnts.push(el.value);
-                });
-
-                // Armar URL base
-                var url = "{{ route('exportar.curvas.cuartihorarias.pf') }}?";
-
-                // Agregar parámetros a la URL
-                if (fecInicio) {
-                    url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
-                }
-
-                if (fecFin) {
-                    url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
-                }
-
-                // Agregar todos los id_cnts como parámetros
-                idCnts.forEach(id => {
-                    url += "id_cnts[]=" + encodeURIComponent(id) + "&";
-                });
-
-                url += "format=" + formato;
-
-                // Redirigir para descargar el archivo
-                window.location.href = url;
-            }
-
-            //const exportExcelBtn = document.getElementById('exportarExcel2');
-            const exportCsvBtn = document.getElementById('exportarCsv2');
-            /*
-            if (exportExcelBtn) {
-                exportExcelBtn.addEventListener('click', function () {
-                    exportarArchivo('excel');
-                });
-            } else {
-                console.error("El botón exportarExcel no existe en el DOM.");
-            }
-                */
-
-            if (exportCsvBtn) {
-                exportCsvBtn.addEventListener('click', function () {
-                    exportarArchivo('csv');
-                });
-            } else {
-                console.error("El botón exportarCsv no existe en el DOM.");
-            }
-        });
-    </script>
-
-
-
-
 
 
 
@@ -898,76 +849,103 @@
     </script>
 
     <script>
-        function checkExportProgress(exportId) {
-            const interval = setInterval(() => {
-                fetch(`/export-progress/${exportId}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        console.log('Progreso:', data);
+    function checkExportProgress(exportId) {
+        const interval = setInterval(() => {
+            fetch(`/export-progress/${exportId}`)
+                .then(res => res.json())
+                .then(data => {
+                    console.log('Progreso:', data);
 
-                        if (data.status === 'completed' && data.progress === 100) {
-                            clearInterval(interval);
-                            alert('¡Exportación completada!');
-
-                            // Mostrar enlace de descarga
-                            const link = document.createElement('a');
-                            link.href = data.download_url;
-                            link.textContent = 'Descargar archivo';
-                            link.style.display = 'block';
-                            link.style.marginTop = '10px';
-
-                            document.getElementById('downloadArea').appendChild(link);
-                        } else if (data.status === 'failed') {
-                            clearInterval(interval);
-                            alert('La exportación falló.');
-                        } else {
-                            document.getElementById('progressText').innerText = `Progreso: ${data.progress}%`;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error al consultar el progreso:', error);
-                    });
-            }, 2000);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('exportarExcel2').addEventListener('click', (event) => {
-                event.preventDefault(); // ✅ Ahora sí está definido
-
-                const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
-                const fecFin = document.querySelector('input[name="fecha_fin"]').value;
-
-                // Obtener los ID_CNT seleccionados (puede ser select múltiple o checkboxes)
-                let idCnts = [];
-
-                document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
-                    idCnts.push(el.value);
-                });
-
-                fetch('/exportar-curvas-cuartihorarias', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    },
-                    body: JSON.stringify({
-                        format: 'excel',
-                        id_cnts: idCnts,
-                        fecha_inicio: fecInicio,
-                        fecha_fin: fecFin,
-                    })
+                    if (data.status === 'completed' && data.progress === 100) {
+                        clearInterval(interval);
+                        document.getElementById('exportStatusMessage').innerText = '';
+                        // Crear enlace invisible y simular clic para descargar
+                        const link = document.createElement('a');
+                        link.href = data.download_url;
+                        link.download = '';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else if (data.status === 'failed') {
+                        clearInterval(interval);
+                        document.getElementById('exportStatusMessage').innerText = '';
+                        alert('La exportación falló.');
+                    }
                 })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.export_id) {
-                            document.getElementById('progressText').innerText = 'Progreso: 0%';
-                            document.getElementById('downloadArea').innerHTML = ''; // Limpia descargas anteriores
-                            checkExportProgress(data.export_id);
-                        }
-                    });
+                .catch(error => {
+                    console.error('Error al consultar el progreso:', error);
+                });
+        }, 2000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const getExportData = () => {
+            const fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+            const fecFin = document.querySelector('input[name="fecha_fin"]').value;
+            let idCnts = [];
+            document.querySelectorAll('input[name="id_cnts[]"]:checked').forEach(el => {
+                idCnts.push(el.value);
             });
+            return { fecInicio, fecFin, idCnts };
+        };
+
+        document.getElementById('exportarExcel2').addEventListener('click', (event) => {
+            event.preventDefault();
+            const { fecInicio, fecFin, idCnts } = getExportData();
+
+            fetch('/exportar-curvas-cuartihorarias', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    format: 'excel',
+                    id_cnts: idCnts,
+                    fecha_inicio: fecInicio,
+                    fecha_fin: fecFin,
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.export_id) {
+                        document.getElementById('exportStatusMessage').innerText = '⏳ Esperando exportación... Este proceso puede tardar unos minutos.';
+                        document.getElementById('downloadArea').innerHTML = '';
+                        checkExportProgress(data.export_id);
+                    }
+                });
         });
-    </script>
+
+        document.getElementById('exportarCsv2').addEventListener('click', (event) => {
+            event.preventDefault();
+            const { fecInicio, fecFin, idCnts } = getExportData();
+
+            fetch('/exportar-curvas-cuartihorarias', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: JSON.stringify({
+                    format: 'csv',
+                    id_cnts: idCnts,
+                    fecha_inicio: fecInicio,
+                    fecha_fin: fecFin,
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.export_id) {
+                        document.getElementById('exportStatusMessage').innerText = '⏳ Esperando exportación... Este proceso puede tardar unos minutos.';
+                        document.getElementById('downloadArea').innerHTML = '';
+                        checkExportProgress(data.export_id);
+                    }
+                });
+        });
+    });
+</script>
+
+
 
 
 
@@ -1163,12 +1141,12 @@
                                         id=cierres_mensuales>
                                         <div class="card text-white  mb-2"
                                             style="
-                                                                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                                                                    background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                             <h1 class="text-center text-2xl" style="color: white;">
                                                 CIERRES MENSUALES </h1>
                                             <div
                                                 style="border-bottom: 3px solid transparent;
-                                                                                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                                                                    border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                             </div>
                                             <!-- Contenido de PL3 -->
                                             <div class="table-responsive" style="display: flex; justify-content: center;">
@@ -1468,7 +1446,7 @@
                                                 CURVAS CUARTIHORARIAS </h1>
                                             <div
                                                 style="border-bottom: 3px solid transparent;
-                                                                                border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                                                            border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                             </div>
                                             <!-- Contenido  -->
                                             <div class="container">
@@ -1705,6 +1683,9 @@
                                                                 </div>
                                                             @endif
 
+                                                            <div id="exportStatusMessage" class="mt-4 font-bold text-center w-full blinking-message"></div>
+                                                            <div id="downloadArea"></div>
+
                                                             {{-- Descargar Excel --}}
 
                                                             <!-- Botón Excel -->
@@ -1720,8 +1701,6 @@
                                                                     title="Exportar a CSV">
                                                                 </button>
                                                             </div>
-                                                            <div id="progressText">Progreso: 0%</div>
-                                                            <div id="downloadArea"></div>
                                                             {{-- <!-- Contenedor del botón de descarga -->
                                                             <div class="text-right mt-4">
                                                                 <input type="button"
