@@ -388,9 +388,10 @@
                             <div class="container">
                                 {{-- FILTRO AQUI --}}
                                 <form
-                                    action="{{ route('balancessabt') }}"
+                                    action="{{ route('balancessabt', ['id_ct' => $id_ct]) }}"
                                     method="GET"
                                     class="flex flex-wrap items-center justify-start gap-2 mt-6">
+                                    <input type="hidden" name="id_ct" value="{{ $id_ct }}">
                                     {{-- FILTRO FECHAS --}}
                                                                             
                                     <div class="form-group flex items-center">
@@ -737,13 +738,13 @@
                                                                             {{ !empty($resultado->total_ai_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_s) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->total_ae_cnt_s) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->total_ae_cnt_t) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->perdida_energia_r) ? intval($resultado->perdida_energia_r/1000) : '0' }}

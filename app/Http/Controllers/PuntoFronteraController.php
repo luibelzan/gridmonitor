@@ -9,6 +9,7 @@ namespace App\Http\Controllers;
 use App\Exports\EventosPFExport;
 use App\Exports\ReportesPFCierresMensualesExport;
 use App\Exports\ReportesPFCurvasCuartihorariasExport;
+use App\Jobs\ExportCurvasCuartihorariasJob;
 use App\Exports\ResultsExport;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -21,6 +22,9 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Facades\Excel; 
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use App\Models\ExportProgress;
+
 
 
 
@@ -391,6 +395,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ25pf = $this->consultaVeintiCincopf($request, $connectionpf, $fecha_inicio, $fecha_fin);  // Pasar el request directamente
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnts, $connectionpf);
         $exportCierresMensuales = $this->exportCierresMensuales($request);
+        //$exportCurvasCuartihorarias = $this->exportCurvasCuartihorarias($request);
 
 
 
@@ -409,6 +414,7 @@ class PuntoFronteraController extends Controller
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
             'exportCierresMensuales' => $exportCierresMensuales,
             'connection' => $connectionpf,
+            //'exportCurvasCuartihorarias' => $exportCurvasCuartihorarias,
 
 
         ]);
@@ -2139,7 +2145,6 @@ class PuntoFronteraController extends Controller
     {
         set_time_limit(0);
 
-
         $id_cnts = $request->input('id_cnts', []);
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
@@ -2203,7 +2208,7 @@ class PuntoFronteraController extends Controller
                 'query' => $request->query(),
             ]);
 
-
+            //dd(strval($connectionpf));
             return $paginatedResults;
         }
 
@@ -2211,75 +2216,52 @@ class PuntoFronteraController extends Controller
         return [];
     }
 
-    public function exportCurvasCuartihorarias(Request $request) {
-        try {
-            $connection = User::conexionPuntoFrontera();
-            if(Schema::connection($connection)->hasTable('t_dat_iec870_load_profile_1')) {
-                $format = $request->input('format', 'excel'); 
-                $extension = $format === 'csv' ? 'csv' : 'xlsx';
-                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
-                $id_cnts = $request->input('id_cnts', []);
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
+public function exportCurvasCuartihorarias(Request $request)
+{
+    try {
+        $connectionName = User::conexionPuntoFrontera();
+        //$connectionName2 = 'mysql_exports';
 
-
-                if (!empty($id_cnts)) {
-                    $query = "
-                SELECT
-                    t_meter_params_iec870.cups as 'CUPS',
-                    t_dat_iec870_load_profile_1.id_cnt,
-                    DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as 'Fecha',
-                    DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as 'Hora',
-                    t_dat_iec870_load_profile_1.e_act_imp as 'Energia_Activa_Importada_A',
-                    t_dat_iec870_load_profile_1.e_act_imp_cualif as 'Bit_Calidad_Activa_A',
-                    t_dat_iec870_load_profile_1.e_act_exp as 'Energia_Activa_Exportada_A',
-                    t_dat_iec870_load_profile_1.e_act_exp_cualif as 'Bit_Calidad_Activa_A2',
-                    t_dat_iec870_load_profile_1.e_react_ind_imp as 'Energia_Reactiva_Inductiva_Importada_Ri',
-                    t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri',
-                    t_dat_iec870_load_profile_1.e_react_ind_exp as 'Energia_Reactiva_Inductiva_Exportada_Ri',
-                    t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri2',
-                    t_dat_iec870_load_profile_1.e_react_cap_imp as 'Energia_Reactiva_Capacitiva_Importada_Rc',
-                    t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
-                    t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
-                    t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-                FROM t_dat_iec870_load_profile_1
-                INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
-                WHERE t_dat_iec870_load_profile_1.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
-
-
-                    $params = $id_cnts;
-
-
-                    if ($fecha_inicio && $fecha_fin) {
-                        $query .= "
-                    AND t_dat_iec870_load_profile_1.fh >= ?
-                    AND t_dat_iec870_load_profile_1.fh <= ?
-                    ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC";
-                        $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
-                    } else {
-                        $query .= "
-                    ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC
-                    LIMIT 168";
-                    }
-
-                    $exportCurvasCuartihorarias = DB::connection($connection)->select($query, $params);
-
-                    if($exportCurvasCuartihorarias) {
-                        return Excel::download(new ReportesPFCurvasCuartihorariasExport($exportCurvasCuartihorarias), 'curvas_cuartihorarias.' . $extension, $exportFormat);
-                    } else {
-                        return response()->json(['message' => 'No hay datos'], 404);
-
-                    }
-                }
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'Error: ' . $e->getMessage()];
+        if (!Schema::connection($connectionName)->hasTable('t_dat_iec870_load_profile_1')) {
+            return response()->json(['message' => 'La tabla no existe'], 404);
         }
+
+        $format = $request->input('format', 'excel');
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+
+        $id_cnts = $request->input('id_cnts', []);
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if (empty($id_cnts)) {
+            return response()->json(['message' => 'Debe proporcionar id_cnts'], 422);
+        }
+
+        $fileName = 'exports/curvas_cuartihorarias_' . time() . '.' . $extension;
+        $exportId = (string) Str::uuid();
+
+        ExportProgress::create([
+            'export_id' => $exportId,
+            'status' => 'pending',
+            'progress' => 0,
+        ]);
+
+        ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $connectionName, $exportId)
+            ->onQueue('default')
+            ->onConnection('database');
+
+        return response()->json([
+            'message' => 'Exportación iniciada.',
+            'export_id' => $exportId
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
     }
+}
+
+
+
 
 
     public function consultaVeintiSeispf($id_cnt, $connectionpf)

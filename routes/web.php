@@ -13,6 +13,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PuntoFronteraController;
 use App\Http\Controllers\SupervisionAvanzadaController;
 use App\Http\Controllers\DashboardSABTController;
+use App\Http\Controllers\ExportController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -90,8 +91,9 @@ Route::get('/exportar-reportes-calidad', [ctController::class, 'exportReportesCa
 Route::get('/exportar-actualizaciones', [ctController::class, 'exportReportesInventarioFW'])->name('exportar.reportes.actualizaciones');
 Route::get('/exportar-reportes-inventario', [ctController::class, 'exportReportesInventario'])->name('exportar.reportes.inventario');
 Route::get('/exportar-cierres-mensuales', [PuntoFronteraController::class, 'exportCierresMensuales'])->name('exportar.cierres.mensuales.pf');
-Route::get('/exportar-curvas-cuartihorarias', [PuntoFronteraController::class, 'exportCurvasCuartihorarias'])->name('exportar.curvas.cuartihorarias.pf');
+Route::post('/exportar-curvas-cuartihorarias', [PuntoFronteraController::class, 'exportCurvasCuartihorarias'])->name('exportar.curvas.cuartihorarias.pf');
 Route::get('/exportar-diferencia-consumos', [ctController::class, 'exportDiferenciaConsumo'])->name('exportar.diferencia.consumos');
+Route::get('/export-progress/{exportId}', [ExportController::class, 'getExportProgress']);
 
 
 //*********************************

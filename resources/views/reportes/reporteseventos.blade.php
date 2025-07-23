@@ -797,7 +797,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                         style="
                                                       background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                                         <div class="container">
-                                                            @if (count($reporteseventos) > 0)
+                                                            @if ($reporteseventos->count())
                                                                 <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                                                     style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                                                     <table id="testTableEventosCups"
@@ -811,6 +811,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 <th class="mt-0 text-xl  text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     CONTADOR</th>
+                                                                                <th class="mt-0 text-xl  text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    CT</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     FECHA</th>
@@ -836,6 +839,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->fecha) ? $resultado->fecha : 'No hay datos' }}
