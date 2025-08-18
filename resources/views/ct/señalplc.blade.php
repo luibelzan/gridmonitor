@@ -1383,12 +1383,14 @@
                                                             var labels_lect_s02 = [];
                                                             var values_lect_s02 = [];
 
-                                                            @foreach ($resultadosQ22 as $resultado)
-                                                                // Agregar la fecha en formato dd-mm-yy
-                                                                labels_lect_s02.push('{{ date('d-m-y', strtotime($resultado->fec_lectura)) }}');
-                                                                // Agregar el valor de energía formateado en kWh
-                                                                values_lect_s02.push({{ $resultado->lect_s02 }});
-                                                            @endforeach
+                                                            @if(!isset($resultadosQ22['message']))
+                                                                @foreach ($resultadosQ22 as $resultado)
+                                                                    // Agregar la fecha en formato dd-mm-yy
+                                                                    labels_lect_s02.push('{{ date('d-m-y', strtotime($resultado->fec_lectura)) }}');
+                                                                    // Agregar el valor de energía formateado en kWh
+                                                                    values_lect_s02.push({{ $resultado->lect_s02 }});
+                                                                @endforeach
+                                                            @endif
 
                                                             document.addEventListener("DOMContentLoaded", function() {
                                                                 var labels = labels_lect_s02;
@@ -1556,12 +1558,16 @@
                                                     <script>
                                                         var labels_lect_s04 = [];
                                                         var values_lect_s04 = [];
-                                                        @foreach ($resultadosQ22 as $resultado)
-                                                            // Agregar la fecha en formato dd-mm-yy
-                                                            labels_lect_s04.push('{{ date('d-m-y', strtotime($resultado->fec_lectura)) }}');
-                                                            // Agregar el valor de energía formateado en kWh
-                                                            values_lect_s04.push({{ $resultado->lect_s04 }});
-                                                        @endforeach
+
+                                                        @if(!isset($resultadosQ22['message']))
+                                                            @foreach ($resultadosQ22 as $resultado)
+                                                                // Agregar la fecha en formato dd-mm-yy
+                                                                labels_lect_s04.push('{{ date('d-m-y', strtotime($resultado->fec_lectura)) }}');
+                                                                // Agregar el valor de energía formateado en kWh
+                                                                values_lect_s04.push({{ $resultado->lect_s04 }});
+                                                            @endforeach
+                                                        @endif
+
                                                         document.addEventListener("DOMContentLoaded", function() {
                                                             var labels = labels_lect_s04;
                                                             var data = [{
@@ -1741,12 +1747,14 @@
                                                             var labels_lect_s05 = [];
                                                             var values_lect_s05 = [];
 
-                                                            @foreach ($resultadosQ22 as $resultado)
-                                                                // Agregar la fecha en formato dd-mm-yy
-                                                                labels_lect_s05.push('{{ date('d-m-y', strtotime($resultado->fec_lectura)) }}');
-                                                                // Agregar el valor de energía formateado en kWh
-                                                                values_lect_s05.push({{ $resultado->lect_s05 }});
-                                                            @endforeach
+                                                            @if(!isset($resultadosQ22['message']))
+                                                                @foreach ($resultadosQ22 as $resultado)
+                                                                    // Agregar la fecha en formato dd-mm-yy
+                                                                    labels_lect_s05.push('{{ date('d-m-y', strtotime($resultado->fec_lectura)) }}');
+                                                                    // Agregar el valor de energía formateado en kWh
+                                                                    values_lect_s05.push({{ $resultado->lect_s05 }});
+                                                                @endforeach
+                                                            @endif
 
                                                             document.addEventListener("DOMContentLoaded", function() {
                                                                 var labels = labels_lect_s05;
