@@ -1000,7 +1000,7 @@
                                                 <div class="container">
                                                     <h2 class="text-center text-1xl mt-2" style="color: white;">
                                                         @if(request()->filled('consumo_fecha_inicio') && request()->filled('consumo_fecha_fin'))
-                                                            Maxímetros desde {{ request('consumo_fecha_inicio') }} hasta
+                                                            Consumos por periodos desde {{ request('consumo_fecha_inicio') }} hasta
                                                             {{ request('consumo_fecha_fin') }}
                                                         @else
                                                             Últimos 12 meses

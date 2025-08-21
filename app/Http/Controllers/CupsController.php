@@ -1111,7 +1111,7 @@ class CupsController extends Controller
 
 
 
-    public function consultaCuatroCups($id_cups, $connection, Request $request) //periodo tarifario
+    public function consultaCuatroCups($id_cups, $connection, Request $request) // periodo tarifario
     {
         $id_cups = strtoupper($request->input('id_cups'));
         $fecha_inicio = $request->input('consumo_fecha_inicio');
@@ -1132,9 +1132,16 @@ class CupsController extends Controller
                 $params = ['id_cups' => "%$id_cups%"];
 
                 if ($fecha_inicio && $fecha_fin) {
+                    // Caso 1: el usuario mete fechas
                     $query .= " AND fec_inicio >= :fecha_inicio AND fec_fin <= :fecha_fin";
                     $params['fecha_inicio'] = $fecha_inicio;
                     $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    // Caso 2: no mete fechas → últimos 12 meses
+                    $query .= " 
+                    AND fec_inicio >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '12 months'
+                    AND fec_fin <= CURRENT_DATE
+                ";
                 }
 
                 $query .= " GROUP BY 1 ORDER BY 1";
@@ -1147,6 +1154,7 @@ class CupsController extends Controller
             return ['message' => 'No hay datos'];
         }
     }
+
 
 
 
