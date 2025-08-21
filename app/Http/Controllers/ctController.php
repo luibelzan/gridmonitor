@@ -5234,7 +5234,7 @@ class ctController extends Controller
     }
 
     public function getDiferenciaConsumo(Request $request, $connection)
-    {
+{
         try {
             $fecha_inicio = $request->input('fecha_inicio2');
 
@@ -5246,12 +5246,11 @@ class ctController extends Controller
             $fecha_inicio_carbon = Carbon::parse($fecha_inicio)->startOfMonth();
             $fecha_fin = $fecha_inicio_carbon->copy()->addMonth();
             $inicio = Carbon::parse($fecha_inicio);
-            $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
+            $fin = Carbon::parse($fecha_fin); 
 
             // Calcular diferencias
             $total_dias = $inicio->diffInDays($fin);
             $total_horas = $total_dias * 24;
-
 
             $params = [];
             $query = "
@@ -5269,18 +5268,22 @@ class ctController extends Controller
                     GROUP BY id_cups, id_cnt
                 ),
                 mensuales AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_m) AS suma_mensual, 
-                        COUNT(val_ai_m) AS num_cons_mes
-                    FROM core.t_consumos_mensual
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_fin <= :fecha_fin
-                        AND cod_periodotarifa = '0'
-                        AND id_cups <> id_cnt
-                        AND val_ai_m IS NOT NULL
-                    GROUP BY id_cups, id_cnt
+                    SELECT id_cups, id_cnt, suma_mensual, num_cons_mes
+                    FROM (
+                        SELECT 
+                            id_cups, 
+                            id_cnt, 
+                            val_ai_m AS suma_mensual, 
+                            1 AS num_cons_mes,
+                            ROW_NUMBER() OVER (PARTITION BY id_cups, id_cnt ORDER BY fec_fin DESC) AS rn
+                        FROM core.t_consumos_mensual
+                        WHERE fec_inicio >= :fecha_inicio 
+                            AND fec_fin <= :fecha_fin
+                            AND cod_periodotarifa = '0'
+                            AND id_cups <> id_cnt
+                            AND val_ai_m IS NOT NULL
+                    ) x
+                    WHERE x.rn = 1   -- ✅ solo el último registro mensual
                 ),
                 horarios AS (
                     SELECT 
@@ -5314,11 +5317,12 @@ class ctController extends Controller
                 WHERE( 
                     ABS(d.suma_diarios - m.suma_mensual) >= 2
                     OR ABS(m.suma_mensual - h.suma_horas) >= 2
-                    OR ABS(d.suma_diarios - h.suma_horas) >= 2)
-                    AND (
-                        (d.num_cons_dia  = :total_dias)
-                        AND (h.num_cons_horas = :total_horas) 
-                    )
+                    OR ABS(d.suma_diarios - h.suma_horas) >= 2
+                )
+                AND (
+                    (d.num_cons_dia  = :total_dias)
+                    AND (h.num_cons_horas = :total_horas) 
+                )
                 ORDER BY d.id_cups;";
 
             $params['fecha_inicio'] = $fecha_inicio;
@@ -5330,22 +5334,21 @@ class ctController extends Controller
             $diferenciaConsumoCollection = new Collection($diferenciaConsumo);
 
             $currentPage = LengthAwarePaginator::resolveCurrentPage();
-            $perPage = 100; // Número de elementos por página
+            $perPage = 100;
             $currentItems = $diferenciaConsumoCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
-
-            // Crear paginador manualmente
             $diferenciaConsumo = new LengthAwarePaginator($currentItems, count($diferenciaConsumoCollection), $perPage, $currentPage, [
                 'path' => request()->url(),
                 'query' => request()->query()
             ]);
-            //dd($total_horas);
+
             return $diferenciaConsumo ?: ['message' => 'No hay datos'];
 
         } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
+            return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
+
 
     public function exportDiferenciaConsumo(Request $request)
     {
