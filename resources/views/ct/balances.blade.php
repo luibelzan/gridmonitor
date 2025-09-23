@@ -919,12 +919,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             active-color="rgb(88, 226, 194">Energía</a>
                         <a href="{{ route('señalplc', ['id_ct' => $id_ct]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Lecturas/Señal PLC</a>
-                        @foreach ($ct_info as $ct)
-                            @if ($ct->id_ct == $id_ct && $ct->ind_balance == true)
-                                <a href="{{ route('balances', ['id_ct' => $id_ct]) }}" class="nav-item is-active "
-                                    active-color="rgb(88, 226, 194">Balances</a>
-                            @endif
-                        @endforeach
+                        <a href="{{ route('balances', ['id_ct' => $id_ct]) }}" class="nav-item is-active "
+                            active-color="rgb(88, 226, 194">Balances</a>
                         <a href="{{ route('eventosct', ['id_ct' => $id_ct]) }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Eventos</a>
 
@@ -955,6 +951,14 @@ document.addEventListener("DOMContentLoaded", function () {
                             <form style="color: white; background-color: transparent;"
                                 action="{{ route('balances', ['id_ct' => $id_ct]) }}" method="GET">
 
+                                {{-- Mantener filtros de fechas --}}
+                                @if (isset($_GET['fecha_inicio']))
+                                    <input type="hidden" name="fecha_inicio" value="{{ $_GET['fecha_inicio'] }}">
+                                @endif
+                                @if (isset($_GET['fecha_fin']))
+                                    <input type="hidden" name="fecha_fin" value="{{ $_GET['fecha_fin'] }}">
+                                @endif
+
                                 <input list="ctList" name="id_ct"
                                     class="form-control mt-2"
                                     onchange="this.form.submit()"
@@ -971,6 +975,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             </form>
                         </div>
                     </div>
+
                     @if ($id_ct)
                         @php
                             // Filtrar para encontrar el CT seleccionado

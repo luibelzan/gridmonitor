@@ -694,12 +694,8 @@
                             active-color="rgb(88, 226, 194)">Energía</a>
                         <a href="{{ route('señalplc', ['id_ct' => $id_ct]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194)">Lecturas/Señal PLC</a>
-                        @foreach ($ct_info as $ct)
-                            @if ($ct->id_ct == $id_ct && $ct->ind_balance == true)
-                                <a href="{{ route('balances', ['id_ct' => $id_ct]) }}" class="nav-item"
-                                    active-color="rgb(88, 226, 194)">Balances</a>
-                            @endif
-                        @endforeach
+                        <a href="{{ route('balances', ['id_ct' => $id_ct]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194)">Balances</a>
                         <a href="{{ route('eventosct', ['id_ct' => $id_ct]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194)">Eventos</a>
                         <span class="nav-indicator"></span>
