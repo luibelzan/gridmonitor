@@ -73,43 +73,20 @@
                         <div class="dropdown" style="margin-left: 6px">
                             <form style="color: white; background-color: transparent;"
                                 action="{{ route('supervisionavanzada', ['id_ct' => $id_ct]) }}" method="GET">
-                                <select name="id_ct" class="form-control mt-2" onchange="this.form.submit()"
-                                    style="color: white; background-color: rgb(27, 32, 38); width: min-content; font-size: 14px; text-align: left;">
-                                    {{-- Si hay un id_ct seleccionado en la sesión, mostrarlo seleccionado --}}
-                                    @if ($id_ct)
-                                        <option class="btn btn-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false" value="" disabled selected
-                                            style="color: rgb(27, 32, 38);">Seleccione un
-                                            CT</option>
-                                        @foreach ($ct_info as $ct_item)
-                                            <option class="btn btn-link"
-                                                style="color: white; background-color: rgb(27, 32, 38);"
-                                                value="{{ $ct_item->id_ct }}"
-                                                {{ $id_ct == $ct_item->id_ct ? 'selected' : '' }}>
-                                                {{ $ct_item->nom_ct }}
-                                            </option>
-                                        @endforeach
-                                        {{-- Si no hay un id_ct seleccionado en la sesión, mostrar la opción "Seleccione un CT" --}}
-                                    @else
-                                        <option class="btn btn-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false" value="" disabled selected
-                                            style="color: rgb(27, 32, 38);">Seleccione un
-                                            CT</option>
-                                            
-                                        @foreach ($ct_info as $ct_item)
-                                            @if ($ct_item->ind_sabt) 
-                                                <option class="btn btn-link"
-                                                    style="color: white; background-color: rgb(27, 32, 38);"
-                                                    value="{{ $ct_item->id_ct }}"
-                                                    {{ $id_ct == $ct_item->id_ct ? 'selected' : '' }}>
-                                                    {{ $ct_item->nom_ct }}
-                                                </option>
-                                            @endif
-                                        @endforeach
-                                    @endif
-                                </select>
+
+                                <input list="ctList" name="id_ct"
+                                    class="form-control mt-2"
+                                    onchange="this.form.submit()"
+                                    style="color: white; background-color: rgb(27, 32, 38); font-size: 14px; text-align: left; width: 250px;"
+                                    placeholder="Buscar o seleccionar un CT..."
+                                    value="{{ $id_ct ? $id_ct : '' }}">
+
+                                <datalist id="ctList">
+                                    @foreach ($ct_info as $ct_item)
+                                        <option value="{{ $ct_item->id_ct }}">{{ $ct_item->nom_ct }}</option>
+                                    @endforeach
+                                </datalist>
+
                             </form>
                         </div>
                     </div>
