@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Lineas;
 use App\Models\Ct;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
@@ -301,6 +302,58 @@ class SupervisionAvanzadaController extends Controller
             ]);
         }
     }
+
+    public function caidastensionsabt(Request $request) {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+        $id_ct = $request->input('id_ct');
+        $id_linea = $request->input('id_linea');
+
+        Session::put('id_ct', $id_ct);
+        Session::put('id_linea', $id_linea); // Guardar línea en sesión
+        Session::put('vista_actual', 'balancessabt');
+
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin/admin');
+        } else {
+            $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_sabt')->get();
+
+            // Obtener líneas solo si hay CT seleccionado
+            $lineas_info = [];
+            if ($id_ct) {
+                $lineas_info = Lineas::on($connection)
+                    ->where('id_ct', $id_ct)
+                    ->select('id_linea', 'nom_linea')
+                    ->get();
+            }
+
+            $caidastension = $this->getCaidasTension($request, $connection);
+
+            return view('supervisionavanzada/caidastensionsabt', [
+                'ct_info' => $ct_info,
+                'lineas_info' => $lineas_info,
+                'caidastension' => $caidastension,
+                'id_ct' => $id_ct,
+                'id_linea' => $id_linea,
+            ]);
+        }
+    }
+
+    public function getLineasPorCt($id_ct) {
+        $connection = User::conexion();
+
+        $lineas = \App\Models\Lineas::on($connection)
+            ->where('id_ct', $id_ct)
+            ->select('id_linea', 'nom_linea')
+            ->get();
+
+        return response()->json($lineas);
+    }
+
 
     public function getDashboardSABTInfo(Request $request, $connection)
     {
@@ -1477,6 +1530,55 @@ class SupervisionAvanzadaController extends Controller
             }
         }
         return [];
+    }
+
+    public function getCaidasTension(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_cups')) {
+                $fecha_inicio = $request->input('fecha-inicio');
+                $fecha_fin  = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
+                $id_linea = $request->input('id_linea');
+
+                $query = "
+                    SELECT
+                        c.id_cups,
+                        c.nom_cups,
+                        v.fec_lectura,
+                        AVG(v.l1v) AS avg_l1v
+                    FROM
+                        core.t_cups c
+                    JOIN
+                        core.t_valores_instantaneos v
+                        ON c.id_cups = v.id_cups
+                    WHERE 
+                        c.id_ct = :id_ct        
+                        AND c.id_linea = :id_linea 
+                        AND v.fec_lectura BETWEEN :fecha_inicio AND :fecha_fin  
+                    GROUP BY
+                        c.id_cups,
+                        c.nom_cups,
+                        v.fec_lectura
+                    ORDER BY
+                        c.id_cups,
+                        v.fec_lectura";
+
+                // Ejecutar el query y retornar resultados
+                $results = DB::connection($connection)->select($query, [
+                    'id_ct' => $id_ct,
+                    'id_linea' => $id_linea,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ]);
+
+                return $results;
+
+            } else {
+                return ['message' => 'La tabla cups no existe'];
+            }
+        } catch(\Exception $e) {
+            return ['error' => $e->getMessage()];
+        }
     }
 
 }
