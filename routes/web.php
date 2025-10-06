@@ -166,6 +166,9 @@ Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'super
 Route::get('/fasessabt', [SupervisionAvanzadaController::class, 'fasessabt'])->name('fasessabt');
 Route::get('/indicadoressabt', [SupervisionAvanzadaController::class, 'indicadoressabt'])->name('indicadoressabt');
 Route::get('/balancessabt', [SupervisionAvanzadaController::class, 'balancessabt'])->name('balancessabt');
+Route::get('/caidastensionsabt', [SupervisionAvanzadaController::class, 'caidastensionsabt'])->name('caidastensionsabt');
+
+Route::get('/lineas/{id_ct}', [SupervisionAvanzadaController::class, 'getLineasPorCt'])->name('get.lineas.ct');
 
 
 
