@@ -1716,6 +1716,7 @@ class SupervisionAvanzadaController extends Controller
                         c.nom_cups,
                         c.cod_fase,
                         AVG(v.l1v) AS avg_l1v_total,
+                        AVG(v.l1i) AS avg_l1i_total,
                         -- Distancia usando fórmula de coseno esférico en metros
                         6378137 * ACOS(
                             COS(RADIANS(CAST(REPLACE(c.lat_cups, '.', '.') AS numeric))) *

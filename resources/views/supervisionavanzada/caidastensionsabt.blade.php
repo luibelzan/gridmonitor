@@ -378,125 +378,152 @@ $(document).ready(function() {
                     </div>
                     
                     @if(count($caidasTension) > 0)
-                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
-                            <div class="card text-white  mb-2"
-                                style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                <!-- Contenido de S1 -->
-                                <div class="overflow-x-auto">
-                                    {{-- CONTENIDO AQUI --}}
-                                    <h1 class="text-center text-2xl" style="color: white;">
-                                        Caidas Tension </h1>
-                                    <div
-                                        style="border-bottom: 3px solid transparent;
-                                            border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                                    </div>
+<div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+    <div class="card text-white mb-2" style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+        <div class="overflow-x-auto">
+            <h1 class="text-center text-2xl" style="color: white;">Caídas de Tensión</h1>
+            <div style="border-bottom: 3px solid transparent;
+                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;"></div>
 
-                                    <div class="container">
-                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
-                                            
-                                            @php
-                                            $distancias = [];
-                                            $voltajes = [];
+            <div class="container">
+                <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                    @php
+                    $distancias = [];
+                    $voltajes = [];
+                    $intensidades = [];
+                    $cups_ids = [];
+                    $cod_fases = [];
 
-                                            if(isset($caidasTension) && count($caidasTension) > 0) {
-                                                foreach($caidasTension as $cup) {
-                                                    if(is_object($cup)) {
-                                                        $distancias[] = round($cup->distancia_m); 
-                                                        $voltajes[] = round($cup->avg_l1v_total, 2);
-                                                        $cups_ids[] = $cup->id_cups;
-                                                        $cod_fases[] = $cup->cod_fase;
-                                                    }
-                                                }
+                    if(isset($caidasTension) && count($caidasTension) > 0) {
+                        foreach($caidasTension as $cup) {
+                            if(is_object($cup)) {
+                                $distancias[] = round($cup->distancia_m);
+                                $voltajes[] = round($cup->avg_l1v_total, 2);
+                                $intensidades[] = round($cup->avg_l1i_total, 2); // 👈 nueva métrica
+                                $cups_ids[] = $cup->id_cups;
+                                $cod_fases[] = $cup->cod_fase;
+                            }
+                        }
+                    }
+                    @endphp
+
+                    @if(count($distancias) > 0)
+                    <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                        <canvas id="voltajeDistanciaChart"></canvas>
+                    </div>
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const ctx = document.getElementById('voltajeDistanciaChart').getContext('2d');
+
+                        // Datos combinados para el tooltip
+                        const lineData = {!! json_encode(
+                            array_map(function($d, $v, $i, $cups, $fase) { 
+                                return ['x' => $d, 'voltaje' => $v, 'intensidad' => $i, 'cups' => $cups, 'fase' => $fase]; 
+                            }, $distancias, $voltajes, $intensidades, $cups_ids, $cod_fases)
+                        ) !!};
+
+                        // Datasets separados: voltaje (izquierda) e intensidad (derecha)
+                        const voltajeDistanciaChart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                datasets: [
+                                    {
+                                        label: 'Voltaje promedio (V)',
+                                        data: lineData.map(p => ({x: p.x, y: p.voltaje, cups: p.cups, fase: p.fase})),
+                                        borderColor: 'rgba(88, 226, 194, 1)',
+                                        backgroundColor: 'rgba(88, 226, 194, 0.7)',
+                                        borderWidth: 2,
+                                        pointRadius: 5,
+                                        pointBackgroundColor: 'rgba(88, 226, 194, 1)',
+                                        yAxisID: 'y', // 👈 eje izquierdo
+                                        fill: false,
+                                        tension: 0.3
+                                    },
+                                    {
+                                        label: 'Intensidad promedio (A)',
+                                        data: lineData.map(p => ({x: p.x, y: p.intensidad, cups: p.cups, fase: p.fase})),
+                                        borderColor: 'rgba(255, 193, 7, 1)',
+                                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                                        borderWidth: 2,
+                                        pointRadius: 5,
+                                        pointBackgroundColor: 'rgba(255, 193, 7, 1)',
+                                        yAxisID: 'y1', // 👈 eje derecho
+                                        fill: false,
+                                        tension: 0.3
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                interaction: { mode: 'nearest', intersect: false },
+                                plugins: {
+                                    legend: { labels: { color: 'white' } },
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(context) {
+                                                const point = context.raw;
+                                                return [
+                                                    `CUPS: ${point.cups}`,
+                                                    `Fase: ${point.fase}`,
+                                                    `Distancia: ${point.x} m`,
+                                                    context.dataset.label.includes('Voltaje') 
+                                                        ? `Voltaje: ${point.y} V`
+                                                        : `Intensidad: ${point.y} A`
+                                                ];
                                             }
-                                            @endphp
-
-                                            @if(count($distancias) > 0)
-                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
-                                                <canvas id="voltajeDistanciaChart"></canvas>
-                                            </div>
-
-                                            <script>
-                                            document.addEventListener('DOMContentLoaded', function () {
-                                                const ctx = document.getElementById('voltajeDistanciaChart').getContext('2d');
-
-                                                // Combinar distancias y voltajes en un array de objetos {x, y}
-                                                const lineData = {!! json_encode(
-                                                    array_map(function($d, $v, $cups, $fase) { 
-                                                        return ['x' => $d, 'y' => $v, 'cups' => $cups, 'fase' => $fase]; 
-                                                    }, $distancias, $voltajes, $cups_ids, $cod_fases)
-                                                ) !!};
-
-                                                const voltajeDistanciaChart = new Chart(ctx, {
-                                                    type: 'line', // Cambiado de scatter a line
-                                                    data: {
-                                                        datasets: [{
-                                                            label: 'Voltaje promedio (V)',
-                                                            data: lineData,
-                                                            backgroundColor: 'rgba(88, 226, 194, 0.7)',
-                                                            borderColor: 'rgba(88, 226, 194, 1)',
-                                                            borderWidth: 2,
-                                                            pointRadius: 6,      // Tamaño de los puntos
-                                                            pointBackgroundColor: 'rgba(88, 226, 194, 1)',
-                                                            fill: false,
-                                                            showLine: true       // Conecta los puntos con líneas
-                                                        }]
-                                                    },
-                                                    options: {
-                                                        responsive: true,
-                                                        plugins: {
-                                                            legend: {
-                                                                labels: { color: 'white' }
-                                                            },
-                                                            tooltip: {
-                                                                callbacks: {
-                                                                    // 👇 Personalizamos el texto del tooltip
-                                                                    label: function(context) {
-                                                                        const point = context.raw;
-                                                                        return [
-                                                                            `CUPS: ${point.cups}`,
-                                                                            `Fase: ${point.fase}`,
-                                                                            `Distancia: ${point.x} m`,
-                                                                            `Voltaje: ${point.y} V`
-                                                                        ];
-                                                                    }
-                                                                }
-                                                            }
-                                                        },
-                                                        scales: {
-                                                            x: {
-                                                                type: 'linear',
-                                                                title: {
-                                                                    display: true,
-                                                                    text: 'Distancia al CT (m)',
-                                                                    color: 'white',
-                                                                    font: { size: 14 }
-                                                                },
-                                                                ticks: { color: 'white' },
-                                                                grid: { color: 'rgba(255,255,255,0.1)' }
-                                                            },
-                                                            y: {
-                                                                title: {
-                                                                    display: true,
-                                                                    text: 'Voltaje promedio (V)',
-                                                                    color: 'white',
-                                                                    font: { size: 14 }
-                                                                },
-                                                                ticks: { color: 'white' },
-                                                                grid: { color: 'rgba(255,255,255,0.1)' }
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            });
-                                            </script>
-                                            @endif
-
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        type: 'linear',
+                                        title: {
+                                            display: true,
+                                            text: 'Distancia al CT (m)',
+                                            color: 'white',
+                                            font: { size: 14 }
+                                        },
+                                        ticks: { color: 'white' },
+                                        grid: { color: 'rgba(255,255,255,0.1)' }
+                                    },
+                                    y: {
+                                        type: 'linear',
+                                        position: 'left',
+                                        title: {
+                                            display: true,
+                                            text: 'Voltaje promedio (V)',
+                                            color: 'rgba(88, 226, 194, 1)',
+                                            font: { size: 14 }
+                                        },
+                                        ticks: { color: 'rgba(88, 226, 194, 1)' },
+                                        grid: { color: 'rgba(255,255,255,0.1)' }
+                                    },
+                                    y1: {
+                                        type: 'linear',
+                                        position: 'right',
+                                        title: {
+                                            display: true,
+                                            text: 'Intensidad promedio (A)',
+                                            color: 'rgba(255, 193, 7, 1)',
+                                            font: { size: 14 }
+                                        },
+                                        ticks: { color: 'rgba(255, 193, 7, 1)' },
+                                        grid: { drawOnChartArea: false } // evita superposición con eje izquierdo
+                                    }
+                                }
+                            }
+                        });
+                    });
+                    </script>
                     @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endif
+
 
 
                     
