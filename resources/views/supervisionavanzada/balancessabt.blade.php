@@ -276,6 +276,93 @@
         }
     </style>
 
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+        var id_ct = "{{ $balancesSABT[0]->id_ct ?? '' }}";
+
+        var url = "{{ route('exportar.balances.sabt') }}?";
+        
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+        if (id_ct) {
+            url += "id_ct=" + encodeURIComponent(id_ct) + "&";
+        }
+
+        // Añadir el formato (excel o csv)
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    function exportarArchivo2(formato) {
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+        var id_ct = "{{ $balancesSABT[0]->id_ct ?? '' }}";
+
+        var url = "{{ route('exportar.balances.fases.sabt') }}?";
+        
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+        if (id_ct) {
+            url += "id_ct=" + encodeURIComponent(id_ct) + "&";
+        }
+
+        // Añadir el formato (excel o csv)
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+
+    var exportExcelBtn2 = document.getElementById('exportarExcel2');
+    var exportCsvBtn2 = document.getElementById('exportarCsv2');
+
+    if (exportExcelBtn2) {
+        exportExcelBtn2.addEventListener('click', function () {
+            exportarArchivo2('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn2) {
+        exportCsvBtn2.addEventListener('click', function () {
+            exportarArchivo2('csv');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+});
+</script>
+
 
 
     <title>Balances</title>
@@ -606,9 +693,17 @@
                                                 @endif
                                                 <!-- Contenedor del botón de descarga -->
                                                 <div class="text-right mt-4">
-                                                    <input type="button"
-                                                        onclick="tableToExcel('testTableBalancesCt', 'W3C Example Table')"
-                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                    <!-- Botón Excel -->
+                                                    <button id="exportarExcel" 
+                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                        title="Exportar a Excel">
+                                                    </button>
+
+                                                    <!-- Botón CSV -->
+                                                    <button id="exportarCsv" 
+                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                        title="Exportar a CSV">
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -770,9 +865,17 @@
                                                 @endif
                                                 <!-- Contenedor del botón de descarga -->
                                                 <div class="text-right mt-4">
-                                                    <input type="button"
-                                                        onclick="tableToExcel('testTableBalancesCt', 'W3C Example Table')"
-                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                                    <!-- Botón Excel -->
+                                                    <button id="exportarExcel2" 
+                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                        title="Exportar a Excel">
+                                                    </button>
+
+                                                    <!-- Botón CSV -->
+                                                    <button id="exportarCsv2" 
+                                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                        title="Exportar a CSV">
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\BalancesFasesSABTExport;
+use App\Exports\BalancesSABTExport;
 use App\Models\User;
 use App\Models\Lineas;
 use App\Models\Ct;
@@ -12,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel; // para Excel::download(...)
+use Maatwebsite\Excel\Excel as ExcelFormat;
 
 class SupervisionAvanzadaController extends Controller
 {
@@ -470,6 +474,74 @@ class SupervisionAvanzadaController extends Controller
         }
     }
 
+    public function exportBalancesSABT(Request $request) {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+            if(Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
+
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                //$params = ['id_ct' => $id_ct];
+
+                $query = "
+                    SELECT
+                        id_ct,
+                        id_linea,
+                        AVG(num_cnt) AS total_cnt,
+                        SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
+                        SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
+                        SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0)) AS total_lvs,
+                        SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
+                        SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
+                        SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
+                        CASE
+                            WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
+                            ELSE
+                                ROUND(
+                                    (SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
+                                    / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
+                                    2
+                                )
+                        END AS porcentaje_perdida
+                    FROM
+                        core.t_balances_horarios_lineas
+                    WHERE
+                        id_ct = '$id_ct'";
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fecha_inicio >= '$fecha_inicio' AND fecha_inicio <= '$fecha_fin'";
+                } else {
+                    $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+                }
+
+                $query .= " GROUP BY
+                            id_ct,
+                            id_linea
+                        ORDER BY
+                            id_ct,
+                            id_linea;";
+
+                $exportBalancesSABT = DB::connection($connection)->select($query);
+                if($exportBalancesSABT) {
+                    return Excel::download(new BalancesSABTExport($exportBalancesSABT), 'balances_sabt.'. $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
+            } else {
+                return ['message' => 'La tabla no existe'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
+        }
+    }
+
 
     public function getBalancesFaseSABT(Request $request, $connection, $id_ct)
     {
@@ -555,6 +627,104 @@ class SupervisionAvanzadaController extends Controller
             }
         } catch (\Exception $e) {
             return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    public function exportBalancesFasesSABT(Request $request) {
+        try {
+            $user = auth()->user();
+            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+
+            if(Schema::connection($connection)->hasTable('t_balances_horarios_fases')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $id_ct = $request->input('id_ct');
+
+                // NUEVO: Tipo de archivo ('excel' por default)
+                $format = $request->input('format', 'excel'); 
+                $extension = $format === 'csv' ? 'csv' : 'xlsx';
+                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+                $params = ['id_ct' => $id_ct];
+
+                $query = "
+            SELECT
+                id_ct,
+                id_linea,
+
+                -- FASE R
+                SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
+                SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
+                SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
+                SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
+                SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
+                SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) AS perdida_energia_r,
+                CASE
+                    WHEN SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) = 0 THEN 0
+                    ELSE ROUND(
+                        (SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) * 100.0)
+                        / SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)), 2)
+                END AS porcentaje_perdida_r,
+
+                -- FASE S
+                SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
+                SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
+                SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
+                SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
+                SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
+                SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) AS perdida_energia_s,
+                CASE
+                    WHEN SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) = 0 THEN 0
+                    ELSE ROUND(
+                        (SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) * 100.0)
+                        / SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)), 2)
+                END AS porcentaje_perdida_s,
+
+                -- FASE T
+                SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
+                SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
+                SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
+                SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
+                SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
+                SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) AS perdida_energia_t,
+                CASE
+                    WHEN SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) = 0 THEN 0
+                    ELSE ROUND(
+                        (SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) * 100.0)
+                        / SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)), 2)
+                END AS porcentaje_perdida_t
+
+            FROM
+                core.t_balances_horarios_fases
+            WHERE
+                id_ct = :id_ct";
+
+                if ($fecha_inicio && $fecha_fin) {
+                    $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                    $params['fecha_inicio'] = $fecha_inicio;
+                    $params['fecha_fin'] = $fecha_fin;
+                } else {
+                    $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+                }
+
+                $query .= " GROUP BY
+                            id_ct,
+                            id_linea
+                        ORDER BY
+                            id_ct,
+                            id_linea;";
+
+                $exportBalancesFasesSABT = DB::connection($connection)->select($query, $params);
+                if($exportBalancesFasesSABT) {
+                    return Excel::download(new BalancesFasesSABTExport($exportBalancesFasesSABT), 'balances_fases_sabt.'. $extension, $exportFormat);
+                } else {
+                    return response()->json(['message' => 'No hay datos'], 404);
+                }
+            } else {
+                return ['message' => 'La tabla no existe'];
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'No hay datos'];
         }
     }
 
