@@ -403,6 +403,8 @@ $(document).ready(function() {
                                                     if(is_object($cup)) {
                                                         $distancias[] = round($cup->distancia_m); 
                                                         $voltajes[] = round($cup->avg_l1v_total, 2);
+                                                        $cups_ids[] = $cup->id_cups;
+                                                        $cod_fases[] = $cup->cod_fase;
                                                     }
                                                 }
                                             }
@@ -419,7 +421,9 @@ $(document).ready(function() {
 
                                                 // Combinar distancias y voltajes en un array de objetos {x, y}
                                                 const lineData = {!! json_encode(
-                                                    array_map(function($d, $v) { return ['x' => $d, 'y' => $v]; }, $distancias, $voltajes)
+                                                    array_map(function($d, $v, $cups, $fase) { 
+                                                        return ['x' => $d, 'y' => $v, 'cups' => $cups, 'fase' => $fase]; 
+                                                    }, $distancias, $voltajes, $cups_ids, $cod_fases)
                                                 ) !!};
 
                                                 const voltajeDistanciaChart = new Chart(ctx, {
@@ -445,8 +449,15 @@ $(document).ready(function() {
                                                             },
                                                             tooltip: {
                                                                 callbacks: {
+                                                                    // 👇 Personalizamos el texto del tooltip
                                                                     label: function(context) {
-                                                                        return `Distancia: ${context.parsed.x} m, Voltaje: ${context.parsed.y} V`;
+                                                                        const point = context.raw;
+                                                                        return [
+                                                                            `CUPS: ${point.cups}`,
+                                                                            `Fase: ${point.fase}`,
+                                                                            `Distancia: ${point.x} m`,
+                                                                            `Voltaje: ${point.y} V`
+                                                                        ];
                                                                     }
                                                                 }
                                                             }
