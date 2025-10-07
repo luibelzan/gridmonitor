@@ -289,9 +289,10 @@ $(document).ready(function() {
     });
 
     // Si cambia la línea, enviar el formulario automáticamente
-    $('#id_linea').on('change', function() {
+    /*$('#id_linea').on('change', function() {
         $('#form-caidas').submit();
     });
+    */
 });
 </script>
 
@@ -330,7 +331,7 @@ $(document).ready(function() {
 
                     {{-- Selector de CT --}}
                     <div class="container">
-                        <form id="form-caidas" style="color: white; background-color: transparent;" 
+                        <form id="form-caidas" style="color: white; background-color: transparent;" class="flex items-center space-x-4"
                             action="{{ route('caidastensionsabt') }}" method="GET">
 
                             {{-- Selector de CT --}}
@@ -351,12 +352,140 @@ $(document).ready(function() {
                                 style="color: white; background-color: rgb(27, 32, 38); width: min-content; font-size: 14px; text-align: left;">
                                 <option disabled selected>Seleccione una línea</option>
                             </select>
+
+                            <div class="flex items-center mt-2 gap-2">
+                                <label for="fecha_inicio">Fecha inicio:</label>
+                                <input type="date" id="fecha_inicio" name="fecha_inicio" class="border border-gray-500 rounded-md p-1 text-white"
+                                    style="background-color: transparent;"
+                                    @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
+                                    max="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <div class="flex items-center mt-2 gap-2">
+                                <label for="fecha_fin">Fecha fin:</label>
+                                <input type="date" id="fecha_fin" name="fecha_fin" class="border border-gray-500 rounded-md p-1 text-white"
+                                    style="background-color: transparent;"
+                                    @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
+                                    max="{{ date('Y-m-d') }}">
+                            </div>
+
+                            <button type="submit"
+                                class="btn btn-outline-info mt-2 mb-0 text-white"
+                                style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Filtrar</button>
                         </form>
                     </div>
+                    
+                    @if(count($caidasTension) > 0)
+                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                            <div class="card text-white  mb-2"
+                                style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                <!-- Contenido de S1 -->
+                                <div class="overflow-x-auto">
+                                    {{-- CONTENIDO AQUI --}}
+                                    <h1 class="text-center text-2xl" style="color: white;">
+                                        Caidas Tension </h1>
+                                    <div
+                                        style="border-bottom: 3px solid transparent;
+                                            border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                    </div>
 
+                                    <div class="container">
+                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                            
+                                            @php
+                                            $distancias = [];
+                                            $voltajes = [];
 
+                                            if(isset($caidasTension) && count($caidasTension) > 0) {
+                                                foreach($caidasTension as $cup) {
+                                                    if(is_object($cup)) {
+                                                        $distancias[] = round($cup->distancia_m); 
+                                                        $voltajes[] = round($cup->avg_l1v_total, 2);
+                                                    }
+                                                }
+                                            }
+                                            @endphp
 
+                                            @if(count($distancias) > 0)
+                                            <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                                <canvas id="voltajeDistanciaChart"></canvas>
+                                            </div>
 
+                                            <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                const ctx = document.getElementById('voltajeDistanciaChart').getContext('2d');
+
+                                                // Combinar distancias y voltajes en un array de objetos {x, y}
+                                                const lineData = {!! json_encode(
+                                                    array_map(function($d, $v) { return ['x' => $d, 'y' => $v]; }, $distancias, $voltajes)
+                                                ) !!};
+
+                                                const voltajeDistanciaChart = new Chart(ctx, {
+                                                    type: 'line', // Cambiado de scatter a line
+                                                    data: {
+                                                        datasets: [{
+                                                            label: 'Voltaje promedio (V)',
+                                                            data: lineData,
+                                                            backgroundColor: 'rgba(88, 226, 194, 0.7)',
+                                                            borderColor: 'rgba(88, 226, 194, 1)',
+                                                            borderWidth: 2,
+                                                            pointRadius: 6,      // Tamaño de los puntos
+                                                            pointBackgroundColor: 'rgba(88, 226, 194, 1)',
+                                                            fill: false,
+                                                            showLine: true       // Conecta los puntos con líneas
+                                                        }]
+                                                    },
+                                                    options: {
+                                                        responsive: true,
+                                                        plugins: {
+                                                            legend: {
+                                                                labels: { color: 'white' }
+                                                            },
+                                                            tooltip: {
+                                                                callbacks: {
+                                                                    label: function(context) {
+                                                                        return `Distancia: ${context.parsed.x} m, Voltaje: ${context.parsed.y} V`;
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            x: {
+                                                                type: 'linear',
+                                                                title: {
+                                                                    display: true,
+                                                                    text: 'Distancia al CT (m)',
+                                                                    color: 'white',
+                                                                    font: { size: 14 }
+                                                                },
+                                                                ticks: { color: 'white' },
+                                                                grid: { color: 'rgba(255,255,255,0.1)' }
+                                                            },
+                                                            y: {
+                                                                title: {
+                                                                    display: true,
+                                                                    text: 'Voltaje promedio (V)',
+                                                                    color: 'white',
+                                                                    font: { size: 14 }
+                                                                },
+                                                                ticks: { color: 'white' },
+                                                                grid: { color: 'rgba(255,255,255,0.1)' }
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            });
+                                            </script>
+                                            @endif
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
 
                     

@@ -335,12 +335,12 @@ class SupervisionAvanzadaController extends Controller
                     ->get();
             }
 
-            $caidastension = $this->getCaidasTension($request, $connection);
+            $caidasTension = $this->getCaidasTension($request, $connection);
 
             return view('supervisionavanzada/caidastensionsabt', [
                 'ct_info' => $ct_info,
                 'lineas_info' => $lineas_info,
-                'caidastension' => $caidastension,
+                'caidasTension' => $caidasTension,
                 'id_ct' => $id_ct,
                 'id_linea' => $id_linea,
             ]);
@@ -1705,7 +1705,7 @@ class SupervisionAvanzadaController extends Controller
     public function getCaidasTension(Request $request, $connection) {
         try {
             if(Schema::connection($connection)->hasTable('t_cups')) {
-                $fecha_inicio = $request->input('fecha-inicio');
+                $fecha_inicio = $request->input('fecha_inicio');
                 $fecha_fin  = $request->input('fecha_fin');
                 $id_ct = $request->input('id_ct');
                 $id_linea = $request->input('id_linea');
@@ -1714,24 +1714,36 @@ class SupervisionAvanzadaController extends Controller
                     SELECT
                         c.id_cups,
                         c.nom_cups,
-                        v.fec_lectura,
-                        AVG(v.l1v) AS avg_l1v
+                        c.cod_fase,
+                        AVG(v.l1v) AS avg_l1v_total,
+                        -- Distancia usando fórmula de coseno esférico en metros
+                        6378137 * ACOS(
+                            COS(RADIANS(CAST(REPLACE(c.lat_cups, '.', '.') AS numeric))) *
+                            COS(RADIANS(CAST(REPLACE(ct.lat_ct, '.', '.') AS numeric))) *
+                            COS(RADIANS(CAST(REPLACE(ct.lon_ct, '.', '.') AS numeric)) - 
+                                RADIANS(CAST(REPLACE(c.lon_cups, '.', '.') AS numeric))) +
+                            SIN(RADIANS(CAST(REPLACE(c.lat_cups, '.', '.') AS numeric))) *
+                            SIN(RADIANS(CAST(REPLACE(ct.lat_ct, '.', '.') AS numeric)))
+                        ) AS distancia_m
                     FROM
                         core.t_cups c
                     JOIN
-                        core.t_valores_instantaneos v
-                        ON c.id_cups = v.id_cups
+                        core.t_valores_instantaneos v ON c.id_cups = v.id_cups
+                    JOIN
+                        core.t_ct ct ON c.id_ct = ct.id_ct
                     WHERE 
-                        c.id_ct = :id_ct        
+                        c.id_ct = :id_ct       
                         AND c.id_linea = :id_linea 
-                        AND v.fec_lectura BETWEEN :fecha_inicio AND :fecha_fin  
+                        AND v.fec_lectura BETWEEN :fecha_inicio AND :fecha_fin
                     GROUP BY
                         c.id_cups,
                         c.nom_cups,
-                        v.fec_lectura
+                        c.lat_cups,
+                        c.lon_cups,
+                        ct.lat_ct,
+                        ct.lon_ct
                     ORDER BY
-                        c.id_cups,
-                        v.fec_lectura";
+                        distancia_m ASC;";
 
                 // Ejecutar el query y retornar resultados
                 $results = DB::connection($connection)->select($query, [
