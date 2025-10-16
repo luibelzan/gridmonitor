@@ -739,7 +739,7 @@ class ctController extends Controller
 
             // Obtener resultados de las consultas
             $resultadosQ58 = $this->consultaCincuentayOcho($request, $connection);
-            $exportCurvasHorarias = $this->exportCurvasHorarias($request);
+            //$exportCurvasHorarias = $this->exportCurvasHorarias($request);
             $diferenciaConsumo = $this->getDiferenciaConsumo($request, $connection);
             $exportDiferenciaConsumos = $this->exportDiferenciaConsumo($request);
 
@@ -747,7 +747,7 @@ class ctController extends Controller
             return view('ct/reportescurvashorarias', [
                 'ct_info' => $ct_info,
                 'resultadosQ58' => $resultadosQ58,
-                'exportCurvasHorarias' => $exportCurvasHorarias,
+                //'exportCurvasHorarias' => $exportCurvasHorarias,
                 'diferenciaConsumo' => $diferenciaConsumo,
                 'exportDiferenciaConsumos' => $exportDiferenciaConsumos
             ]);
@@ -4749,11 +4749,7 @@ class ctController extends Controller
             ]
         );
     } catch (\Exception $e) {
-        // Devuelve un paginador vacío para evitar errores en la vista
-        return new LengthAwarePaginator([], 0, 100, 1, [
-            'path' => request()->url(),
-            'query' => request()->query()
-        ]);
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
 }
 
@@ -4796,21 +4792,20 @@ class ctController extends Controller
 
                 // Construir la consulta SQL
                 $query = "
-                    WITH cups_data AS (
+                    WITH cups_filtrados AS (
                         SELECT
                             cups.id_cups,
                             cups.nom_cups,
-                            cups.dir_cups,
-                            cups.id_ct,
-                            cups.cod_poliza,
-                            cups.id_cnt,
                             ct.nom_ct,
+                            cups.dir_cups,
+                            cups.id_cnt,
                             cups.ind_autoconsumo
                         FROM
                             core.t_cups cups
                         JOIN
                             core.t_ct ct ON cups.id_ct = ct.id_ct
-                        WHERE 1 = 1 
+                        -- APLICAR FILTROS DE BÚSQUEDA AQUÍ (ID_CUPS, NOM_CT, NOM_CUPS)
+                        WHERE 1=1
                         ";
 
                 if ($id_cups) {
@@ -4826,43 +4821,48 @@ class ctController extends Controller
                 }
 
                 $query .= "
-                    ),
-                    consumos_data AS (
-                        SELECT
-                            id_cups,
-                            MIN(fec_inicio) AS fec_inicio,
-                            MAX(fec_fin) AS fec_fin,
-                            COUNT(hor_fin) AS curvas_leidas,
-                            ROUND(SUM(val_ai_h) / 1000, 2) AS total_curva_imp,
-                            ROUND(SUM(val_ae_h) / 1000, 2) AS total_curva_exp,
-                            COUNT(CASE WHEN val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
-                        FROM
-                            core.t_consumos_horarios
-                        WHERE
-                            fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
-                        GROUP BY
-                            id_cups
-                    )
-                    SELECT
-                        cd.id_cups,
-                        cd.nom_cups,
-                        cd.dir_cups,
-                        cd.id_ct,
-                        cd.id_cnt,
-                        cd.ind_autoconsumo,
-                        cd.nom_ct,
-                        TO_CHAR(co.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
-                        TO_CHAR(co.fec_fin, 'DD/MM/YYYY') AS fec_fin,
-                        co.total_curva_imp,
-                        co.total_curva_exp,
-                        co.curvas_leidas,
-                        co.curvas_sin_consumo
-                    FROM
-                        cups_data cd
-                    LEFT JOIN
-                        consumos_data co ON cd.id_cups = co.id_cups
                     ORDER BY
-                        cd.id_cups ASC;
+                        cups.id_cups ASC
+                ),
+                consumos_agregados AS (
+                    SELECT
+                        ch.id_cups,
+                        MIN(ch.fec_inicio) AS fec_inicio,
+                        MAX(ch.fec_fin) AS fec_fin,
+                        COUNT(ch.hor_fin) AS curvas_leidas,
+                        ROUND(SUM(ch.val_ai_h) / 1000, 2) AS total_curva_imp,
+                        ROUND(SUM(ch.val_ae_h) / 1000, 2) AS total_curva_exp,
+                        COUNT(CASE WHEN ch.val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
+                    FROM
+                        core.t_consumos_horarios ch
+                    WHERE
+                        -- CLAVE: FILTRAR CONSUMOS SOLO PARA LOS CUPS DE LA PÁGINA ACTUAL
+                        ch.id_cups IN (SELECT id_cups FROM cups_filtrados)
+                        -- Y APLICAR FILTRO DE FECHA
+                        AND ch.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
+                    GROUP BY
+                        ch.id_cups
+                )
+                SELECT
+                    cf.id_cups,
+                    cf.nom_cups,
+                    cf.dir_cups,
+                    cf.nom_ct,
+                    cf.id_cnt,
+                    cf.ind_autoconsumo,
+                    -- Usar COALESCE para manejar el LEFT JOIN si no hay consumo
+                    COALESCE(TO_CHAR(ca.fec_inicio, 'DD/MM/YYYY'), 'No hay datos') AS fec_inicio,
+                    COALESCE(TO_CHAR(ca.fec_fin, 'DD/MM/YYYY'), 'No hay datos') AS fec_fin,
+                    COALESCE(ca.total_curva_imp, 0) AS total_curva_imp,
+                    COALESCE(ca.total_curva_exp, 0) AS total_curva_exp,
+                    COALESCE(ca.curvas_leidas, 0) AS curvas_leidas,
+                    COALESCE(ca.curvas_sin_consumo, 0) AS curvas_sin_consumo
+                FROM
+                    cups_filtrados cf
+                LEFT JOIN
+                    consumos_agregados ca ON cf.id_cups = ca.id_cups
+                ORDER BY
+                    cf.id_cups ASC;
 
                 ";
 

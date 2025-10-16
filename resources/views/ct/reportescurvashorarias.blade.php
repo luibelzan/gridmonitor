@@ -571,7 +571,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 <tbody>
                                                     @foreach ($resultadosQ58 as $resultado)
                                                         <tr class="highlight-row">
-                                                            
+                                                            <td class="py-2">{{ $loop->iteration }}</td>
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
                                                             </td>
