@@ -534,7 +534,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                                     <!-- Cuadrado para Contadores no leídos -->
-                                    @if ($resultadosQ58 && count($resultadosQ58) > 0)
+                                    @if ($resultadosQ58 && $resultadosQ58->isNotEmpty())
                                         <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                             style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                             <table id="testTableCurvashorarias" class="w-full text-white text-center">
@@ -571,7 +571,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 <tbody>
                                                     @foreach ($resultadosQ58 as $resultado)
                                                         <tr class="highlight-row">
-                                                            <td class="py-2">{{ $loop->iteration }}</td>
+                                                            
                                                             <td class="py-2">
                                                                 {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
                                                             </td>

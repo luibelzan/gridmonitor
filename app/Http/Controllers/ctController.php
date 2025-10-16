@@ -4614,133 +4614,151 @@ class ctController extends Controller
         }
     }
 
-    public function consultaCincuentayOcho(Request $request, $connection) // reportes curvas horarias
-    {
-        try {
-            // Verificar que las tablas existen
-            if (
-                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
-                Schema::connection($connection)->hasTable('t_cups')
-            ) {
-                // Obtener las fechas de inicio y fin del request, si están presentes
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-                $nom_ct = $request->input('nom_ct');
-                $id_cups = $request->input('id_cups');
-                $nom_cups = $request->input('nom_cups');
-
-                // Si no hay fechas, establecer fechas predeterminadas (últimos 30 días)
-                if (!$fecha_inicio || !$fecha_fin) {
-                    $fecha_inicio = Carbon::now()->subDays(30)->format('Y-m-d');
-                    $fecha_fin = Carbon::now()->format('Y-m-d'); // Fecha actual
-                }
-
-                // Inicializar array de parámetros
-                $params = [
-                    'fecha_inicio' => $fecha_inicio,
-                    'fecha_fin' => $fecha_fin,
-                ];
-
-                // Construir la consulta SQL
-                $query = "
-                    WITH cups_data AS (
-                        SELECT
-                            cups.id_cups,
-                            cups.nom_cups,
-                            cups.dir_cups,
-                            cups.id_ct,
-                            cups.cod_poliza,
-                            cups.id_cnt,
-                            ct.nom_ct,
-                            cups.ind_autoconsumo
-                        FROM
-                            core.t_cups cups
-                        JOIN
-                            core.t_ct ct ON cups.id_ct = ct.id_ct
-                        WHERE 1 = 1 
-                        ";
-
-                if ($id_cups) {
-                    $query .= " AND LOWER(cups.id_cups) LIKE LOWER('%' ||:id_cups || '%') ";
-                    $params['id_cups'] = "%{$id_cups}%";
-                } else if ($nom_ct) {
-                    $query .= " AND LOWER(ct.nom_ct) LIKE LOWER('%' || :nom_ct || '%') ";
-                    $params['nom_ct'] = "%{$nom_ct}%";
-                } else if ($nom_cups) {
-                    $nom_cups = $nom_cups ? (string) $nom_cups : null;
-                    $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
-                    $params['nom_cups'] = "%{$nom_cups}%";
-                }
-
-                $query .= "
-                    ),
-                    consumos_data AS (
-                        SELECT
-                            id_cups,
-                            MIN(fec_inicio) AS fec_inicio,
-                            MAX(fec_fin) AS fec_fin,
-                            COUNT(hor_fin) AS curvas_leidas,
-                            ROUND(SUM(val_ai_h) / 1000, 2) AS total_curva_imp,
-                            ROUND(SUM(val_ae_h) / 1000, 2) AS total_curva_exp,
-                            COUNT(CASE WHEN val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
-                        FROM
-                            core.t_consumos_horarios
-                        WHERE
-                            fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
-                        GROUP BY
-                            id_cups
-                    )
-                    SELECT
-                        cd.id_cups,
-                        cd.nom_cups,
-                        cd.dir_cups,
-                        cd.id_ct,
-                        cd.id_cnt,
-                        cd.ind_autoconsumo,
-                        cd.nom_ct,
-                        TO_CHAR(co.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
-                        TO_CHAR(co.fec_fin, 'DD/MM/YYYY') AS fec_fin,
-                        co.total_curva_imp,
-                        co.total_curva_exp,
-                        co.curvas_leidas,
-                        co.curvas_sin_consumo
-                    FROM
-                        cups_data cd
-                    LEFT JOIN
-                        consumos_data co ON cd.id_cups = co.id_cups
-                    ORDER BY
-                        cd.id_cups ASC;
-
-                ";
-
-                // Ejecutar la consulta con los parámetros
-                $res = DB::connection($connection)->select($query, $params);
-
-                $resCollection = new Collection($res);
-                // Obtener la página actual
-                $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                $perPage = 100; // Número de elementos por página
-                $currentItems = $resCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
-
-
-                // Crear paginador manualmente
-                $resultadosQ58 = new LengthAwarePaginator($currentItems, count($resCollection), $perPage, $currentPage, [
-                    'path' => request()->url(),
-                    'query' => request()->query()
-                ]);
-                //dd($resultadosQ58 instanceof LengthAwarePaginator);
-
-                return $resultadosQ58 ?: ['message' => 'No hay datos'];
-
-            } else {
-                // Si alguna tabla no existe, retornar un mensaje de error
-                return ['message' => 'No hay datos'];
-            }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'Error: ' . $e->getMessage()];
+    public function consultaCincuentayOcho(Request $request, $connection)
+{
+    try {
+        // Verificar tablas
+        if (
+            !Schema::connection($connection)->hasTable('t_consumos_horarios') ||
+            !Schema::connection($connection)->hasTable('t_cups')
+        ) {
+            return new LengthAwarePaginator([], 0, 100, 1, [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]);
         }
+
+        // Parámetros del request
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+        $nom_ct = $request->input('nom_ct');
+        $id_cups = $request->input('id_cups');
+        $nom_cups = $request->input('nom_cups');
+
+        // Fechas por defecto
+        if (!$fecha_inicio || !$fecha_fin) {
+            $fecha_inicio = Carbon::now()->subDays(30)->format('Y-m-d');
+            $fecha_fin = Carbon::now()->format('Y-m-d');
+        }
+
+        // Paginación
+        $perPage = 100;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $offset = ($currentPage - 1) * $perPage;
+
+        // Base del WHERE
+        $where = "WHERE 1=1";
+        $filterParams = [];
+
+        if ($id_cups) {
+            $where .= " AND cups.id_cups ILIKE :id_cups";
+            $filterParams['id_cups'] = "%{$id_cups}%";
+        }
+
+        if ($nom_ct) {
+            $where .= " AND ct.nom_ct ILIKE :nom_ct";
+            $filterParams['nom_ct'] = "%{$nom_ct}%";
+        }
+
+        if ($nom_cups) {
+            $where .= " AND cups.nom_cups ILIKE :nom_cups";
+            $filterParams['nom_cups'] = "%{$nom_cups}%";
+        }
+
+        // ========================
+        // 1️⃣ Consulta para contar
+        // ========================
+        $countQuery = "
+            SELECT COUNT(*) AS total
+            FROM core.t_cups cups
+            JOIN core.t_ct ct ON cups.id_ct = ct.id_ct
+            $where
+        ";
+
+        $totalResult = DB::connection($connection)->selectOne($countQuery, $filterParams);
+        $total = $totalResult ? $totalResult->total : 0;
+
+        // =========================
+        // 2️⃣ Consulta con paginación
+        // =========================
+        $mainParams = array_merge($filterParams, [
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin,
+            'limit' => $perPage,
+            'offset' => $offset,
+        ]);
+
+        $query = "
+            WITH cups_filtrados AS (
+                SELECT
+                    cups.id_cups,
+                    cups.nom_cups,
+                    ct.nom_ct,
+                    cups.dir_cups,
+                    cups.id_cnt,
+                    cups.ind_autoconsumo
+                FROM core.t_cups cups
+                JOIN core.t_ct ct ON cups.id_ct = ct.id_ct
+                $where
+                ORDER BY cups.id_cups ASC
+                LIMIT :limit OFFSET :offset
+            ),
+            consumos_agregados AS (
+                SELECT
+                    ch.id_cups,
+                    MIN(ch.fec_inicio) AS fec_inicio,
+                    MAX(ch.fec_fin) AS fec_fin,
+                    COUNT(ch.hor_fin) AS curvas_leidas,
+                    ROUND(SUM(ch.val_ai_h) / 1000, 2) AS total_curva_imp,
+                    ROUND(SUM(ch.val_ae_h) / 1000, 2) AS total_curva_exp,
+                    COUNT(CASE WHEN ch.val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
+                FROM core.t_consumos_horarios ch
+                WHERE ch.id_cups IN (SELECT id_cups FROM cups_filtrados)
+                AND ch.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
+                GROUP BY ch.id_cups
+            )
+            SELECT
+                cf.id_cups,
+                cf.nom_cups,
+                cf.dir_cups,
+                cf.nom_ct,
+                cf.id_cnt,
+                cf.ind_autoconsumo,
+                COALESCE(TO_CHAR(ca.fec_inicio, 'DD/MM/YYYY'), 'No hay datos') AS fec_inicio,
+                COALESCE(TO_CHAR(ca.fec_fin, 'DD/MM/YYYY'), 'No hay datos') AS fec_fin,
+                COALESCE(ca.total_curva_imp, 0) AS total_curva_imp,
+                COALESCE(ca.total_curva_exp, 0) AS total_curva_exp,
+                COALESCE(ca.curvas_leidas, 0) AS curvas_leidas,
+                COALESCE(ca.curvas_sin_consumo, 0) AS curvas_sin_consumo
+            FROM cups_filtrados cf
+            LEFT JOIN consumos_agregados ca ON cf.id_cups = ca.id_cups
+            ORDER BY cf.id_cups ASC
+        ";
+
+        $res = DB::connection($connection)->select($query, $mainParams);
+
+        // Crear paginador
+        return new LengthAwarePaginator(
+            $res,
+            $total,
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]
+        );
+    } catch (\Exception $e) {
+        // Devuelve un paginador vacío para evitar errores en la vista
+        return new LengthAwarePaginator([], 0, 100, 1, [
+            'path' => request()->url(),
+            'query' => request()->query()
+        ]);
     }
+}
+
+
+
 
     public function exportCurvasHorarias(Request $request) // reportes curvas horarias
     {
