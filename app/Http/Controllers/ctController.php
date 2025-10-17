@@ -5272,51 +5272,6 @@ class ctController extends Controller
 
             $params = [];
             $query = "
-                WITH diarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_d) AS suma_diarios, 
-                        COUNT(val_ai_d) AS num_cons_dia
-                    FROM core.t_consumos_diarios
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_inicio < :fecha_fin
-                        AND id_cups <> id_cnt
-                        AND val_ai_d IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                mensuales AS (
-                    SELECT id_cups, id_cnt, suma_mensual, num_cons_mes
-                    FROM (
-                        SELECT 
-                            id_cups, 
-                            id_cnt, 
-                            val_ai_m AS suma_mensual, 
-                            1 AS num_cons_mes,
-                            ROW_NUMBER() OVER (PARTITION BY id_cups, id_cnt ORDER BY fec_fin DESC) AS rn
-                        FROM core.t_consumos_mensual
-                        WHERE fec_inicio >= :fecha_inicio 
-                            AND fec_fin <= :fecha_fin
-                            AND cod_periodotarifa = '0'
-                            AND id_cups <> id_cnt
-                            AND val_ai_m IS NOT NULL
-                    ) x
-                    WHERE x.rn = 1   -- ✅ solo el último registro mensual
-                ),
-                horarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        FLOOR(SUM(val_ai_h) / 1000) AS suma_horas, 
-                        COUNT(val_ai_h) AS num_cons_horas
-                    FROM core.t_consumos_horarios
-                    WHERE fec_inicio >= :fecha_inicio
-                        AND fec_inicio < :fecha_fin 
-                        AND id_cups <> id_cnt
-                        AND val_ai_h IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                )
-
                 SELECT 
                     d.id_cups,
                     d.id_cnt,
@@ -5326,25 +5281,34 @@ class ctController extends Controller
                     m.num_cons_mes,
                     h.suma_horas,
                     h.num_cons_horas,
-                    ABS(d.suma_diarios - m.suma_mensual) AS dif_diario_mensual,
-                    ABS(d.suma_diarios - h.suma_horas) AS dif_diario_horario,
-                    ABS(m.suma_mensual - h.suma_horas) AS dif_mensual_horario
-                FROM diarios d
-                INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
-                INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
-                WHERE( 
-                    ABS(d.suma_diarios - m.suma_mensual) >= 2
-                    OR ABS(m.suma_mensual - h.suma_horas) >= 2
-                    OR ABS(d.suma_diarios - h.suma_horas) >= 2
-                )
+                    d.suma_diarios - m.suma_mensual AS dif_diario_mensual,
+                    d.suma_diarios - h.suma_horas AS dif_diario_horario,
+                    m.suma_mensual - h.suma_horas AS dif_mensual_horario
+                FROM
+                    core.mv_consumos_diarios d
+                INNER JOIN
+                    core.mv_consumos_mensual m
+                    ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt AND d.mes = m.mes
+                INNER JOIN
+                    core.mv_consumos_horarios h
+                    ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt AND d.mes = h.mes
+                WHERE d.mes = :fecha_inicio
+                AND d.num_cons_dia = :total_dias
+                AND h.num_cons_horas = :total_horas
+                AND d.id_cups <> d.id_cnt
                 AND (
-                    (d.num_cons_dia  = :total_dias)
-                    AND (h.num_cons_horas = :total_horas) 
+                        d.suma_diarios - m.suma_mensual >= 2
+                    OR m.suma_mensual - d.suma_diarios >= 2
+                    OR d.suma_diarios - h.suma_horas >= 2
+                    OR h.suma_horas - d.suma_diarios >= 2
+                    OR m.suma_mensual - h.suma_horas >= 2
+                    OR h.suma_horas - m.suma_mensual >= 2
                 )
-                ORDER BY d.id_cups;";
+                ORDER BY d.id_cups;
+                ;";
 
             $params['fecha_inicio'] = $fecha_inicio;
-            $params['fecha_fin'] = $fecha_fin;
+            //$params['fecha_fin'] = $fecha_fin;
             $params['total_dias'] = $total_dias;
             $params['total_horas'] = $total_horas;
 
@@ -5401,47 +5365,6 @@ class ctController extends Controller
 
                 $params = [];
                 $query = "
-                WITH diarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_d) AS suma_diarios, 
-                        COUNT(val_ai_d) AS num_cons_dia
-                    FROM core.t_consumos_diarios
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_inicio < :fecha_fin
-                        AND id_cups <> id_cnt
-                        AND val_ai_d IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                mensuales AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_m) AS suma_mensual, 
-                        COUNT(val_ai_m) AS num_cons_mes
-                    FROM core.t_consumos_mensual
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_fin <= :fecha_fin
-                        AND cod_periodotarifa = '0'
-                        AND id_cups <> id_cnt
-                        AND val_ai_m IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                horarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        FLOOR(SUM(val_ai_h) / 1000) AS suma_horas, 
-                        COUNT(val_ai_h) AS num_cons_horas
-                    FROM core.t_consumos_horarios
-                    WHERE fec_inicio >= :fecha_inicio
-                        AND fec_inicio < :fecha_fin 
-                        AND id_cups <> id_cnt
-                        AND val_ai_h IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                )
-
                 SELECT 
                     d.id_cups,
                     d.id_cnt,
@@ -5451,24 +5374,33 @@ class ctController extends Controller
                     m.num_cons_mes,
                     h.suma_horas,
                     h.num_cons_horas,
-                    ABS(d.suma_diarios - m.suma_mensual) AS dif_diario_mensual,
-                    ABS(d.suma_diarios - h.suma_horas) AS dif_diario_horario,
-                    ABS(m.suma_mensual - h.suma_horas) AS dif_mensual_horario
-                FROM diarios d
-                INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
-                INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
-                WHERE( 
-                    ABS(d.suma_diarios - m.suma_mensual) >= 2
-                    OR ABS(m.suma_mensual - h.suma_horas) >= 2
-                    OR ABS(d.suma_diarios - h.suma_horas) >= 2)
-                    AND (
-                        (d.num_cons_dia  = :total_dias)
-                        AND (h.num_cons_horas = :total_horas) 
-                    )
+                    d.suma_diarios - m.suma_mensual AS dif_diario_mensual,
+                    d.suma_diarios - h.suma_horas AS dif_diario_horario,
+                    m.suma_mensual - h.suma_horas AS dif_mensual_horario
+                FROM
+                    core.mv_consumos_diarios d
+                INNER JOIN
+                    core.mv_consumos_mensual m
+                    ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt AND d.mes = m.mes
+                INNER JOIN
+                    core.mv_consumos_horarios h
+                    ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt AND d.mes = h.mes
+                WHERE d.mes = :fecha_inicio
+                AND d.num_cons_dia = :total_dias
+                AND h.num_cons_horas = :total_horas
+                AND d.id_cups <> d.id_cnt
+                AND (
+                        d.suma_diarios - m.suma_mensual >= 2
+                    OR m.suma_mensual - d.suma_diarios >= 2
+                    OR d.suma_diarios - h.suma_horas >= 2
+                    OR h.suma_horas - d.suma_diarios >= 2
+                    OR m.suma_mensual - h.suma_horas >= 2
+                    OR h.suma_horas - m.suma_mensual >= 2
+                )
                 ORDER BY d.id_cups;";
 
                 $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
+                //$params['fecha_fin'] = $fecha_fin;
                 $params['total_dias'] = $total_dias;
                 $params['total_horas'] = $total_horas;
 
