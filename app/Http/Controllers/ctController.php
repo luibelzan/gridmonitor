@@ -5128,8 +5128,11 @@ class ctController extends Controller
                         c.nom_cups,
                         c.id_cnt,
                         d.id_cups,
+                        c.id_linea,
+                        c.cod_fase,
                         SUM(d.val_ai_d) AS total_val_ai_d,
-                        SUM(d.val_ae_d) AS total_val_ae_d
+                        SUM(d.val_ae_d) AS total_val_ae_d,
+                        c.ind_autoconsumo
                     FROM core.t_consumos_diarios d
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
@@ -5147,7 +5150,7 @@ class ctController extends Controller
                     $params['fecha_fin'] = $fecha_fin;
                 }
 
-                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups, c.id_linea, c.cod_fase, c.ind_autoconsumo ORDER BY d.id_cups;";
 
                 $sumBalances = DB::connection($connection)->select($query, $params);
 
@@ -5199,8 +5202,11 @@ class ctController extends Controller
                         c.nom_cups,
                         c.id_cnt,
                         d.id_cups,
+                        c.id_linea,
+                        c.cod_fase,
                         SUM(d.val_ai_d) AS total_val_ai_d,
-                        SUM(d.val_ae_d) AS total_val_ae_d
+                        SUM(d.val_ae_d) AS total_val_ae_d,
+                        c.ind_autoconsumo
                     FROM core.t_consumos_diarios d
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
@@ -5218,7 +5224,7 @@ class ctController extends Controller
                     $params['fecha'] = $fecha;
                 }
 
-                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups, c.id_linea, c.cod_fase, c.ind_autoconsumo ORDER BY d.id_cups;";
 
                 $exportSumBalances = DB::connection($connection)->select($query, $params);
                 if ($exportSumBalances) {

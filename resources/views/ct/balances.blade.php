@@ -1433,14 +1433,23 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 NOMBRE</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
+                                                                                LINEA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                FASE</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
                                                                                 ENERGIA IMPORTADA</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                                 ENERGIA EXPORTADA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                AUTOCONSUMOS</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        @if ($sumBalances->count() > 0)
+                                                                        @if (count($sumBalances) > 0)
                                                                             @foreach ($sumBalances as $resultado)
                                                                                 <tr class="highlight-row" 
                                                                                     onclick="window.open('{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}', '_blank');" 
@@ -1448,8 +1457,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     <td class="py-2">{{ $resultado->id_cups ?? 'No hay datos' }}</td>
                                                                                     <td class="py-2">{{ $resultado->id_cnt ?? '0' }}</td>
                                                                                     <td class="py-2">{{ $resultado->nom_cups ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->id_linea ?? 'No hay datos' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->cod_fase ?? '0' }}</td>
                                                                                     <td class="py-2">{{ $resultado->total_val_ai_d ?? '0' }}</td>
                                                                                     <td class="py-2">{{ $resultado->total_val_ae_d ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->ind_autoconsumo ?? 'No hay datos' }}</td>
                                                                                 </tr>
                                                                             @endforeach
                                                                         @else 
