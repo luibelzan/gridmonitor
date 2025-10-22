@@ -264,37 +264,53 @@
 
 <script>
 $(document).ready(function() {
-    // Cuando cambia el CT
-    $('#id_ct').on('change', function() {
-        var id_ct = $(this).val();
-        var $lineaSelect = $('#id_linea');
-        //$lineaSelect.hide().empty().append('<option disabled selected>Cargando...</option>');
+    var $ctSelect = $('#id_ct');
+    var $lineaSelect = $('#id_linea');
+    var selectedLinea = "{{ request()->get('id_linea') }}"; // línea seleccionada en la última búsqueda
 
-        if (id_ct) {
-            $.ajax({
-                url: "{{ url('/lineas') }}/" + id_ct,
-                type: "GET",
-                success: function(data) {
-                    $lineaSelect.empty().append('<option disabled selected>Seleccione una línea</option>');
-                    $.each(data, function(key, linea) {
-                        $lineaSelect.append('<option value="' + linea.id_linea + '">' + linea.nom_linea + '</option>');
-                    });
+    function cargarLineas(id_ct, selectedLinea = null) {
+        if (!id_ct) return;
+
+        $.ajax({
+            url: "{{ url('/lineas') }}/" + id_ct,
+            type: "GET",
+            success: function(data) {
+                $lineaSelect.empty().append('<option disabled>Seleccione una línea</option>');
+                $.each(data, function(key, linea) {
+                    $lineaSelect.append(
+                        '<option value="' + linea.id_linea + '"' +
+                        (selectedLinea == linea.id_linea ? ' selected' : '') +
+                        '>' + linea.nom_linea + '</option>'
+                    );
+                });
+
+                // Mostrar el selector solo si hay opciones
+                if (data.length > 0) {
                     $lineaSelect.show();
-                },
-                error: function() {
-                    $lineaSelect.empty().append('<option disabled selected>Error al cargar</option>');
+                } else {
+                    $lineaSelect.append('<option disabled selected>No hay líneas</option>');
                 }
-            });
-        }
+            },
+            error: function() {
+                $lineaSelect.empty().append('<option disabled selected>Error al cargar líneas</option>');
+            }
+        });
+    }
+
+    // Evento al cambiar CT
+    $ctSelect.on('change', function() {
+        var id_ct = $(this).val();
+        cargarLineas(id_ct);
     });
 
-    // Si cambia la línea, enviar el formulario automáticamente
-    /*$('#id_linea').on('change', function() {
-        $('#form-caidas').submit();
-    });
-    */
+    // 🟢 Si ya hay un CT seleccionado (por ejemplo, tras recargar el formulario)
+    var currentCT = $ctSelect.val();
+    if (currentCT) {
+        cargarLineas(currentCT, selectedLinea);
+    }
 });
 </script>
+
 
 
 <body class="h-full sm:grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 justify-center "
