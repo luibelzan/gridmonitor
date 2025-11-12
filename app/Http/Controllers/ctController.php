@@ -739,7 +739,7 @@ class ctController extends Controller
 
             // Obtener resultados de las consultas
             $resultadosQ58 = $this->consultaCincuentayOcho($request, $connection);
-            $exportCurvasHorarias = $this->exportCurvasHorarias($request);
+            //$exportCurvasHorarias = $this->exportCurvasHorarias($request);
             $diferenciaConsumo = $this->getDiferenciaConsumo($request, $connection);
             $exportDiferenciaConsumos = $this->exportDiferenciaConsumo($request);
 
@@ -747,7 +747,7 @@ class ctController extends Controller
             return view('ct/reportescurvashorarias', [
                 'ct_info' => $ct_info,
                 'resultadosQ58' => $resultadosQ58,
-                'exportCurvasHorarias' => $exportCurvasHorarias,
+                //'exportCurvasHorarias' => $exportCurvasHorarias,
                 'diferenciaConsumo' => $diferenciaConsumo,
                 'exportDiferenciaConsumos' => $exportDiferenciaConsumos
             ]);
@@ -4614,133 +4614,147 @@ class ctController extends Controller
         }
     }
 
-    public function consultaCincuentayOcho(Request $request, $connection) // reportes curvas horarias
-    {
-        try {
-            // Verificar que las tablas existen
-            if (
-                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
-                Schema::connection($connection)->hasTable('t_cups')
-            ) {
-                // Obtener las fechas de inicio y fin del request, si están presentes
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-                $nom_ct = $request->input('nom_ct');
-                $id_cups = $request->input('id_cups');
-                $nom_cups = $request->input('nom_cups');
-
-                // Si no hay fechas, establecer fechas predeterminadas (últimos 30 días)
-                if (!$fecha_inicio || !$fecha_fin) {
-                    $fecha_inicio = Carbon::now()->subDays(30)->format('Y-m-d');
-                    $fecha_fin = Carbon::now()->format('Y-m-d'); // Fecha actual
-                }
-
-                // Inicializar array de parámetros
-                $params = [
-                    'fecha_inicio' => $fecha_inicio,
-                    'fecha_fin' => $fecha_fin,
-                ];
-
-                // Construir la consulta SQL
-                $query = "
-                    WITH cups_data AS (
-                        SELECT
-                            cups.id_cups,
-                            cups.nom_cups,
-                            cups.dir_cups,
-                            cups.id_ct,
-                            cups.cod_poliza,
-                            cups.id_cnt,
-                            ct.nom_ct,
-                            cups.ind_autoconsumo
-                        FROM
-                            core.t_cups cups
-                        JOIN
-                            core.t_ct ct ON cups.id_ct = ct.id_ct
-                        WHERE 1 = 1 
-                        ";
-
-                if ($id_cups) {
-                    $query .= " AND LOWER(cups.id_cups) LIKE LOWER('%' ||:id_cups || '%') ";
-                    $params['id_cups'] = "%{$id_cups}%";
-                } else if ($nom_ct) {
-                    $query .= " AND LOWER(ct.nom_ct) LIKE LOWER('%' || :nom_ct || '%') ";
-                    $params['nom_ct'] = "%{$nom_ct}%";
-                } else if ($nom_cups) {
-                    $nom_cups = $nom_cups ? (string) $nom_cups : null;
-                    $query .= " AND LOWER(cups.nom_cups) LIKE LOWER('%' || :nom_cups || '%') ";
-                    $params['nom_cups'] = "%{$nom_cups}%";
-                }
-
-                $query .= "
-                    ),
-                    consumos_data AS (
-                        SELECT
-                            id_cups,
-                            MIN(fec_inicio) AS fec_inicio,
-                            MAX(fec_fin) AS fec_fin,
-                            COUNT(hor_fin) AS curvas_leidas,
-                            ROUND(SUM(val_ai_h) / 1000, 2) AS total_curva_imp,
-                            ROUND(SUM(val_ae_h) / 1000, 2) AS total_curva_exp,
-                            COUNT(CASE WHEN val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
-                        FROM
-                            core.t_consumos_horarios
-                        WHERE
-                            fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
-                        GROUP BY
-                            id_cups
-                    )
-                    SELECT
-                        cd.id_cups,
-                        cd.nom_cups,
-                        cd.dir_cups,
-                        cd.id_ct,
-                        cd.id_cnt,
-                        cd.ind_autoconsumo,
-                        cd.nom_ct,
-                        TO_CHAR(co.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
-                        TO_CHAR(co.fec_fin, 'DD/MM/YYYY') AS fec_fin,
-                        co.total_curva_imp,
-                        co.total_curva_exp,
-                        co.curvas_leidas,
-                        co.curvas_sin_consumo
-                    FROM
-                        cups_data cd
-                    LEFT JOIN
-                        consumos_data co ON cd.id_cups = co.id_cups
-                    ORDER BY
-                        cd.id_cups ASC;
-
-                ";
-
-                // Ejecutar la consulta con los parámetros
-                $res = DB::connection($connection)->select($query, $params);
-
-                $resCollection = new Collection($res);
-                // Obtener la página actual
-                $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                $perPage = 100; // Número de elementos por página
-                $currentItems = $resCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
-
-
-                // Crear paginador manualmente
-                $resultadosQ58 = new LengthAwarePaginator($currentItems, count($resCollection), $perPage, $currentPage, [
-                    'path' => request()->url(),
-                    'query' => request()->query()
-                ]);
-                //dd($resultadosQ58 instanceof LengthAwarePaginator);
-
-                return $resultadosQ58 ?: ['message' => 'No hay datos'];
-
-            } else {
-                // Si alguna tabla no existe, retornar un mensaje de error
-                return ['message' => 'No hay datos'];
-            }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'Error: ' . $e->getMessage()];
+    public function consultaCincuentayOcho(Request $request, $connection)
+{
+    try {
+        // Verificar tablas
+        if (
+            !Schema::connection($connection)->hasTable('t_consumos_horarios') ||
+            !Schema::connection($connection)->hasTable('t_cups')
+        ) {
+            return new LengthAwarePaginator([], 0, 100, 1, [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]);
         }
+
+        // Parámetros del request
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+        $nom_ct = $request->input('nom_ct');
+        $id_cups = $request->input('id_cups');
+        $nom_cups = $request->input('nom_cups');
+
+        // Fechas por defecto
+        if (!$fecha_inicio || !$fecha_fin) {
+            $fecha_inicio = Carbon::now()->subDays(30)->format('Y-m-d');
+            $fecha_fin = Carbon::now()->format('Y-m-d');
+        }
+
+        // Paginación
+        $perPage = 100;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $offset = ($currentPage - 1) * $perPage;
+
+        // Base del WHERE
+        $where = "WHERE 1=1";
+        $filterParams = [];
+
+        if ($id_cups) {
+            $where .= " AND cups.id_cups ILIKE :id_cups";
+            $filterParams['id_cups'] = "%{$id_cups}%";
+        }
+
+        if ($nom_ct) {
+            $where .= " AND ct.nom_ct ILIKE :nom_ct";
+            $filterParams['nom_ct'] = "%{$nom_ct}%";
+        }
+
+        if ($nom_cups) {
+            $where .= " AND cups.nom_cups ILIKE :nom_cups";
+            $filterParams['nom_cups'] = "%{$nom_cups}%";
+        }
+
+        // ========================
+        // 1️⃣ Consulta para contar
+        // ========================
+        $countQuery = "
+            SELECT COUNT(*) AS total
+            FROM core.t_cups cups
+            JOIN core.t_ct ct ON cups.id_ct = ct.id_ct
+            $where
+        ";
+
+        $totalResult = DB::connection($connection)->selectOne($countQuery, $filterParams);
+        $total = $totalResult ? $totalResult->total : 0;
+
+        // =========================
+        // 2️⃣ Consulta con paginación
+        // =========================
+        $mainParams = array_merge($filterParams, [
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin,
+            'limit' => $perPage,
+            'offset' => $offset,
+        ]);
+
+        $query = "
+            WITH cups_filtrados AS (
+                SELECT
+                    cups.id_cups,
+                    cups.nom_cups,
+                    ct.nom_ct,
+                    cups.dir_cups,
+                    cups.id_cnt,
+                    cups.ind_autoconsumo
+                FROM core.t_cups cups
+                JOIN core.t_ct ct ON cups.id_ct = ct.id_ct
+                $where
+                ORDER BY cups.id_cups ASC
+                LIMIT :limit OFFSET :offset
+            ),
+            consumos_agregados AS (
+                SELECT
+                    ch.id_cups,
+                    MIN(ch.fec_inicio) AS fec_inicio,
+                    MAX(ch.fec_fin) AS fec_fin,
+                    COUNT(ch.hor_fin) AS curvas_leidas,
+                    ROUND(SUM(ch.val_ai_h) / 1000, 2) AS total_curva_imp,
+                    ROUND(SUM(ch.val_ae_h) / 1000, 2) AS total_curva_exp,
+                    COUNT(CASE WHEN ch.val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
+                FROM core.t_consumos_horarios ch
+                WHERE ch.id_cups IN (SELECT id_cups FROM cups_filtrados)
+                AND ch.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
+                GROUP BY ch.id_cups
+            )
+            SELECT
+                cf.id_cups,
+                cf.nom_cups,
+                cf.dir_cups,
+                cf.nom_ct,
+                cf.id_cnt,
+                cf.ind_autoconsumo,
+                COALESCE(TO_CHAR(ca.fec_inicio, 'DD/MM/YYYY'), 'No hay datos') AS fec_inicio,
+                COALESCE(TO_CHAR(ca.fec_fin, 'DD/MM/YYYY'), 'No hay datos') AS fec_fin,
+                COALESCE(ca.total_curva_imp, 0) AS total_curva_imp,
+                COALESCE(ca.total_curva_exp, 0) AS total_curva_exp,
+                COALESCE(ca.curvas_leidas, 0) AS curvas_leidas,
+                COALESCE(ca.curvas_sin_consumo, 0) AS curvas_sin_consumo
+            FROM cups_filtrados cf
+            LEFT JOIN consumos_agregados ca ON cf.id_cups = ca.id_cups
+            ORDER BY cf.id_cups ASC
+        ";
+
+        $res = DB::connection($connection)->select($query, $mainParams);
+
+        // Crear paginador
+        return new LengthAwarePaginator(
+            $res,
+            $total,
+            $perPage,
+            $currentPage,
+            [
+                'path' => request()->url(),
+                'query' => request()->query()
+            ]
+        );
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
+
+
 
     public function exportCurvasHorarias(Request $request) // reportes curvas horarias
     {
@@ -4778,21 +4792,20 @@ class ctController extends Controller
 
                 // Construir la consulta SQL
                 $query = "
-                    WITH cups_data AS (
+                    WITH cups_filtrados AS (
                         SELECT
                             cups.id_cups,
                             cups.nom_cups,
-                            cups.dir_cups,
-                            cups.id_ct,
-                            cups.cod_poliza,
-                            cups.id_cnt,
                             ct.nom_ct,
+                            cups.dir_cups,
+                            cups.id_cnt,
                             cups.ind_autoconsumo
                         FROM
                             core.t_cups cups
                         JOIN
                             core.t_ct ct ON cups.id_ct = ct.id_ct
-                        WHERE 1 = 1 
+                        -- APLICAR FILTROS DE BÚSQUEDA AQUÍ (ID_CUPS, NOM_CT, NOM_CUPS)
+                        WHERE 1=1
                         ";
 
                 if ($id_cups) {
@@ -4808,43 +4821,48 @@ class ctController extends Controller
                 }
 
                 $query .= "
-                    ),
-                    consumos_data AS (
-                        SELECT
-                            id_cups,
-                            MIN(fec_inicio) AS fec_inicio,
-                            MAX(fec_fin) AS fec_fin,
-                            COUNT(hor_fin) AS curvas_leidas,
-                            ROUND(SUM(val_ai_h) / 1000, 2) AS total_curva_imp,
-                            ROUND(SUM(val_ae_h) / 1000, 2) AS total_curva_exp,
-                            COUNT(CASE WHEN val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
-                        FROM
-                            core.t_consumos_horarios
-                        WHERE
-                            fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
-                        GROUP BY
-                            id_cups
-                    )
-                    SELECT
-                        cd.id_cups,
-                        cd.nom_cups,
-                        cd.dir_cups,
-                        cd.id_ct,
-                        cd.id_cnt,
-                        cd.ind_autoconsumo,
-                        cd.nom_ct,
-                        TO_CHAR(co.fec_inicio, 'DD/MM/YYYY') AS fec_inicio,
-                        TO_CHAR(co.fec_fin, 'DD/MM/YYYY') AS fec_fin,
-                        co.total_curva_imp,
-                        co.total_curva_exp,
-                        co.curvas_leidas,
-                        co.curvas_sin_consumo
-                    FROM
-                        cups_data cd
-                    LEFT JOIN
-                        consumos_data co ON cd.id_cups = co.id_cups
                     ORDER BY
-                        cd.id_cups ASC;
+                        cups.id_cups ASC
+                ),
+                consumos_agregados AS (
+                    SELECT
+                        ch.id_cups,
+                        MIN(ch.fec_inicio) AS fec_inicio,
+                        MAX(ch.fec_fin) AS fec_fin,
+                        COUNT(ch.hor_fin) AS curvas_leidas,
+                        ROUND(SUM(ch.val_ai_h) / 1000, 2) AS total_curva_imp,
+                        ROUND(SUM(ch.val_ae_h) / 1000, 2) AS total_curva_exp,
+                        COUNT(CASE WHEN ch.val_ai_h = 0 THEN 1 END) AS curvas_sin_consumo
+                    FROM
+                        core.t_consumos_horarios ch
+                    WHERE
+                        -- CLAVE: FILTRAR CONSUMOS SOLO PARA LOS CUPS DE LA PÁGINA ACTUAL
+                        ch.id_cups IN (SELECT id_cups FROM cups_filtrados)
+                        -- Y APLICAR FILTRO DE FECHA
+                        AND ch.fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
+                    GROUP BY
+                        ch.id_cups
+                )
+                SELECT
+                    cf.id_cups,
+                    cf.nom_cups,
+                    cf.dir_cups,
+                    cf.nom_ct,
+                    cf.id_cnt,
+                    cf.ind_autoconsumo,
+                    -- Usar COALESCE para manejar el LEFT JOIN si no hay consumo
+                    COALESCE(TO_CHAR(ca.fec_inicio, 'DD/MM/YYYY'), 'No hay datos') AS fec_inicio,
+                    COALESCE(TO_CHAR(ca.fec_fin, 'DD/MM/YYYY'), 'No hay datos') AS fec_fin,
+                    COALESCE(ca.total_curva_imp, 0) AS total_curva_imp,
+                    COALESCE(ca.total_curva_exp, 0) AS total_curva_exp,
+                    COALESCE(ca.curvas_leidas, 0) AS curvas_leidas,
+                    COALESCE(ca.curvas_sin_consumo, 0) AS curvas_sin_consumo
+                FROM
+                    cups_filtrados cf
+                LEFT JOIN
+                    consumos_agregados ca ON cf.id_cups = ca.id_cups
+                ORDER BY
+                    cf.id_cups ASC;
 
                 ";
 
@@ -5110,8 +5128,11 @@ class ctController extends Controller
                         c.nom_cups,
                         c.id_cnt,
                         d.id_cups,
+                        c.id_linea,
+                        c.cod_fase,
                         SUM(d.val_ai_d) AS total_val_ai_d,
-                        SUM(d.val_ae_d) AS total_val_ae_d
+                        SUM(d.val_ae_d) AS total_val_ae_d,
+                        c.ind_autoconsumo
                     FROM core.t_consumos_diarios d
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
@@ -5129,7 +5150,7 @@ class ctController extends Controller
                     $params['fecha_fin'] = $fecha_fin;
                 }
 
-                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups, c.id_linea, c.cod_fase, c.ind_autoconsumo ORDER BY d.id_cups;";
 
                 $sumBalances = DB::connection($connection)->select($query, $params);
 
@@ -5181,8 +5202,11 @@ class ctController extends Controller
                         c.nom_cups,
                         c.id_cnt,
                         d.id_cups,
+                        c.id_linea,
+                        c.cod_fase,
                         SUM(d.val_ai_d) AS total_val_ai_d,
-                        SUM(d.val_ae_d) AS total_val_ae_d
+                        SUM(d.val_ae_d) AS total_val_ae_d,
+                        c.ind_autoconsumo
                     FROM core.t_consumos_diarios d
                     JOIN core.t_cups c ON d.id_cups = c.id_cups
                     WHERE c.id_ct = :id_ct
@@ -5200,7 +5224,7 @@ class ctController extends Controller
                     $params['fecha'] = $fecha;
                 }
 
-                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups ORDER BY d.id_cups;";
+                $query .= " GROUP BY d.id_cups, c.id_cnt, c.nom_cups, c.id_linea, c.cod_fase, c.ind_autoconsumo ORDER BY d.id_cups;";
 
                 $exportSumBalances = DB::connection($connection)->select($query, $params);
                 if ($exportSumBalances) {
@@ -5234,7 +5258,7 @@ class ctController extends Controller
     }
 
     public function getDiferenciaConsumo(Request $request, $connection)
-    {
+{
         try {
             $fecha_inicio = $request->input('fecha_inicio2');
 
@@ -5246,56 +5270,14 @@ class ctController extends Controller
             $fecha_inicio_carbon = Carbon::parse($fecha_inicio)->startOfMonth();
             $fecha_fin = $fecha_inicio_carbon->copy()->addMonth();
             $inicio = Carbon::parse($fecha_inicio);
-            $fin = Carbon::parse($fecha_fin); // Añadir un mes para incluir el mes final completo
+            $fin = Carbon::parse($fecha_fin); 
 
             // Calcular diferencias
             $total_dias = $inicio->diffInDays($fin);
             $total_horas = $total_dias * 24;
 
-
             $params = [];
             $query = "
-                WITH diarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_d) AS suma_diarios, 
-                        COUNT(val_ai_d) AS num_cons_dia
-                    FROM core.t_consumos_diarios
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_inicio < :fecha_fin
-                        AND id_cups <> id_cnt
-                        AND val_ai_d IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                mensuales AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_m) AS suma_mensual, 
-                        COUNT(val_ai_m) AS num_cons_mes
-                    FROM core.t_consumos_mensual
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_fin <= :fecha_fin
-                        AND cod_periodotarifa = '0'
-                        AND id_cups <> id_cnt
-                        AND val_ai_m IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                horarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        FLOOR(SUM(val_ai_h) / 1000) AS suma_horas, 
-                        COUNT(val_ai_h) AS num_cons_horas
-                    FROM core.t_consumos_horarios
-                    WHERE fec_inicio >= :fecha_inicio
-                        AND fec_inicio < :fecha_fin 
-                        AND id_cups <> id_cnt
-                        AND val_ai_h IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                )
-
                 SELECT 
                     d.id_cups,
                     d.id_cnt,
@@ -5305,24 +5287,34 @@ class ctController extends Controller
                     m.num_cons_mes,
                     h.suma_horas,
                     h.num_cons_horas,
-                    ABS(d.suma_diarios - m.suma_mensual) AS dif_diario_mensual,
-                    ABS(d.suma_diarios - h.suma_horas) AS dif_diario_horario,
-                    ABS(m.suma_mensual - h.suma_horas) AS dif_mensual_horario
-                FROM diarios d
-                INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
-                INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
-                WHERE( 
-                    ABS(d.suma_diarios - m.suma_mensual) >= 2
-                    OR ABS(m.suma_mensual - h.suma_horas) >= 2
-                    OR ABS(d.suma_diarios - h.suma_horas) >= 2)
-                    AND (
-                        (d.num_cons_dia  = :total_dias)
-                        AND (h.num_cons_horas = :total_horas) 
-                    )
-                ORDER BY d.id_cups;";
+                    d.suma_diarios - m.suma_mensual AS dif_diario_mensual,
+                    d.suma_diarios - h.suma_horas AS dif_diario_horario,
+                    m.suma_mensual - h.suma_horas AS dif_mensual_horario
+                FROM
+                    core.mv_consumos_diarios d
+                INNER JOIN
+                    core.mv_consumos_mensual m
+                    ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt AND d.mes = m.mes
+                INNER JOIN
+                    core.mv_consumos_horarios h
+                    ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt AND d.mes = h.mes
+                WHERE d.mes = :fecha_inicio
+                AND d.num_cons_dia = :total_dias
+                AND h.num_cons_horas = :total_horas
+                AND d.id_cups <> d.id_cnt
+                AND (
+                        d.suma_diarios - m.suma_mensual >= 2
+                    OR m.suma_mensual - d.suma_diarios >= 2
+                    OR d.suma_diarios - h.suma_horas >= 2
+                    OR h.suma_horas - d.suma_diarios >= 2
+                    OR m.suma_mensual - h.suma_horas >= 2
+                    OR h.suma_horas - m.suma_mensual >= 2
+                )
+                ORDER BY d.id_cups;
+                ;";
 
             $params['fecha_inicio'] = $fecha_inicio;
-            $params['fecha_fin'] = $fecha_fin;
+            //$params['fecha_fin'] = $fecha_fin;
             $params['total_dias'] = $total_dias;
             $params['total_horas'] = $total_horas;
 
@@ -5330,22 +5322,21 @@ class ctController extends Controller
             $diferenciaConsumoCollection = new Collection($diferenciaConsumo);
 
             $currentPage = LengthAwarePaginator::resolveCurrentPage();
-            $perPage = 100; // Número de elementos por página
+            $perPage = 100;
             $currentItems = $diferenciaConsumoCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
-
-            // Crear paginador manualmente
             $diferenciaConsumo = new LengthAwarePaginator($currentItems, count($diferenciaConsumoCollection), $perPage, $currentPage, [
                 'path' => request()->url(),
                 'query' => request()->query()
             ]);
-            //dd($total_horas);
+
             return $diferenciaConsumo ?: ['message' => 'No hay datos'];
 
         } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()]; // Return an empty array instead of a string on error
+            return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
+
 
     public function exportDiferenciaConsumo(Request $request)
     {
@@ -5380,47 +5371,6 @@ class ctController extends Controller
 
                 $params = [];
                 $query = "
-                WITH diarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_d) AS suma_diarios, 
-                        COUNT(val_ai_d) AS num_cons_dia
-                    FROM core.t_consumos_diarios
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_inicio < :fecha_fin
-                        AND id_cups <> id_cnt
-                        AND val_ai_d IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                mensuales AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        SUM(val_ai_m) AS suma_mensual, 
-                        COUNT(val_ai_m) AS num_cons_mes
-                    FROM core.t_consumos_mensual
-                    WHERE fec_inicio >= :fecha_inicio 
-                        AND fec_fin <= :fecha_fin
-                        AND cod_periodotarifa = '0'
-                        AND id_cups <> id_cnt
-                        AND val_ai_m IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                ),
-                horarios AS (
-                    SELECT 
-                        id_cups, 
-                        id_cnt, 
-                        FLOOR(SUM(val_ai_h) / 1000) AS suma_horas, 
-                        COUNT(val_ai_h) AS num_cons_horas
-                    FROM core.t_consumos_horarios
-                    WHERE fec_inicio >= :fecha_inicio
-                        AND fec_inicio < :fecha_fin 
-                        AND id_cups <> id_cnt
-                        AND val_ai_h IS NOT NULL
-                    GROUP BY id_cups, id_cnt
-                )
-
                 SELECT 
                     d.id_cups,
                     d.id_cnt,
@@ -5430,24 +5380,33 @@ class ctController extends Controller
                     m.num_cons_mes,
                     h.suma_horas,
                     h.num_cons_horas,
-                    ABS(d.suma_diarios - m.suma_mensual) AS dif_diario_mensual,
-                    ABS(d.suma_diarios - h.suma_horas) AS dif_diario_horario,
-                    ABS(m.suma_mensual - h.suma_horas) AS dif_mensual_horario
-                FROM diarios d
-                INNER JOIN mensuales m ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt
-                INNER JOIN horarios h ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt
-                WHERE( 
-                    ABS(d.suma_diarios - m.suma_mensual) >= 2
-                    OR ABS(m.suma_mensual - h.suma_horas) >= 2
-                    OR ABS(d.suma_diarios - h.suma_horas) >= 2)
-                    AND (
-                        (d.num_cons_dia  = :total_dias)
-                        AND (h.num_cons_horas = :total_horas) 
-                    )
+                    d.suma_diarios - m.suma_mensual AS dif_diario_mensual,
+                    d.suma_diarios - h.suma_horas AS dif_diario_horario,
+                    m.suma_mensual - h.suma_horas AS dif_mensual_horario
+                FROM
+                    core.mv_consumos_diarios d
+                INNER JOIN
+                    core.mv_consumos_mensual m
+                    ON d.id_cups = m.id_cups AND d.id_cnt = m.id_cnt AND d.mes = m.mes
+                INNER JOIN
+                    core.mv_consumos_horarios h
+                    ON d.id_cups = h.id_cups AND d.id_cnt = h.id_cnt AND d.mes = h.mes
+                WHERE d.mes = :fecha_inicio
+                AND d.num_cons_dia = :total_dias
+                AND h.num_cons_horas = :total_horas
+                AND d.id_cups <> d.id_cnt
+                AND (
+                        d.suma_diarios - m.suma_mensual >= 2
+                    OR m.suma_mensual - d.suma_diarios >= 2
+                    OR d.suma_diarios - h.suma_horas >= 2
+                    OR h.suma_horas - d.suma_diarios >= 2
+                    OR m.suma_mensual - h.suma_horas >= 2
+                    OR h.suma_horas - m.suma_mensual >= 2
+                )
                 ORDER BY d.id_cups;";
 
                 $params['fecha_inicio'] = $fecha_inicio;
-                $params['fecha_fin'] = $fecha_fin;
+                //$params['fecha_fin'] = $fecha_fin;
                 $params['total_dias'] = $total_dias;
                 $params['total_horas'] = $total_horas;
 

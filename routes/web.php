@@ -94,6 +94,9 @@ Route::get('/exportar-cierres-mensuales', [PuntoFronteraController::class, 'expo
 Route::post('/exportar-curvas-cuartihorarias', [PuntoFronteraController::class, 'exportCurvasCuartihorarias'])->name('exportar.curvas.cuartihorarias.pf');
 Route::get('/exportar-diferencia-consumos', [ctController::class, 'exportDiferenciaConsumo'])->name('exportar.diferencia.consumos');
 Route::get('/export-progress/{exportId}', [ExportController::class, 'getExportProgress']);
+Route::get('/exportar-balances-sabt', [SupervisionAvanzadaController::class, 'exportBalancesSABT'])->name('exportar.balances.sabt');
+Route::get('/exportar-balances-fases-sabt', [SupervisionAvanzadaController::class, 'exportBalancesFasesSABT'])->name('exportar.balances.fases.sabt');
+
 
 
 //*********************************
@@ -166,6 +169,9 @@ Route::get('/supervisionavanzada', [SupervisionAvanzadaController::class, 'super
 Route::get('/fasessabt', [SupervisionAvanzadaController::class, 'fasessabt'])->name('fasessabt');
 Route::get('/indicadoressabt', [SupervisionAvanzadaController::class, 'indicadoressabt'])->name('indicadoressabt');
 Route::get('/balancessabt', [SupervisionAvanzadaController::class, 'balancessabt'])->name('balancessabt');
+Route::get('/caidastensionsabt', [SupervisionAvanzadaController::class, 'caidastensionsabt'])->name('caidastensionsabt');
+
+Route::get('/lineas/{id_ct}', [SupervisionAvanzadaController::class, 'getLineasPorCt'])->name('get.lineas.ct');
 
 
 

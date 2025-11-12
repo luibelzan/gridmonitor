@@ -876,10 +876,6 @@ console.log("Total eventos calculado:", evento.total_eventos);
                                                         style="color:rgb(88,226,194); padding: 10px;">CT</th>
                                                     <th class="text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194); padding: 10px;">Nombre CT</th>
-
-
-                                                    <th class="text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194); padding: 10px;">Concentrador</th>
                                                     <th class="text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194); padding: 10px;">Contador</th>
                                                     <th class="text-xl font-bold text-center"
@@ -934,11 +930,6 @@ console.log("Total eventos calculado:", evento.total_eventos);
                                                         </td>
                                                         <td class="py-2" style="padding: 10px;">
                                                             {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
-                                                        </td>
-
-
-                                                        <td class="py-2" style="padding: 10px;">
-                                                            {{ !empty($resultado->cnc) ? $resultado->cnc : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2" style="padding: 10px;">
                                                             {{ !empty($resultado->cnt) ? $resultado->cnt : 'No hay datos' }}

@@ -108,6 +108,8 @@
         active-color="rgb(88, 226, 194)">Fases</a>
     <a href="{{ route('balancessabt', ['id_ct' => $id_ct]) }}" class="nav-item {{ Request::is('balances') ? 'is-active' : '' }}"
         active-color="rgb(88, 226, 194)">Balances</a>
+    <a href="{{ route('caidastensionsabt') }}" class="nav-item {{ Request::is('balances') ? 'is-active' : '' }}"
+        active-color="rgb(88, 226, 194)">Reportes</a>
     <span class="nav-indicator"></span>
 </nav>
 

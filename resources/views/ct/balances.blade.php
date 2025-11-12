@@ -919,12 +919,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             active-color="rgb(88, 226, 194">Energía</a>
                         <a href="{{ route('señalplc', ['id_ct' => $id_ct]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Lecturas/Señal PLC</a>
-                        @foreach ($ct_info as $ct)
-                            @if ($ct->id_ct == $id_ct && $ct->ind_balance == true)
-                                <a href="{{ route('balances', ['id_ct' => $id_ct]) }}" class="nav-item is-active "
-                                    active-color="rgb(88, 226, 194">Balances</a>
-                            @endif
-                        @endforeach
+                        <a href="{{ route('balances', ['id_ct' => $id_ct]) }}" class="nav-item is-active "
+                            active-color="rgb(88, 226, 194">Balances</a>
                         <a href="{{ route('eventosct', ['id_ct' => $id_ct]) }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Eventos</a>
 
@@ -951,61 +947,35 @@ document.addEventListener("DOMContentLoaded", function () {
                     @endphp
                     {{-- Desplegable para seleccionar el CT --}}
                     <div class="container">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                         <div class="dropdown" style="margin-left: 6px">
                             <form style="color: white; background-color: transparent;"
                                 action="{{ route('balances', ['id_ct' => $id_ct]) }}" method="GET">
-                                <select name="id_ct" class="form-control mt-2" onchange="this.form.submit()"
-                                    style="color: white; background-color: rgb(27, 32, 38); width: min-content; font-size: 14px; text-align: left;">
-                                    {{-- Si hay un id_ct seleccionado en la sesión, mostrarlo seleccionado --}}
-                                    @if ($id_ct)
-                                        <option class="btn btn-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false" value="" disabled selected
-                                            style="color: rgb(27, 32, 38);">Seleccione un
-                                            CT</option>
-                                        @foreach ($ct_info as $ct_item)
-                                            <option class="btn btn-link"
-                                                style="color: white; background-color: rgb(27, 32, 38);"
-                                                value="{{ $ct_item->id_ct }}"
-                                                {{ $id_ct == $ct_item->id_ct ? 'selected' : '' }}>
-                                                {{ $ct_item->nom_ct }}
-                                            </option>
-                                        @endforeach
-                                        {{-- Si no hay un id_ct seleccionado en la sesión, mostrar la opción "Seleccione un CT" --}}
-                                    @else
-                                        <option class="btn btn-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false" value="" disabled selected
-                                            style="color: rgb(27, 32, 38);">Seleccione un
-                                            CT</option>
-                                        @foreach ($ct_info as $ct_item)
-                                            <option class="btn btn-link"
-                                                style="color: white; background-color: rgb(27, 32, 38);"
-                                                value="{{ $ct_item->id_ct }}">
-                                                {{ $ct_item->nom_ct }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                </select>
+
+                                {{-- Mantener filtros de fechas --}}
+                                @if (isset($_GET['fecha_inicio']))
+                                    <input type="hidden" name="fecha_inicio" value="{{ $_GET['fecha_inicio'] }}">
+                                @endif
+                                @if (isset($_GET['fecha_fin']))
+                                    <input type="hidden" name="fecha_fin" value="{{ $_GET['fecha_fin'] }}">
+                                @endif
+
+                                <input list="ctList" name="id_ct"
+                                    class="form-control mt-2"
+                                    onchange="this.form.submit()"
+                                    style="color: white; background-color: rgb(27, 32, 38); font-size: 14px; text-align: left; width: 250px;"
+                                    placeholder="Buscar o seleccionar un CT..."
+                                    value="{{ $id_ct ? $id_ct : '' }}">
+
+                                <datalist id="ctList">
+                                    @foreach ($ct_info as $ct_item)
+                                        <option value="{{ $ct_item->id_ct }}">{{ $ct_item->nom_ct }}</option>
+                                    @endforeach
+                                </datalist>
+
                             </form>
                         </div>
                     </div>
+
                     @if ($id_ct)
                         @php
                             // Filtrar para encontrar el CT seleccionado
@@ -1463,14 +1433,23 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 NOMBRE</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
+                                                                                LINEA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                FASE</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
                                                                                 ENERGIA IMPORTADA</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                                 ENERGIA EXPORTADA</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
+                                                                                AUTOCONSUMOS</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        @if ($sumBalances->count() > 0)
+                                                                        @if (count($sumBalances) > 0)
                                                                             @foreach ($sumBalances as $resultado)
                                                                                 <tr class="highlight-row" 
                                                                                     onclick="window.open('{{ route('detallesconsumodiariocups', ['id_cups' => $resultado->id_cups]) }}', '_blank');" 
@@ -1478,8 +1457,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     <td class="py-2">{{ $resultado->id_cups ?? 'No hay datos' }}</td>
                                                                                     <td class="py-2">{{ $resultado->id_cnt ?? '0' }}</td>
                                                                                     <td class="py-2">{{ $resultado->nom_cups ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->id_linea ?? 'No hay datos' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->cod_fase ?? '0' }}</td>
                                                                                     <td class="py-2">{{ $resultado->total_val_ai_d ?? '0' }}</td>
                                                                                     <td class="py-2">{{ $resultado->total_val_ae_d ?? '0' }}</td>
+                                                                                    <td class="py-2">{{ $resultado->ind_autoconsumo ?? 'No hay datos' }}</td>
                                                                                 </tr>
                                                                             @endforeach
                                                                         @else 

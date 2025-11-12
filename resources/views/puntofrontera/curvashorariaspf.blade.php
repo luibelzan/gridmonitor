@@ -639,37 +639,22 @@
                         <div class="dropdown" style="margin-left: 6px">
                             <form style="color: white; background-color: transparent;"
                                 action="{{ route('curvashorariaspf', ['id_cnt' => $id_cnt]) }}" method="GET">
-                                <select name="id_cnt" class="form-control mt-2" onchange="this.form.submit()"
-                                    style="color: white; background-color: rgb(27, 32, 38);  width: 200px; font-size: 14px; text-align: left;">
-                                    {{-- Si hay un id_cnt seleccionado en la sesión, mostrarlo seleccionado --}}
-                                    @if ($id_cnt)
-                                        <option class="btn btn-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false" value="" disabled selected
-                                            style="color: rgb(27, 32, 38);">Seleccione un Punto</option>
-                                        @foreach ($parametros as $cnt)
-                                            <option class="btn btn-link"
-                                                style="color: white; background-color: rgb(27, 32, 38);"
-                                                value="{{ $cnt->id_cnt }}"
-                                                {{ $selected_cnt == $cnt->id_cnt ? 'selected' : '' }}>
-                                                {{ $cnt->cups }}
-                                            </option>
-                                        @endforeach
-                                        {{-- Si no hay un id_cnt seleccionado en la sesión, mostrar la opción "Seleccione un CT" --}}
-                                    @else
-                                        <option class="btn btn-secondary dropdown-toggle" type="button"
-                                            id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true"
-                                            aria-expanded="false" value="" disabled selected
-                                            style="color: rgb(27, 32, 38);">Seleccione un Punto</option>
-                                        @foreach ($parametros as $cnt)
-                                            <option class="btn btn-link"
-                                                style="color: white; background-color: rgb(27, 32, 38);"
-                                                value="{{ $cnt->id_cnt }}">
-                                                {{ $cnt->cups }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                </select>
+
+                                <input list="cntList" name="id_cnt"
+                                    class="form-control mt-2"
+                                    onchange="this.form.submit()"
+                                    style="color: white; background-color: rgb(27, 32, 38); font-size: 14px; text-align: left; width: 250px;"
+                                    placeholder="Buscar o seleccionar un Punto..."
+                                    value="{{ $id_cnt ? $id_cnt : '' }}">
+
+                                <datalist id="cntList">
+                                    @foreach ($parametros as $cnt)
+                                        @if ($cnt->curva_1 == 1)
+                                            <option value="{{ $cnt->id_cnt }}">{{ $cnt->cups }}</option>
+                                        @endif
+                                    @endforeach
+                                </datalist>
+
                             </form>
                         </div>
                     </div>
