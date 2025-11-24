@@ -481,6 +481,7 @@ class ctController extends Controller
             $resultadosQ27 = $this->consultaVeintiSiete($id_ct, $connection, $request);
             $sumBalances = $this->getSumBalances($id_ct, $request, $connection);
             $exportSumBalances = $this->exportSumBalances($request);
+            $balancesAllCt = $this->getBalancesAllCt($connection, $request);
 
 
 
@@ -498,6 +499,7 @@ class ctController extends Controller
                 'id_ct' => $id_ct,
                 'sumBalances' => $sumBalances,
                 'exportSumBalances' => $exportSumBalances,
+                'balancesAllCt' => $balancesAllCt
             ]);
         }
     }
@@ -2148,7 +2150,75 @@ class ctController extends Controller
         }
     }
 
+    public function getBalancesAllCt($connection, Request $request) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_balances_diarios')) {
+                $fecha_inicio = $request->input('fecha_inicio');
+                $fecha_fin = $request->input('fecha_fin');
+                $params = [];
 
+                if ($fecha_inicio && $fecha_fin) {
+                    // Consulta con fechas (suma y agregaciones)
+                    $query = "
+                    SELECT t.id_ct, 
+                        SUM(t.val_ai_d_sum_cnt) AS energia_consumida, 
+                        SUM(t.val_ae_d_sum_cnt) AS energia_autoconsumos, 
+                        SUM(t.val_ai_d_sum_svr) AS energia_red,
+                        AVG(t.num_contadores_d) AS nro_contadores,
+                        SUM(t.val_ai_d_sum_svr + t.val_ae_d_sum_cnt) AS generacion, 
+                        SUM(t.val_ai_d_sum_svr + t.val_ae_d_sum_cnt - t.val_ai_d_sum_cnt) AS perdida, 
+                        ROUND(
+                            (100 - SUM(t.val_ai_d_sum_cnt) * 100 / SUM(t.val_ai_d_sum_svr + t.val_ae_d_sum_cnt)), 
+                            1
+                        ) AS porcentaje_perdida
+                    FROM core.t_balances_diarios t
+                    JOIN core.t_ct c 
+                        ON t.id_ct = c.id_ct
+                    WHERE t.tip_calculo = '1'
+                    AND t.val_ai_d_sum_svr > 0
+                    AND t.fec_inicio >= :fecha_inicio
+                    AND t.fec_inicio <= :fecha_fin
+                    AND c.ind_balance = true     -- ← filtro real
+                    ORDER BY t.id_ct DESC;
+                ";
+                    $params = ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+                } else {
+                    // Consulta sin fechas (sin suma y agregaciones)
+                    $query = "
+                    SELECT 
+                        TO_CHAR(MAX(t.fec_inicio), 'DD/MM/YYYY') AS fecha, 
+                        SUM(t.val_ai_d_sum_cnt) AS energia_consumida, 
+                        SUM(t.val_ae_d_sum_cnt) AS energia_autoconsumos, 
+                        SUM(t.val_ai_d_sum_svr) AS energia_red,
+                        SUM(t.num_contadores_d) AS nro_contadores,
+                        SUM(t.val_ai_d_sum_svr + t.val_ae_d_sum_cnt) AS generacion, 
+                        SUM(t.val_ai_d_sum_svr + t.val_ae_d_sum_cnt - t.val_ai_d_sum_cnt) AS perdida, 
+                        ROUND(
+                            100 - 
+                            (SUM(t.val_ai_d_sum_cnt) * 100.0) / SUM(t.val_ai_d_sum_svr + t.val_ae_d_sum_cnt),
+                            1
+                        ) AS porcentaje_perdida
+                    FROM core.t_balances_diarios t
+                    JOIN core.t_ct c 
+                        ON t.id_ct = c.id_ct
+                    WHERE t.tip_calculo = '1'
+                    AND t.val_ai_d_sum_svr > 0
+                    AND t.fec_inicio >= (SELECT MAX(fec_inicio) FROM core.t_balances_diarios)
+                    AND c.ind_balance = true;
+
+                ";
+                }
+
+                $balancesAllCt = DB::connection($connection)->select($query, $params);
+
+                return $balancesAllCt ?: [];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
 
 
     public function consultaVeintiSiete($id_ct, $connection, Request $request) //grafico

@@ -1110,22 +1110,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                                         </div>
                                                         <div
                                                             class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                                             <div style="text-align: center; color: white;">
                                                                 <div
                                                                     style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
@@ -1157,41 +1141,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                     =
                                                                 </div>
                                                             </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                                         </div>
                                                         <div
                                                             class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                                             <div style="text-align: center; color: white;">
                                                                 <div
                                                                     style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
@@ -1516,56 +1468,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                             <div class="card text-white  mb-2"
                                                 style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                                 <h1 class="text-center text-2xl m-2">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                                     <p class="ml-2">
                                                         <span id="info" class="popover-trigger">
                                                             PÉRDIDAS
-
-
                                                             <span class="popover-content">
-
-
-
-
-
-
-
-
                                                                 <svg class="circle-icon" height="20"
                                                                     width="16" xmlns="http://www.w3.org/2000/svg">
                                                                     <circle r="8" cx="8" cy="8"
@@ -1573,42 +1479,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 </svg>
                                                                 Pérdidas menores al 8%. <br><br>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                                                 <svg class="circle-icon" height="20"
                                                                     width="16" xmlns="http://www.w3.org/2000/svg">
                                                                     <circle r="8" cx="8" cy="8"
                                                                         fill="orange" />
                                                                 </svg>
                                                                 Pérdidas entre 8% y 15%.<br><br>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
                                                                 <svg class="circle-icon" height="20"
                                                                     width="16" xmlns="http://www.w3.org/2000/svg">
@@ -1623,25 +1499,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 </h1>
                                                 <div class="overflow-x-auto">
                                                     {{-- CONTENIDO AQUI --}}
-
-
-
-
-
-
-
-
                                                     <div class="container">
                                                         <div class="table-responsive w-full"
                                                             style="display: flex; justify-content: center;">
-
-
-
-
-
-
-
-
                                                             @if (count($resultadosQ27) > 0)
                                                                 <div
                                                                     style="position: relative; height: 40vh; width: 80vw; overflow: hidden;">
@@ -1661,44 +1521,16 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             var labels_fecha = [];
                                                             var values_perdidas = [];
 
-
-
-
-
-
-
-
                                                             @foreach ($resultadosQ27 as $resultado)
                                                                 // Agregar la fecha y hora como etiquetas del eje x
                                                                 var dateTime = '{{ $resultado->fecha_inicio }}';
                                                                 labels_fecha.push(dateTime);
 
-
-
-
-
-
-
-
                                                                 // Agregar el valor de 'porcentaje_perdida' como valor del eje y
                                                                 values_perdidas.push({{ $resultado->porcentaje_perdida }});
                                                             @endforeach
 
-
-
-
-
-
-
-
                                                             var myChartLineVoltaje2;
-
-
-
-
-
-
-
 
                                                             // Actualizar el gráfico con las etiquetas filtradas
                                                             function updateChartLinePerdidas(data) {
@@ -1753,13 +1585,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         options: {
                                                                             responsive: true,
                                                                             maintainAspectRatio: false,
-
-
-
-
-
-
-
 
                                                                             plugins: {
                                                                                 legend: {
@@ -1835,35 +1660,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 }
                                                             }
 
-
-
-
-
-
-
-
                                                             updateChartLinePerdidas({
                                                                 labels_fecha: labels_fecha,
                                                                 values_perdidas: values_perdidas
                                                             });
                                                         </script>
 
-
-
-
-
-
-
-
                                                     </div>
-
-
-
-
-
-
-
-
                                                 </div>
                                             </div>
                                         </div>
@@ -1871,10 +1674,232 @@ document.addEventListener("DOMContentLoaded", function () {
                                 @endforeach
                             </div>
                         @endif
+                    @else
+                        
+                        <div class="container">
+                            {{-- FILTRO AQUI --}}
+                            <form action="{{ route('balances', ['id_ct' => $id_ct]) }}" method="GET"
+                                class="flex flex-col sm:flex-row items-center justify-start space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4 mt-4 mr-2">
+                                <input type="hidden" name="id_ct" value="{{ $id_ct }}">
+                                <div class="form-group">
+                                    <label for="fecha_inicio" class="text-white">Fecha de
+                                        inicio:</label>
+                                    <input type="date" id="fecha_inicio" name="fecha_inicio"
+                                        class="border border-gray-400 p-2 rounded-lg text-white"
+                                        @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
+                                        max="{{ date('Y-m-d') }}" style="background-color: transparent;">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fecha_fin" class="text-white">Fecha de
+                                        fin:</label>
+                                    <input type="date" id="fecha_fin" name="fecha_fin"
+                                        class="border border-slate-900 p-2 rounded-lg text-white"
+                                        @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
+                                        max="{{ date('Y-m-d') }}" style="background-color: transparent;">
+                                </div>
+                                <button type="submit" class="btn btn-outline-info ml-2 mb-0 text-white"
+                                    style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                    onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                    onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Filtrar</button>
+                            </form>
+
+
+                            <div
+                                class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                <div class="card text-white  mb-2"
+                                    style="
+                                    background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                    <h1 class="text-center text-3xl w-full" style="color: white;">
+                                        @if (request()->query('fecha_inicio') && request()->query('fecha_fin'))
+                                            Del
+                                            {{ \Carbon\Carbon::parse(request()->query('fecha_inicio'))->format('d/m/Y') }}
+                                            al
+                                            {{ \Carbon\Carbon::parse(request()->query('fecha_fin'))->format('d/m/Y') }}
+                                        @else
+                                            {{ !empty($resultadosQ26[0]->fecha) ? $resultadosQ26[0]->fecha : 'No hay datos' }}
+                                        @endif
+                                    </h1>
+                                    <div class="mb-2 mt-2"
+                                        style="border-bottom: 3px solid transparent;
+                                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                    </div>
+                                    <div class="overflow-x-auto flex flex-wrap  "
+                                        style="display: flex; flex-wrap: nowrap; justify-content: space-around;">
+                                        @foreach ($balancesAllCt as $resultado)
+                                            <div
+                                                class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                <div style="text-align: center; color: white;">
+                                                    <div
+                                                        style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
+                                                        ENERGÍA
+                                                        GENERADA
+                                                    </div>
+                                                    <div
+                                                        style="display: inline-block; position: relative;">
+                                                        <div
+                                                            style="border-radius: 50%; border: 2px solid #296fd1; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                width="50" height="50"
+                                                                viewBox="0 0 24 24"
+                                                                style="fill: white; margin: auto; transform: translateY(30px);">
+                                                                <path
+                                                                    d="m8.28 5.45l-1.78-.9L7.76 2h8.47l1.27 2.55l-1.78.89L15 4H9zM18.62 8h-4.53l-.79-3h-2.6l-.79 3H5.38L4.1 10.55l1.79.89l.73-1.44h10.76l.72 1.45l1.79-.89zm-.85 14H15.7l-.24-.9L12 15.9l-3.47 5.2l-.23.9H6.23l2.89-11h2.07l-.36 1.35L12 14.1l1.16-1.75l-.35-1.35h2.07zm-6.37-7l-.9-1.35l-1.18 4.48zm3.28 3.12l-1.18-4.48l-.9 1.36z" />
+                                                            </svg>
+                                                            <span
+                                                                style="margin-top: 15px; font-size:16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                                {{ !empty($resultado->energia_red) ? $resultado->energia_red : '0' }}
+                                                                kWh
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px; left:40px">
+                                                        +
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div
+                                                class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                <div style="text-align: center; color: white;">
+                                                    <div
+                                                        style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
+                                                        AUTOCONSUMOS
+                                                    </div>
+                                                    <div
+                                                        style="display: inline-block; position: relative;">
+                                                        <div
+                                                            style="border-radius: 50%; border: 2px solid #ffdd33; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+                                                            <svg xmlns="http://www.w3.org/2000/svg"
+                                                                width="50" height="50"
+                                                                viewBox="0 0 256 256"
+                                                                style="fill: white; margin: auto; transform: translateY(30px);">
+                                                                <g fill="#ffffff">
+                                                                    <path d="M232 216H24l40.7-72h126.6Z"
+                                                                        opacity=".2" />
+                                                                    <path
+                                                                        d="M32 104a8 8 0 0 1 8-8h16a8 8 0 0 1 0 16H40a8 8 0 0 1-8-8m39.43-45.25a8 8 0 0 0 11.32-11.32L71.43 36.12a8 8 0 0 0-11.31 11.31ZM128 40a8 8 0 0 0 8-8V16a8 8 0 0 0-16 0v16a8 8 0 0 0 8 8m50.91 21.09a8 8 0 0 0 5.66-2.34l11.31-11.32a8 8 0 0 0-11.31-11.31l-11.32 11.31a8 8 0 0 0 5.66 13.66M192 104a8 8 0 0 0 8 8h16a8 8 0 0 0 0-16h-16a8 8 0 0 0-8 8m-104 8a8 8 0 0 0 8-8a32 32 0 0 1 64 0a8 8 0 0 0 16 0a48 48 0 0 0-96 0a8 8 0 0 0 8 8m150.91 108a8 8 0 0 1-6.91 4H24a8 8 0 0 1-7-11.94l40.69-72a8 8 0 0 1 7-4.06H191.3a8 8 0 0 1 7 4.06l40.69 72a8 8 0 0 1-.08 7.94m-52.27-68h-24.37l3.48 16h29.93Zm-37.26 16l-3.48-16h-35.8l-3.48 16Zm-46.24 16l-5.21 24h60.14l-5.21-24Zm-42.82-16h29.93l3.48-16H69.36Zm-22.61 40h43.84l5.22-24H51.28Zm180.58 0l-13.57-24h-35.49l5.22 24Z" />
+                                                                </g>
+                                                            </svg>
+                                                            <span
+                                                                style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                                {{ !empty($resultado->energia_autoconsumos) ? $resultado->energia_autoconsumos : '0' }}
+                                                                kWh</span>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
+                                                        =
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div
+                                                class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                <div style="text-align: center; color: white;">
+                                                    <div
+                                                        style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
+                                                        TOTAL
+                                                        GENERACIÓN</div>
+                                                        <div
+                                                            style="display: inline-block; position: relative;">
+                                                            <div
+                                                                style="border-radius: 50%; border: 2px solid #FF33FF; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+                                                                <svg xmlns="http://www.w3.org/2000/svg"
+                                                                    width="50" height="50"
+                                                                    viewBox="0 0 24 24"
+                                                                    style="fill: white; margin: auto; transform: translateY(30px);">
+                                                                    <path fill="#ffffff"
+                                                                        d="M11 9.47V11h3.76L13 14.53V13H9.24zM13 1L6 15h5v8l7-14h-5z" />
+                                                                </svg>
+                                                                <span
+                                                                    style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                                    {{ !empty($resultado->generacion) ? $resultado->generacion : '0' }}
+                                                                    kWh</span>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
+                                                            -
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                    <div style="text-align: center; color: white;">
+                                                        <div
+                                                            style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
+                                                            ENERGÍA
+                                                            CONSUMIDA</div>
+                                                            <div
+                                                                style="display: inline-block; position: relative;">
+                                                                <div
+                                                                    style="border-radius: 50%; border: 2px solid rgb(88,226,194); width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        width="50" height="50"
+                                                                        viewBox="0 0 24 24"
+                                                                        style="fill: white; margin: auto; transform: translateY(30px);">
+                                                                        <path fill="#ffffff"
+                                                                            d="M12 3L2 12h3v8h14v-8h3zm-.5 15v-4H9l3.5-7v4H15z" />
+                                                                    </svg>
+                                                                    <span
+                                                                        style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                                        {{ !empty($resultado->energia_consumida) ? $resultado->energia_consumida : '0' }}
+                                                                        kWh</span>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
+                                                                =
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                        <div style="text-align: center; color: white;">
+                                                            <div
+                                                                style="font-size: 18px; margin-bottom: 10px; margin-right: 30px ">
+                                                                PÉRDIDAS
+                                                            </div>
+                                                            <div
+                                                                style="display: inline-block; position: relative;">
+                                                                <div
+                                                                    style="border-radius: 50%; border: 2px solid rgb(248,73,90); width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        width="50" height="50"
+                                                                        viewBox="0 0 20 20"
+                                                                        style="fill: white; margin: auto; transform: translateY(30px);">
+                                                                        <path fill="#ffffff"
+                                                                            d="M17.943 14.537a.8.8 0 0 1-.161.242l-.002.001l-.001.002a.75.75 0 0 1-.529.218h-5.5a.75.75 0 0 1 0-1.5h3.69L10.5 8.56l-1.97 1.97a.75.75 0 0 1-1.06 0L2.22 5.28a.75.75 0 0 1 1.06-1.06L8 8.94l1.97-1.97a.75.75 0 0 1 1.06 0l5.47 5.47V8.75a.75.75 0 0 1 1.5 0v5.5q0 .154-.057.287" />
+                                                                    </svg>
+                                                                    <span
+                                                                        style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-35%, -35%); text-align: center;">
+                                                                        {{ !empty($resultado->porcentaje_perdida) ? $resultado->porcentaje_perdida : '0' }}%
+                                                                    </span>
+                                                                    <span
+                                                                        style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                                                        {{ !empty($resultado->perdida) ? $resultado->perdida : '0' }}
+                                                                        kWh
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            <div
+                                                                style="color: rgba(255, 255, 255, 0); font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
+                                                                =
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
-        </div>{{--  FIN CUERPO --}}
+        </div>
     </div>
 </body>
 
