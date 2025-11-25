@@ -2318,7 +2318,7 @@ public function exportCurvasCuartihorarias(Request $request)
             $resultadosQ27pf = DB::connection($connectionpf)->select("
                  SELECT 
                     DATE_FORMAT(t_dat_iec870_monthly_billing.pot_max_fh, '%m/%Y') AS Fecha,
-                    FORMAT(AVG(t_dat_iec870_monthly_billing.pot_max), 2) AS Maximetros
+                    FORMAT(t_dat_iec870_monthly_billing.pot_max), 2) AS Maximetros
                 FROM 
                     t_dat_iec870_monthly_billing
                 INNER JOIN 

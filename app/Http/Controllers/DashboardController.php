@@ -131,6 +131,37 @@ class DashboardController extends Controller
         return view('contacto', []);
     }
 
+    public function statsCtModal() {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin');
+        } else {
+            $resultadosQ9dashboard = $this->consultaNueveDashboard($connection);
+
+            return view('components.stats-ct', compact('resultadosQ9dashboard'));
+        }
+    }
+
+    public function recuperacionLecturasModal() {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
+            return view('admin');
+        } else {
+            $resultadosQ12dashboard = $this->consultaDoceDashboard($connection);
+            $resultadosQ10dashboard = $this->consultaDiezDashboard($connection);
+            
+            return view('components.recuperacion-lecturas', [
+                'resultadosQ12dashboard' => $resultadosQ12dashboard,
+                'resultadosQ10dashboard' => $resultadosQ10dashboard,
+            ]);
+        }
+    }
+
+
     //CONSULTAS para DASHBOARD CT--------------------------
 
     public function consultaUnoDashboard($connection) //consulta 50 del documento
