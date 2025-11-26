@@ -5445,6 +5445,117 @@ class ctController extends Controller
         }
     }
 
+    public function getDashboardInfo(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('t_ct')) {
+                $query = "
+                    WITH trafos_por_ct AS (
+                        SELECT 
+                            c.id_ct,
+                            COUNT(DISTINCT t.id_trafo) AS nro_trafos,
+                            SUM(t.val_kva) AS capacidad_kva,
+                            AVG(t.val_kva) AS val_kva_promedio
+                        FROM core.t_concentradores c
+                        JOIN core.t_trafos t ON t.id_cnc = c.id_cnc
+                        GROUP BY c.id_ct
+                    ),
+                    lineas_por_ct AS (
+                        SELECT id_ct,
+                            COUNT(DISTINCT id_linea) AS nro_lineas
+                        FROM core.t_lineas
+                        GROUP BY id_ct
+                    ),
+                    cups_por_ct AS (
+                        SELECT id_ct,
+                            COUNT(DISTINCT id_cups) AS nro_cups
+                        FROM core.t_cups
+                        GROUP BY id_ct
+                    ),
+                    voltajes_por_ct AS (
+                        SELECT 
+                            c.id_ct,
+                            AVG(((sv.val_kva_t)/1000)*100) AS val_kva_t_prom
+                        FROM core.t_concentradores c
+                        JOIN core.t_supervisores_voltajes sv ON sv.id_cnc = c.id_cnc
+                        GROUP BY c.id_ct
+                    ),
+                    balance_ct AS (
+                        SELECT
+                            id_ct,
+                            (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) AS perdida,
+                            ROUND((100 - (val_ai_d_sum_cnt * 100.0) / (val_ai_d_sum_svr + val_ae_d_sum_cnt)), 1) AS porcentaje_perdida
+                        FROM core.t_balances_diarios
+                        WHERE tip_calculo = 1
+                        AND val_ai_d_sum_svr > 0
+                        AND fec_inicio = (
+                                SELECT MAX(fec_inicio)
+                                FROM core.t_balances_diarios b2
+                                WHERE b2.id_ct = core.t_balances_diarios.id_ct
+                                AND b2.tip_calculo = 1
+                        )
+                    ),
+                    desbalance_ct AS (
+                        SELECT 
+                            tc.id_ct,
+                            ROUND(AVG(tsv.pct_deseq_voltaje)::numeric, 2) AS avg_pct_deseq_voltaje,
+                            ROUND(AVG(tsv.pct_deseq_corriente)::numeric, 2) AS avg_pct_deseq_corriente
+                        FROM core.t_supervisores_voltajes tsv
+                        JOIN core.t_concentradores tc ON tsv.id_cnc = tc.id_cnc
+                        WHERE tsv.fec_registro >= (
+                                (SELECT MAX(fec_registro) FROM core.t_supervisores_voltajes) - INTERVAL '48 hours'
+                            )
+                        GROUP BY tc.id_ct
+                    ),
+                    prom_voltajes_ct AS (
+                        SELECT
+                            tc.id_ct,
+                            CEIL(AVG(tsv.val_voltaje_1)) AS prom_volt1,
+                            CEIL(AVG(tsv.val_voltaje_2)) AS prom_volt2,
+                            CEIL(AVG(tsv.val_voltaje_3)) AS prom_volt3
+                        FROM core.t_supervisores_voltajes tsv
+                        JOIN core.t_concentradores tc ON tsv.id_cnc = tc.id_cnc
+                        WHERE tsv.fec_registro >= (
+                                (SELECT MAX(fec_registro) FROM core.t_supervisores_voltajes) - INTERVAL '48 hours'
+                            )
+                        GROUP BY tc.id_ct
+                    )
+                    SELECT
+                        ct.id_ct,
+                        ct.nom_ct AS nombre_ct,
+                        COALESCE(t.nro_trafos,0) AS nro_trafos,
+                        COALESCE(t.capacidad_kva,0) AS capacidad_kva,
+                        COALESCE(l.nro_lineas,0) AS nro_lineas,
+                        COALESCE(c.nro_cups,0) AS nro_cups,
+                        COALESCE(v.val_kva_t_prom / t.val_kva_promedio,0) AS cap_instalada,
+                        COALESCE(b.perdida,0) AS perdida,
+                        COALESCE(b.porcentaje_perdida,0) AS porcentaje_perdida,
+                        COALESCE(d.avg_pct_deseq_voltaje, 0) AS avg_pct_deseq_voltaje,
+                        COALESCE(d.avg_pct_deseq_corriente, 0) AS avg_pct_deseq_corriente,
+                        COALESCE(p.prom_volt1, 0) AS prom_volt1,
+                        COALESCE(p.prom_volt2, 0) AS prom_volt2,
+                        COALESCE(p.prom_volt3, 0) AS prom_volt3
+                    FROM core.t_ct ct
+                    LEFT JOIN trafos_por_ct t ON t.id_ct = ct.id_ct
+                    LEFT JOIN lineas_por_ct l ON l.id_ct = ct.id_ct
+                    LEFT JOIN cups_por_ct c ON c.id_ct = ct.id_ct
+                    LEFT JOIN voltajes_por_ct v ON v.id_ct = ct.id_ct
+                    LEFT JOIN balance_ct b ON b.id_ct = ct.id_ct
+                    LEFT JOIN desbalance_ct d ON d.id_ct = ct.id_ct
+                    LEFT JOIN prom_voltajes_ct p ON p.id_ct = ct.id_ct
+                    ORDER BY ct.nom_ct;
+                ";
+
+                $dashboardInfo = DB::connection($connection)->select($query);
+
+                return $dashboardInfo ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
 
 
 

@@ -406,6 +406,41 @@
         }
     </script>
     <script>
+        function tableToExcel2(tableID, worksheetName) {
+            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
+            var data = "<table border='1'>";
+            for (var i = 0; i < table.rows.length; i++) {
+                var rowData = [];
+                for (var j = 0; j < table.rows[i].cells.length; j++) {
+                    rowData.push(table.rows[i].cells[j].innerText);
+                }
+                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
+            }
+            data += "</table>"; // Convertir a formato Excel y descargar
+            var uri = 'data:application/vnd.ms-excel;base64,';
+            var template =
+                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
+            var base64 = function(s) {
+                return window.btoa(unescape(encodeURIComponent(s)))
+            };
+            var format = function(s, c) {
+                return s.replace(/{(\w+)}/g, function(m, p) {
+                    return c[p];
+                })
+            };
+            var excelData = format(template, {
+                worksheet: worksheetName,
+                table: data
+            }); // Crear un enlace temporal y descargar el archivo Excel
+            var link = document.createElement("a");
+            link.href = uri + base64(excelData);
+            link.download = "info_dashboard_ct.xls";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+    <script>
         function openModalEstadisticasCt() {
             document.getElementById('modalEstadisticasCt').classList.remove('hidden');
 
@@ -719,15 +754,150 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="flex justify-around items-center mx-0 m-2 text-white">
-                                                    <button onclick="openModalEstadisticasCt()">Estadisticas CT</button>
-                                                    <button onclick="openModalRecuperacionLecturasCt()">Recuperacion</button>
+                                            <div class="flex justify-around items-center mx-0 m-2 text-white pt-2">
+                                                    <button onclick="openModalEstadisticasCt()" title="Estadísticas CT">
+                                                        <img src="/images/ctstats.png" alt="Estadísticas CT" class="w-10 h-10"></button>
+                                                    <button onclick="openModalRecuperacionLecturasCt()">
+                                                        <img src="/images/recuperacion.png" alt="" class="w-10 h-10">
+                                                    </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div> 
+                        </div>
+
+                        {{-- 1º cuadro --}}
+                        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
+                            <div class="card text-white  mb-2"
+                                style="
+                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                <h1 class="text-center text-2xl" style="color: white;">
+                                    ESTADÍSTICAS POR C.T
+                                </h1>
+                                <div
+                                    style="border-bottom: 3px solid transparent;
+                                                    border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                </div>
+                                <div class="container">
+                                    @if (count($dashboardInfo) > 0)
+                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                            style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
+                                            <table id="testTableInfoDashboardCt" class="w-full text-white text-center">
+                                                <thead style="border-bottom: 1px solid #ffffff;">
+                                                    <tr>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            NOMBRE CT</th>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Numero Trafos</th>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Capacidad (Kva) </th>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Numero Lineas </th>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            % Uso </th>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Perdida </th>
+                                                        <th class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Porcentaje Perdida </th>
+                                                        <th class="mt-0  text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Desequilibrio Voltaje</th>
+                                                        <th class="mt-0  text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Desequilibrio Corriente</th>
+                                                        <th class="mt-0  text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Promedio Fase R</th>
+                                                        <th class="mt-0  text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Promedio Fase S</th>
+                                                        <th class="mt-0  text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px">
+                                                            Promedio Fase T</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    @foreach ($dashboardInfo as $resultado)
+                                                    <tr class="highlight-row">
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->nombre_ct) ? $resultado->nombre_ct : 'No hay datos' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->nro_trafos) ? $resultado->nro_trafos : '0' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->capacidad_kva) ? $resultado->capacidad_kva : '0' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->nro_lineas) ? $resultado->nro_lineas : '0' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->perdida) ? $resultado->perdida : '0' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->porcentaje_perdida) ? $resultado->porcentaje_perdida : '0' }} %
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->avg_pct_deseq_voltaje) ? $resultado->avg_pct_deseq_voltaje : '0' }} %
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->avg_pct_deseq_corriente) ? $resultado->avg_pct_deseq_corriente : '0' }} %
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->prom_volt1) ? $resultado->prom_volt1 : '0' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->prom_volt2) ? $resultado->prom_volt2 : '0' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ !empty($resultado->prom_volt3) ? $resultado->prom_volt3 : '0' }}
+                                                        </td>
+                                                    </tr>
+                                                    @endforeach
+                                                </tbody>
+
+                                            </table>
+                                        </div>
+                                    @else
+                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                            <p class="mt-0 text-xl  text-center" style="color:rgb(88,226,194)">No
+                                                hay
+                                                datos
+                                            </p>
+                                        </div>
+                                    @endif
+                                    <!-- Contenedor del botón de descarga -->
+                                    <div class="text-right mt-4">
+                                        <input type="button"
+                                            onclick="tableToExcel2('testTableInfoDashboardCt', 'W3C Example Table')"
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>                         
                     </div>
                 </div>
             </div>
