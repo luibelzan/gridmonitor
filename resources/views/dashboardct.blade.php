@@ -345,6 +345,21 @@
 
 
         }
+
+        .sort-arrow {
+            margin-left: 6px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .sort-arrow.asc::before {
+            content: "▲"; /* Flecha ascendente */
+        }
+
+        .sort-arrow.desc::before {
+            content: "▼"; /* Flecha descendente */
+        }
+
     </style>
     <script>
         function tableToExcel(tableID, worksheetName) {
@@ -488,41 +503,43 @@
     </script>
 
     <script>
-    function sortTable(colIndex) {
-        let table = document.getElementById("testTableInfoDashboardCt");
-        let tbody = table.tBodies[0];
-        let rows = Array.from(tbody.querySelectorAll("tr"));
+    function sortTable(colIndex, thElement) {
+        const table = document.getElementById("testTableInfoDashboardCt");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
 
-        // Verificar si ya estaba ordenado ascendentemente
-        let asc = table.getAttribute("data-sort-col") != colIndex ||
-                table.getAttribute("data-sort-order") === "desc";
-
-        rows.sort((a, b) => {
-            let cellA = a.children[colIndex].innerText.trim().replace('%','');
-            let cellB = b.children[colIndex].innerText.trim().replace('%','');
-
-            // Si son números, los parsea correctamente
-            let numA = parseFloat(cellA.replace(",", "."));
-            let numB = parseFloat(cellB.replace(",", "."));
-
-            // Comparar como número si es válido, sino como texto
-            if (!isNaN(numA) && !isNaN(numB)) {
-                return asc ? numA - numB : numB - numA;
-            } else {
-                return asc
-                    ? cellA.localeCompare(cellB)
-                    : cellB.localeCompare(cellA);
-            }
+        // Detectar dirección actual
+        let direction = thElement.getAttribute("data-sort") === "asc" ? "desc" : "asc";
+        thElement.setAttribute("data-sort", direction);
+        
+        // Resetear todas las flechas
+        document.querySelectorAll(".sort-arrow").forEach(arrow => {
+            arrow.classList.remove("asc", "desc");
         });
 
-        // Agregar las filas ordenadas al tbody
-        rows.forEach(row => tbody.appendChild(row));
+        // Activar flecha de esta columna
+        const arrow = thElement.querySelector(".sort-arrow");
+        arrow.classList.add(direction);
 
-        // Guardar estados de orden
-        table.setAttribute("data-sort-col", colIndex);
-        table.setAttribute("data-sort-order", asc ? "asc" : "desc");
+        // Ordenar filas
+        rows.sort((a, b) => {
+            let valA = a.cells[colIndex].innerText.replace('%', '').trim();
+            let valB = b.cells[colIndex].innerText.replace('%', '').trim();
+
+            // Convertir a número si aplica
+            if (!isNaN(valA) && !isNaN(valB)) {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+
+            return direction === "asc" ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+        });
+
+        // Insertar filas ordenadas
+        rows.forEach(row => tbody.appendChild(row));
     }
     </script>
+
 
 
     <title>Inicio CT</title>
@@ -796,7 +813,7 @@
                                                     <button onclick="openModalEstadisticasCt()" title="Estadísticas CT">
                                                         <img src="/images/ctstats.png" alt="Estadísticas CT" class="w-10 h-10"></button>
                                                     <button onclick="openModalRecuperacionLecturasCt()">
-                                                        <img src="/images/recuperacion.png" alt="" class="w-10 h-10">
+                                                        <img src="/images/recuperacion.png" alt="Recuperacion Lecturas" title="Recuperacion Lecturas" class="w-10 h-10">
                                                     </button>
                                             </div>
                                         </div>
@@ -825,56 +842,106 @@
                                         <table id="testTableInfoDashboardCt" class="w-full text-white text-center">
                                             <thead style="border-bottom: 1px solid #ffffff;">
                                                 <tr>
-                                                    <th onclick="sortTable(0)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(0, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        NOMBRE CT
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            NOMBRE CT
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(1)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(1, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Numero Trafos
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Numero Trafos
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(2)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(2, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Capacidad (Kva)
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Capacidad (Kva)
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(3)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(3, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Numero Lineas
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Numero Lineas
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(4)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(4, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        % Uso
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            % Uso
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(5)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(5, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Perdida
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Perdida
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(6)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(6, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Porcentaje Perdida
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Porcentaje Perdida
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(7)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(7, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Desequilibrio Voltaje
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Desequilibrio Voltaje
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(8)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(8, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Desequilibrio Corriente
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Desequilibrio Corriente
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(9)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(9, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Promedio Fase R
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Promedio Fase R
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(10)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(10, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Promedio Fase S
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Promedio Fase S
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
-                                                    <th onclick="sortTable(11)" class="mt-0 text-xl font-bold text-center" 
+
+                                                    <th onclick="sortTable(11, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
-                                                        Promedio Fase T
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Promedio Fase T
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
                                                     </th>
+
                                                 </tr>
                                             </thead>
+
 
                                             <tbody>
                                                 @foreach ($dashboardInfo as $resultado)
@@ -883,14 +950,45 @@
                                                         <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->capacidad_kva ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->nro_lineas ?? '0' }}</td>
-                                                        <td class="py-2">{{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %</td>
+                                                        <td class="py-2"
+                                                            style="color: {{ (!empty($resultado->cap_instalada) ? $resultado->cap_instalada : 0) <= 80 ? 'rgb(76,218,19)' : 'red' }};">
+                                                            {{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %
+                                                        </td>
+
                                                         <td class="py-2">{{ $resultado->perdida ?? '0' }}</td>
-                                                        <td class="py-2">{{ $resultado->porcentaje_perdida ?? '0' }} %</td>
-                                                        <td class="py-2">{{ $resultado->avg_pct_deseq_voltaje ?? '0' }} %</td>
-                                                        <td class="py-2">{{ $resultado->avg_pct_deseq_corriente ?? '0' }} %</td>
-                                                        <td class="py-2">{{ $resultado->prom_volt1 ?? '0' }}</td>
-                                                        <td class="py-2">{{ $resultado->prom_volt2 ?? '0' }}</td>
-                                                        <td class="py-2">{{ $resultado->prom_volt3 ?? '0' }}</td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->porcentaje_perdida ?? 0) <= 6 ? 'rgb(76,218,19)' : 
+                                                                (($resultado->porcentaje_perdida ?? 0) <= 15 ? 'yellow' : 'red') }};">
+                                                            {{ $resultado->porcentaje_perdida ?? '0' }} %
+                                                        </td>
+
+                                                        <td class="py-2"
+                                                            style="color: {{ ($resultado->avg_pct_deseq_voltaje ?? 0) <= 3 ? 'rgb(76,218,19)' : 'red' }};">
+                                                            {{ $resultado->avg_pct_deseq_voltaje ?? '0' }} %
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: {{ ($resultado->avg_pct_deseq_corriente ?? 0) <= 30 ? 'rgb(76,218,19)' : 'red' }};">
+                                                            {{ $resultado->avg_pct_deseq_corriente ?? '0' }} %
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->prom_volt1 ?? 0) <= 218 ? 'yellow' : 
+                                                                (($resultado->prom_volt1 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
+                                                            {{ $resultado->prom_volt1 ?? '0' }}
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->prom_volt2 ?? 0) <= 218 ? 'yellow' : 
+                                                                (($resultado->prom_volt2 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
+                                                            {{ $resultado->prom_volt2 ?? '0' }}
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->prom_volt3 ?? 0) <= 218 ? 'yellow' : 
+                                                                (($resultado->prom_volt3 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
+                                                            {{ $resultado->prom_volt3 ?? '0' }}
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
