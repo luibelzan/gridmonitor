@@ -487,6 +487,44 @@
 
     </script>
 
+    <script>
+    function sortTable(colIndex) {
+        let table = document.getElementById("testTableInfoDashboardCt");
+        let tbody = table.tBodies[0];
+        let rows = Array.from(tbody.querySelectorAll("tr"));
+
+        // Verificar si ya estaba ordenado ascendentemente
+        let asc = table.getAttribute("data-sort-col") != colIndex ||
+                table.getAttribute("data-sort-order") === "desc";
+
+        rows.sort((a, b) => {
+            let cellA = a.children[colIndex].innerText.trim().replace('%','');
+            let cellB = b.children[colIndex].innerText.trim().replace('%','');
+
+            // Si son números, los parsea correctamente
+            let numA = parseFloat(cellA.replace(",", "."));
+            let numB = parseFloat(cellB.replace(",", "."));
+
+            // Comparar como número si es válido, sino como texto
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return asc ? numA - numB : numB - numA;
+            } else {
+                return asc
+                    ? cellA.localeCompare(cellB)
+                    : cellB.localeCompare(cellA);
+            }
+        });
+
+        // Agregar las filas ordenadas al tbody
+        rows.forEach(row => tbody.appendChild(row));
+
+        // Guardar estados de orden
+        table.setAttribute("data-sort-col", colIndex);
+        table.setAttribute("data-sort-order", asc ? "asc" : "desc");
+    }
+    </script>
+
+
     <title>Inicio CT</title>
 </head>
 
@@ -780,121 +818,97 @@
                                                     border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                 </div>
                                 <div class="container">
-                                    @if (count($dashboardInfo) > 0)
-                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
-                                            style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
-                                            <table id="testTableInfoDashboardCt" class="w-full text-white text-center">
-                                                <thead style="border-bottom: 1px solid #ffffff;">
-                                                    <tr>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            NOMBRE CT</th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Numero Trafos</th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Capacidad (Kva) </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Numero Lineas </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % Uso </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Perdida </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Porcentaje Perdida </th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Desequilibrio Voltaje</th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Desequilibrio Corriente</th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Promedio Fase R</th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Promedio Fase S</th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            Promedio Fase T</th>
-                                                    </tr>
-                                                </thead>
+                                @if (count($dashboardInfo) > 0)
+                                    <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
+                                        style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
 
-                                                <tbody>
-                                                    @foreach ($dashboardInfo as $resultado)
+                                        <table id="testTableInfoDashboardCt" class="w-full text-white text-center">
+                                            <thead style="border-bottom: 1px solid #ffffff;">
+                                                <tr>
+                                                    <th onclick="sortTable(0)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        NOMBRE CT
+                                                    </th>
+                                                    <th onclick="sortTable(1)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Numero Trafos
+                                                    </th>
+                                                    <th onclick="sortTable(2)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Capacidad (Kva)
+                                                    </th>
+                                                    <th onclick="sortTable(3)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Numero Lineas
+                                                    </th>
+                                                    <th onclick="sortTable(4)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        % Uso
+                                                    </th>
+                                                    <th onclick="sortTable(5)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Perdida
+                                                    </th>
+                                                    <th onclick="sortTable(6)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Porcentaje Perdida
+                                                    </th>
+                                                    <th onclick="sortTable(7)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Desequilibrio Voltaje
+                                                    </th>
+                                                    <th onclick="sortTable(8)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Desequilibrio Corriente
+                                                    </th>
+                                                    <th onclick="sortTable(9)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Promedio Fase R
+                                                    </th>
+                                                    <th onclick="sortTable(10)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Promedio Fase S
+                                                    </th>
+                                                    <th onclick="sortTable(11)" class="mt-0 text-xl font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        Promedio Fase T
+                                                    </th>
+                                                </tr>
+                                            </thead>
+
+                                            <tbody>
+                                                @foreach ($dashboardInfo as $resultado)
                                                     <tr class="highlight-row">
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->nombre_ct) ? $resultado->nombre_ct : 'No hay datos' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->nro_trafos) ? $resultado->nro_trafos : '0' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->capacidad_kva) ? $resultado->capacidad_kva : '0' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->nro_lineas) ? $resultado->nro_lineas : '0' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->perdida) ? $resultado->perdida : '0' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->porcentaje_perdida) ? $resultado->porcentaje_perdida : '0' }} %
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->avg_pct_deseq_voltaje) ? $resultado->avg_pct_deseq_voltaje : '0' }} %
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->avg_pct_deseq_corriente) ? $resultado->avg_pct_deseq_corriente : '0' }} %
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->prom_volt1) ? $resultado->prom_volt1 : '0' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->prom_volt2) ? $resultado->prom_volt2 : '0' }}
-                                                        </td>
-
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->prom_volt3) ? $resultado->prom_volt3 : '0' }}
-                                                        </td>
+                                                        <td class="py-2">{{ $resultado->nombre_ct ?? 'No hay datos' }}</td>
+                                                        <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->capacidad_kva ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->nro_lineas ?? '0' }}</td>
+                                                        <td class="py-2">{{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %</td>
+                                                        <td class="py-2">{{ $resultado->perdida ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->porcentaje_perdida ?? '0' }} %</td>
+                                                        <td class="py-2">{{ $resultado->avg_pct_deseq_voltaje ?? '0' }} %</td>
+                                                        <td class="py-2">{{ $resultado->avg_pct_deseq_corriente ?? '0' }} %</td>
+                                                        <td class="py-2">{{ $resultado->prom_volt1 ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->prom_volt2 ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->prom_volt3 ?? '0' }}</td>
                                                     </tr>
-                                                    @endforeach
-                                                </tbody>
+                                                @endforeach
+                                            </tbody>
 
-                                            </table>
-                                        </div>
-                                    @else
-                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
-                                            <p class="mt-0 text-xl  text-center" style="color:rgb(88,226,194)">No
-                                                hay
-                                                datos
-                                            </p>
-                                        </div>
-                                    @endif
-                                    <!-- Contenedor del botón de descarga -->
-                                    <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="tableToExcel2('testTableInfoDashboardCt', 'W3C Example Table')"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                        </table>
                                     </div>
+                                @else
+                                    <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                        <p class="mt-0 text-xl text-center" style="color:rgb(88,226,194)">
+                                            No hay datos
+                                        </p>
+                                    </div>
+                                @endif
+
+                                <div class="text-right mt-4">
+                                    <input type="button"
+                                        onclick="tableToExcel2('testTableInfoDashboardCt', 'W3C Example Table')"
+                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
                                 </div>
                             </div>
                         </div>                         
