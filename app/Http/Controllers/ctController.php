@@ -1583,45 +1583,30 @@ class ctController extends Controller
                 Schema::connection($connection)->hasTable('t_ct')
             ) {
 
-
-
-
-
-
-
-
                 $resultadosQ18 = DB::connection($connection)
                     ->select("
                         SELECT
                             date_trunc('month', fec_registro) AS mes,
-                            avg(((t_supervisores_voltajes.val_kva_t)/1000)*100)/ avg(t_trafos.val_kva) AS cap_instalada,
-                            t_ct.id_ct, val_kva
+                            AVG((t_supervisores_voltajes.val_kva_t / 1000) * 100) / AVG(t_trafos.val_kva) AS cap_instalada,
+                            t_ct.id_ct,
+                            val_kva
                         FROM
-                            core.t_supervisores_voltajes,
-                            core.t_trafos,
-                            core.t_concentradores,
-                            core.t_ct
+                            core.t_supervisores_voltajes
+                        JOIN
+                            core.t_trafos ON t_supervisores_voltajes.id_svr = t_trafos.id_svr
+                        JOIN
+                            core.t_concentradores ON t_concentradores.id_cnc = t_trafos.id_cnc
+                        JOIN
+                            core.t_ct ON t_ct.id_ct = t_concentradores.id_ct
                         WHERE
-                            t_supervisores_voltajes.id_svr = t_trafos.id_svr
-                        AND
-                            t_concentradores.id_cnc = t_trafos.id_cnc
-                        AND
-                            t_ct.id_ct = t_concentradores.id_ct
-                        AND
                             t_ct.id_ct = :id_ct
+                            AND fec_registro >= NOW() - INTERVAL '48 hours'
                         GROUP BY
                             1, t_ct.id_ct, val_kva
                         ORDER BY
                             1 DESC
                         LIMIT 1;
                     ", ['id_ct' => $id_ct]);
-
-
-
-
-
-
-
 
                 return $resultadosQ18 ?: ['message' => 'No hay datos'];
             } else {
