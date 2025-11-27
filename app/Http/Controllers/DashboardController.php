@@ -133,7 +133,8 @@ class DashboardController extends Controller
         return view('contacto', []);
     }
 
-    public function statsCtModal() {
+    public function statsCtModal()
+    {
         $connection = User::conexion();
 
         if ($connection == 'pgsql') {
@@ -146,7 +147,8 @@ class DashboardController extends Controller
         }
     }
 
-    public function recuperacionLecturasModal() {
+    public function recuperacionLecturasModal()
+    {
         $connection = User::conexion();
 
         if ($connection == 'pgsql') {
@@ -155,13 +157,29 @@ class DashboardController extends Controller
         } else {
             $resultadosQ12dashboard = $this->consultaDoceDashboard($connection);
             $resultadosQ10dashboard = $this->consultaDiezDashboard($connection);
-            
+
             return view('components.recuperacion-lecturas', [
                 'resultadosQ12dashboard' => $resultadosQ12dashboard,
                 'resultadosQ10dashboard' => $resultadosQ10dashboard,
             ]);
         }
     }
+
+    public function desequilibriosVoltajeModal($id_ct, Request $request)
+    {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin');
+        } else {
+            $desequilibrios = $this->getDesequilibrios($id_ct, $connection, $request);
+
+            return view('components.desequilibrios-voltaje', [
+                'desequilibrios' => $desequilibrios,
+            ]);
+        }
+    }
+
 
 
     //CONSULTAS para DASHBOARD CT--------------------------
@@ -857,7 +875,7 @@ LIMIT 0, 100;
         }
     }
 
-    public function consultaVeintiDosDashboard($connection) 
+    public function consultaVeintiDosDashboard($connection)
     {
         try {
             if (
@@ -880,9 +898,10 @@ LIMIT 0, 100;
         }
     }
 
-    public function getDashboardInfo($connection) {
+    public function getDashboardInfo($connection)
+    {
         try {
-            if(Schema::connection($connection)->hasTable('t_ct')) {
+            if (Schema::connection($connection)->hasTable('t_ct')) {
                 $query = "
                     WITH trafos_por_ct AS (
                         SELECT 
@@ -988,6 +1007,43 @@ LIMIT 0, 100;
             }
         } catch (\Exception $e) {
             return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getDesequilibrios($id_ct, $connection, Request $request) //porcentaje desequilibrio
+    {
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if ($id_ct) {
+            $query = "
+            SELECT 
+                ROUND(MAX(tsv.pct_deseq_voltaje)::numeric, 2) AS max_pct_deseq_voltaje, 
+                ROUND(MIN(tsv.pct_deseq_voltaje)::numeric, 2) AS min_pct_deseq_voltaje, 
+                ROUND(AVG(tsv.pct_deseq_voltaje)::numeric, 2) AS avg_pct_deseq_voltaje, 
+                ROUND(MAX(tsv.pct_deseq_corriente)::numeric, 2) AS max_pct_deseq_corriente, 
+                ROUND(MIN(tsv.pct_deseq_corriente)::numeric, 2) AS min_pct_deseq_corriente, 
+                ROUND(AVG(tsv.pct_deseq_corriente)::numeric, 2) AS avg_pct_deseq_corriente, 
+                tc.id_ct
+            FROM 
+                core.t_supervisores_voltajes tsv
+            JOIN 
+                core.t_concentradores tc ON tsv.id_cnc = tc.id_cnc
+            WHERE 
+                tc.id_ct = :id_ct 
+                AND 
+                        tsv.fec_registro >= (
+                            SELECT 
+                                MAX(fec_registro) 
+                            FROM 
+                                core.t_supervisores_voltajes
+                        ) - INTERVAL '48 hours'
+                    GROUP BY tc.id_ct";
+            $params = ['id_ct' => $id_ct];
+
+            $resultadosQ47 = DB::connection($connection)->select($query, $params);
+
+            return $resultadosQ47 ?: [];
         }
     }
 }

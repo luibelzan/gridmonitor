@@ -589,7 +589,7 @@
                                                             CAPACIDAD DEL TRAFO
                                                         </h1>
                                                         <h2 class="text-center text-1xl" style="color: white;">
-                                                            Último mes
+                                                            Últimas 48 horas
                                                         </h2>
                                                         <div
                                                             style="border-bottom: 3px solid transparent;

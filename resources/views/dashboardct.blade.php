@@ -503,6 +503,63 @@
     </script>
 
     <script>
+        function openModalDesequilibriosVoltaje(id_ct) {
+            document.getElementById("modalDesequilibriosVoltaje").classList.remove("hidden");
+
+            fetch('/modal/desequilibrios-voltaje/' + id_ct)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("modalDesequilibriosVoltajeContent").innerHTML = html;
+
+                    // Ejecutar gráfico después de insertar el HTML
+                    var grafico = document.getElementById('graficoDesequilibrioVoltaje');
+                    if (grafico) {
+                        var avg = parseFloat(grafico.dataset.avg);
+                        var min = parseFloat(grafico.dataset.min);
+                        var max = parseFloat(grafico.dataset.max);
+
+                        if (avg === 0 && min === 0 && max === 0) {
+                            grafico.innerHTML = "<p class='text-yellow-500 text-center'>No hay datos</p>";
+                            return;
+                        }
+
+                        var color = avg <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107,0.9)";
+                        var data = [{
+                            type: "indicator",
+                            mode: "gauge",
+                            value: avg,
+                            gauge: { axis: { range: [min, max] }, bar: { color: color } }
+                        }];
+
+                        var layout = { 
+                            paper_bgcolor: "transparent", 
+                            font: { color: "white" }, 
+                            margin: { t: 20, b: 20, l: 20, r: 20 },
+                            annotations: [{
+                                x: 0.5,        // centrar horizontal
+                                y: 0.4,       // colocar debajo del gráfico (ajusta según altura)
+                                text: avg + " %",
+                                showarrow: false,
+                                font: { size: 20, color: color }
+                            }]
+                         };
+                        Plotly.react('graficoDesequilibrioVoltaje', data, layout);
+                    }
+                });
+        }
+
+        function closeModalDesequilibriosVoltaje() {
+            document.getElementById('modalDesequilibriosVoltaje').classList.add('hidden');
+        }
+
+        </script>
+
+
+    
+
+
+
+    <script>
     function sortTable(colIndex, thElement) {
         const table = document.getElementById("testTableInfoDashboardCt");
         const tbody = table.tBodies[0];
@@ -578,6 +635,21 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div id="modalDesequilibriosVoltaje" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalDesequilibriosVoltaje()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalDesequilibriosVoltajeContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
 
 
 <body class="h-full sm:grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 justify-center "
@@ -965,8 +1037,20 @@
 
                                                         <td class="py-2"
                                                             style="color: {{ ($resultado->avg_pct_deseq_voltaje ?? 0) <= 3 ? 'rgb(76,218,19)' : 'red' }};">
+
                                                             {{ $resultado->avg_pct_deseq_voltaje ?? '0' }} %
+
+                                                            <!-- Botón para abrir modal -->
+                                                            <button 
+                                                                onclick="openModalDesequilibriosVoltaje('{{ $resultado->id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles de desequilibrio">
+                                                                📊
+                                                            </button>
+
+
                                                         </td>
+
                                                         <td class="py-2"
                                                             style="color: {{ ($resultado->avg_pct_deseq_corriente ?? 0) <= 30 ? 'rgb(76,218,19)' : 'red' }};">
                                                             {{ $resultado->avg_pct_deseq_corriente ?? '0' }} %

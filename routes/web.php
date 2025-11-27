@@ -154,6 +154,7 @@ Route::get('/detallesenergiacups', [CupsController::class, 'detallesenergiacups'
 Route::get('/dashboardct', [DashboardController::class, 'dashboardct'])->name('dashboardct');
 Route::get('/modal/stats-ct', [DashboardController::class, 'statsCtModal']);
 Route::get('/modal/recuperacion-lecturas', [DashboardController::class, 'recuperacionLecturasModal']);
+Route::get('/modal/desequilibrios-voltaje/{id_ct}', [DashboardController::class, 'desequilibriosVoltajeModal']);
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
 Route::get('/dashboardsabt', [SupervisionAvanzadaController::class, 'dashboardsabt'])->name('dashboardsabt');
