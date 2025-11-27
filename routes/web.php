@@ -155,6 +155,7 @@ Route::get('/dashboardct', [DashboardController::class, 'dashboardct'])->name('d
 Route::get('/modal/stats-ct', [DashboardController::class, 'statsCtModal']);
 Route::get('/modal/recuperacion-lecturas', [DashboardController::class, 'recuperacionLecturasModal']);
 Route::get('/modal/desequilibrios-voltaje/{id_ct}', [DashboardController::class, 'desequilibriosVoltajeModal']);
+Route::get('/modal/desequilibrios-corriente/{id_ct}', [DashboardController::class, 'desequilibriosCorrienteModal']);
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
 Route::get('/dashboardsabt', [SupervisionAvanzadaController::class, 'dashboardsabt'])->name('dashboardsabt');

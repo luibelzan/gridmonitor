@@ -180,6 +180,20 @@ class DashboardController extends Controller
         }
     }
 
+    public function desequilibriosCorrienteModal($id_ct, Request $request)
+    {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin');
+        } else {
+            $desequilibrios = $this->getDesequilibrios($id_ct, $connection, $request);
+
+            return view('components.desequilibrios-corriente', [
+                'desequilibrios' => $desequilibrios,
+            ]);
+        }
+    }
 
 
     //CONSULTAS para DASHBOARD CT--------------------------

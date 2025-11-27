@@ -548,8 +548,63 @@
                 });
         }
 
+        function openModalDesequilibriosCorriente(id_ct) {
+            // Mostrar modal
+            document.getElementById("modalDesequilibriosCorriente").classList.remove("hidden");
+
+            // Cargar contenido vía AJAX
+            fetch('/modal/desequilibrios-corriente/' + id_ct)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("modalDesequilibriosCorrienteContent").innerHTML = html;
+
+                    // Inicializar gráfico después de insertar el HTML
+                    var grafico = document.getElementById('graficoDesequilibrioCorriente');
+                    if (grafico) {
+                        var avg = parseFloat(grafico.dataset.avg) || 0;
+                        var min = parseFloat(grafico.dataset.min) || 0;
+                        var max = parseFloat(grafico.dataset.max) || 0;
+
+                        if(avg === 0 && min === 0 && max === 0){
+                            grafico.innerHTML = "<p class='text-yellow-500 text-center'>No hay datos</p>";
+                            return;
+                        }
+
+                        if(min === max) max = min + 1; // evitar rango cero
+
+                        var color = avg <= 30 ? "rgb(76,218,19)" : "rgba(232,80,107,0.9)";
+
+                        var data = [{
+                            type: "indicator",
+                            mode: "gauge",
+                            value: avg,
+                            gauge: { axis: { range: [min, max] }, bar: { color: color } }
+                        }];
+
+                        var layout = {
+                            paper_bgcolor: "transparent",
+                            font: { color: "white" },
+                            margin: { t: 20, b: 20, l: 20, r: 20 },
+                            annotations: [{
+                                x: 0.5,
+                                y: 0.4, // debajo del gráfico
+                                text: avg + " %",
+                                showarrow: false,
+                                font: { size: 20, color: color }
+                            }]
+                        };
+
+                        Plotly.react('graficoDesequilibrioCorriente', data, layout);
+                    }
+                });
+        }
+
         function closeModalDesequilibriosVoltaje() {
             document.getElementById('modalDesequilibriosVoltaje').classList.add('hidden');
+        }
+
+        function closeModalDesequilibriosCorriente() {
+            document.getElementById('modalDesequilibriosCorriente').classList.add('hidden');
         }
 
         </script>
@@ -645,6 +700,22 @@
 
         <!-- CONTENIDO CARGADO POR AJAX -->
         <div id="modalDesequilibriosVoltajeContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalDesequilibriosCorriente" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalDesequilibriosCorriente()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalDesequilibriosCorrienteContent" class="text-white">
             <p class="text-center">Cargando...</p>
         </div>
 
@@ -1053,7 +1124,15 @@
 
                                                         <td class="py-2"
                                                             style="color: {{ ($resultado->avg_pct_deseq_corriente ?? 0) <= 30 ? 'rgb(76,218,19)' : 'red' }};">
+
                                                             {{ $resultado->avg_pct_deseq_corriente ?? '0' }} %
+
+                                                            <button 
+                                                                onclick="openModalDesequilibriosCorriente('{{ $resultado->id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles de desequilibrio">
+                                                                📊
+                                                            </button>
                                                         </td>
                                                         <td class="py-2"
                                                             style="color: 
