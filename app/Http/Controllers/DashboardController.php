@@ -246,6 +246,21 @@ class DashboardController extends Controller
         }
     }
 
+    public function capacidadUltimoAnioModal($id_ct, Request $request)
+    {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin');
+        } else {
+            $capacidadUltimoAnio = $this->getCapacidadUltimoAnio($id_ct, $connection, $request);
+        
+            return view('components.capacidad-ultimo-anio', [
+                'capacidadUltimoAnio' => $capacidadUltimoAnio,
+            ]);
+        }
+    }
+
 
     //CONSULTAS para DASHBOARD CT--------------------------
 
@@ -1212,4 +1227,50 @@ LIMIT 0, 100;
             return ['message' => 'No hay datos'];
         }
     }
+
+    public function getCapacidadUltimoAnio($id_ct, $connection)
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_supervisores_voltajes') &&
+                Schema::connection($connection)->hasTable('t_trafos') &&
+                Schema::connection($connection)->hasTable('t_concentradores') &&
+                Schema::connection($connection)->hasTable('t_ct')
+            ) {
+                $capacidadUltimoAnio = DB::connection($connection)
+                    ->select("
+                    SELECT date_trunc('month', fec_registro) AS date_trunc_anio,
+                        avg(((t_supervisores_voltajes.val_kva_t) / 1000) * 100) / avg(t_trafos.val_kva) AS cap_instalada,
+                            t_ct.id_ct
+                    FROM core.t_supervisores_voltajes, 
+                        core.t_trafos,	
+                        core.t_concentradores,
+                        core.t_ct
+                    WHERE 
+                    t_supervisores_voltajes.id_svr = t_trafos.id_svr
+                        AND 
+                    fec_registro >= date_trunc('month', current_date) - interval '12 months'
+                    AND 
+                        t_concentradores.id_cnc = t_trafos.id_cnc 
+                    AND
+                        t_ct.id_ct = t_concentradores.id_ct
+                    AND
+                        t_ct.id_ct = :id_ct
+                    GROUP BY 
+                        1, t_ct.id_ct
+                    ORDER BY 1
+                    ", ['id_ct' => $id_ct]);
+
+                return $capacidadUltimoAnio ?: ['message' => 'No hay datos'];
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+
 }

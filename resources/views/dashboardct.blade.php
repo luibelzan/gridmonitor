@@ -960,7 +960,32 @@
             });
     }
 
+    function openModalCapacidadUltimoAnio(id_ct) {
 
+        // Mostrar modal
+        document.getElementById("modalCapacidadUltimoAnio").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const cont = document.getElementById("modalCapacidadUltimoAnioContent");
+        cont.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Cargar contenido vía AJAX
+        fetch('/modal/capacidad-ultimo-anio/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar el HTML cargado
+                cont.innerHTML = html;
+
+                // EJECUTAR SCRIPTS DEL CONTENIDO AJAX (Chart.js)
+                ejecutarScriptsDelContenido(cont);
+
+            })
+            .catch(err => {
+                cont.innerHTML = '<p class="text-center text-red-400">Error al cargar datos</p>';
+                console.error(err);
+            });
+    }
 
     function closeModalPromedioFaseR() {
         document.getElementById("modalPromedioFaseR").classList.add("hidden");
@@ -991,6 +1016,17 @@
             myChartLineVoltaje3 = null;
         }
     }
+
+    function closeModalCapacidadUltimoAnio() {
+        document.getElementById("modalCapacidadUltimoAnio").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.graficoBarrasCapacidadAnio) {
+            graficoBarrasCapacidadAnio.destroy();
+            graficoBarrasCapacidadAnio = null;
+        }
+    }
+
 
     // ---------------------------------------------------------
     // 🔥 FUNCIÓN OBLIGATORIA PARA QUE SE EJECUTEN TUS GRÁFICOS
@@ -1167,6 +1203,22 @@
 
         <!-- CONTENIDO CARGADO POR AJAX -->
         <div id="modalPromedioFaseTContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalCapacidadUltimoAnio" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalCapacidadUltimoAnio()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalCapacidadUltimoAnioContent" class="text-white">
             <p class="text-center">Cargando...</p>
         </div>
 
@@ -1555,9 +1607,16 @@
                                                         <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->capacidad_kva ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->nro_lineas ?? '0' }}</td>
-                                                        <td class="py-2"
+                                                        <td class="py-2 whitespace-nowrap"
                                                             style="color: {{ (!empty($resultado->cap_instalada) ? $resultado->cap_instalada : 0) <= 80 ? 'rgb(76,218,19)' : 'red' }};">
                                                             {{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %
+
+                                                            <button 
+                                                                onclick="openModalCapacidadUltimoAnio('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles de capacidad">
+                                                                📊
+                                                            </button>
                                                         </td>
 
                                                         <td class="py-2">{{ $resultado->perdida ?? '0' }}</td>

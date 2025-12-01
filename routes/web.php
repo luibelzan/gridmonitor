@@ -159,6 +159,7 @@ Route::get('/modal/desequilibrios-corriente/{id_ct}', [DashboardController::clas
 Route::get('/modal/promedio-fase-r/{id_ct}', [DashboardController::class, 'promedioFaseRModal']);
 Route::get('/modal/promedio-fase-s/{id_ct}', [DashboardController::class, 'promedioFaseSModal']);
 Route::get('/modal/promedio-fase-t/{id_ct}', [DashboardController::class, 'promedioFaseTModal']);
+Route::get('/modal/capacidad-ultimo-anio/{id_ct}', [DashboardController::class, 'capacidadUltimoAnioModal']);
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
 Route::get('/dashboardsabt', [SupervisionAvanzadaController::class, 'dashboardsabt'])->name('dashboardsabt');
