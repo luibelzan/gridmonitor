@@ -609,8 +609,411 @@
 
         </script>
 
+        <script>
 
-    
+        function openModalPromedioFaseR(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalPromedioFaseR").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const content = document.getElementById("modalPromedioFaseRContent");
+        content.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Petición AJAX
+        fetch('/modal/promedio-fase-r/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar HTML cargado
+                content.innerHTML = html;
+
+                // Ejecutar scripts internos si existen
+                ejecutarScriptsDelContenido(content);
+
+                // ==========================================
+                //  RENDERIZAR GRAFICO PROMEDIO FASE R (ESTILO UNIFICADO)
+                // ==========================================
+
+                const graf = document.getElementById("graficoVoltajeProm1");
+                if (!graf) return;
+
+                // Leer valores desde el Blade
+                const avg = parseFloat(graf.dataset.avg);
+                const min = parseFloat(graf.dataset.min);
+                const max = parseFloat(graf.dataset.max);
+
+                if (avg === 0 && min === 0 && max === 0) {
+                    graf.innerHTML = "<p class='text-yellow-500 text-center mt-4'>No hay datos</p>";
+                    return;
+                }
+
+                // === MISMO SISTEMA DE COLORES QUE updateChartVoltajeProm1 ===
+                function getColor(value) {
+                    return value < 80 ? "rgba(232,80,107, 0.9)" : "rgba(39,47,58, 0.9)";
+                }
+
+                const color = getColor(avg);
+                const textColor = color === "rgba(232,80,107, 0.9)" 
+                    ? "rgba(232,80,107, 0.9)"
+                    : "rgb(238,145,4)";
+
+                // === DATA unificada ===
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge",
+                    value: avg,
+                    title: {
+                        font: {
+                            size: 20,
+                            color: 'white'
+                        }
+                    },
+                    gauge: {
+                        axis: {
+                            range: [min, max],
+                            tickwidth: 1,
+                            tickcolor: "rgb(238,145,4)",
+                            linecolor: "rgb(238,145,4)"
+                        },
+                        bar: {
+                            color: "rgb(238,145,4)",
+                            thickness: 0.8
+                        },
+                        bgcolor: "transparent",
+                        borderwidth: 2,
+                        bordercolor: "transparent",
+                        steps: [
+                            { range: [0, min], color: color },
+                            { range: [min, max], color: "rgba(27,32,38,0.5)" }
+                        ],
+                        startangle: 270
+                    }
+                }];
+
+                // === LAYOUT unificado ===
+                const layout = {
+                    paper_bgcolor: "transparent",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    margin: { t: 35, r: 35, l: 35, b: 35 },
+                    font: {
+                        color: "white",
+                        family: "Didact Gothic",
+                        weight: 'normal'
+                    },
+                    annotations: [{
+                        text: avg + " V",
+                        x: 0.5,
+                        y: 0.4,
+                        showarrow: false,
+                        font: {
+                            size: 20,
+                            color: textColor
+                        }
+                    }]
+                };
+
+                // Renderizar con los MISMO estilos
+                Plotly.react("graficoVoltajeProm1", data, layout, {
+                    displaylogo: false,
+                    displayModeBar: false
+                });
+            })
+            .catch(error => {
+                content.innerHTML = '<p class="text-center text-red-400">Error al cargar los datos</p>';
+                console.error(error);
+            });
+    }
+
+    function openModalPromedioFaseS(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalPromedioFaseS").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const content = document.getElementById("modalPromedioFaseSContent");
+        content.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Petición AJAX
+        fetch('/modal/promedio-fase-s/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar HTML cargado
+                content.innerHTML = html;
+
+                // Ejecutar scripts internos si existen
+                ejecutarScriptsDelContenido(content);
+
+                // ==========================================
+                //  RENDERIZAR GRAFICO PROMEDIO FASE S (ESTILO UNIFICADO)
+                // ==========================================
+
+                const graf = document.getElementById("graficoVoltajeProm2");
+                if (!graf) return;
+
+                // Leer valores desde el Blade
+                const avg = parseFloat(graf.dataset.avg);
+                const min = parseFloat(graf.dataset.min);
+                const max = parseFloat(graf.dataset.max);
+                console.log({avg, min, max}); // Esto te permitirá ver qué valores llegan realmente
+
+                if (avg === 0 && min === 0 && max === 0) {
+                    graf.innerHTML = "<p class='text-yellow-500 text-center mt-4'>No hay datos</p>";
+                    return;
+                }
+
+                // === MISMO SISTEMA DE COLORES QUE FASE R PERO CELSTE ===
+                function getColor(value) {
+                    return value < 80 ? "rgba(232,80,107, 0.9)" : "rgba(39,47,58, 0.9)";
+                }
+
+                const color = getColor(avg);
+                const textColor = color === "rgba(232,80,107, 0.9)" 
+                    ? "rgba(232,80,107, 0.9)"
+                    : "rgba(88,226,194,0.9)";
+
+                // === DATA ===
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge",
+                    value: avg,
+                    title: {
+                        font: {
+                            size: 20,
+                            color: 'white'
+                        }
+                    },
+                    gauge: {
+                        axis: {
+                            range: [min, max],
+                            tickwidth: 1,
+                            tickcolor: "rgb(88,226,194)",
+                            linecolor: "rgb(88,226,194)"
+                        },
+                        bar: {
+                            color: "rgba(88,226,194,0.9)",
+                            thickness: 0.8
+                        },
+                        bgcolor: "transparent",
+                        borderwidth: 2,
+                        bordercolor: "transparent",
+                        steps: [
+                            { range: [0, min], color: color },
+                            { range: [min, max], color: "rgba(27,32,38,0.5)" }
+                        ],
+                        startangle: 270
+                    }
+                }];
+
+                // === LAYOUT ===
+                const layout = {
+                    paper_bgcolor: "transparent",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    margin: { t: 35, r: 35, l: 35, b: 35 },
+                    font: {
+                        color: "white",
+                        family: "Didact Gothic",
+                        weight: 'normal'
+                    },
+                    annotations: [{
+                        text: avg + " V",
+                        x: 0.5,
+                        y: 0.4,
+                        showarrow: false,
+                        font: {
+                            size: 20,
+                            color: textColor
+                        }
+                    }]
+                };
+
+                // Renderizar
+                Plotly.react("graficoVoltajeProm2", data, layout, {
+                    displaylogo: false,
+                    displayModeBar: false
+                });
+
+            })
+            .catch(error => {
+                content.innerHTML = '<p class="text-center text-red-400">Error al cargar los datos</p>';
+                console.error(error);
+            });
+    }
+
+    function openModalPromedioFaseT(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalPromedioFaseT").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const content = document.getElementById("modalPromedioFaseTContent");
+        content.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Petición AJAX
+        fetch('/modal/promedio-fase-t/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar HTML cargado
+                content.innerHTML = html;
+
+                // Ejecutar scripts internos si existen
+                ejecutarScriptsDelContenido(content);
+
+                // ==========================================
+                //  RENDERIZAR GRAFICO PROMEDIO FASE T (ESTILO UNIFICADO)
+                // ==========================================
+
+                const graf = document.getElementById("graficoVoltajeProm3");
+                if (!graf) return;
+
+                // Leer valores desde el Blade
+                const avg = parseFloat(graf.dataset.avg);
+                const min = parseFloat(graf.dataset.min);
+                const max = parseFloat(graf.dataset.max);
+                console.log({avg, min, max}); // Ver qué valores llegan realmente
+
+                if (avg === 0 && min === 0 && max === 0) {
+                    graf.innerHTML = "<p class='text-yellow-500 text-center mt-4'>No hay datos</p>";
+                    return;
+                }
+
+                // === MISMO SISTEMA DE COLORES QUE FASE T (AZUL) ===
+                function getColor(value) {
+                    return value < 80 ? "rgba(232,80,107,0.9)" : "rgba(44,131,174,0.9)";
+                }
+
+                const color = getColor(avg);
+                const textColor = color === "rgba(232,80,107,0.9)" 
+                    ? "rgba(232,80,107,0.9)" 
+                    : "rgba(44,131,174,0.9)";
+
+                // === DATA ===
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge",
+                    value: avg,
+                    title: {
+                        font: {
+                            size: 20,
+                            color: 'white'
+                        }
+                    },
+                    gauge: {
+                        axis: {
+                            range: [min, max],
+                            tickwidth: 1,
+                            tickcolor: "rgb(44,131,174)",
+                            linecolor: "rgb(44,131,174)"
+                        },
+                        bar: {
+                            color: "rgba(44,131,174,0.9)",
+                            thickness: 0.8
+                        },
+                        bgcolor: "transparent",
+                        borderwidth: 2,
+                        bordercolor: "transparent",
+                        steps: [
+                            { range: [0, min], color: color },
+                            { range: [min, max], color: "rgba(27,32,38,0.5)" }
+                        ],
+                        startangle: 270
+                    }
+                }];
+
+                // === LAYOUT ===
+                const layout = {
+                    paper_bgcolor: "transparent",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    margin: { t: 35, r: 35, l: 35, b: 35 },
+                    font: {
+                        color: "white",
+                        family: "Didact Gothic",
+                        weight: 'normal'
+                    },
+                    annotations: [{
+                        text: avg + " V",
+                        x: 0.5,
+                        y: 0.4,
+                        showarrow: false,
+                        font: {
+                            size: 20,
+                            color: textColor
+                        }
+                    }]
+                };
+
+                // Renderizar
+                Plotly.react("graficoVoltajeProm3", data, layout, {
+                    displaylogo: false,
+                    displayModeBar: false
+                });
+
+            })
+            .catch(error => {
+                content.innerHTML = '<p class="text-center text-red-400">Error al cargar los datos</p>';
+                console.error(error);
+            });
+    }
+
+
+
+    function closeModalPromedioFaseR() {
+        document.getElementById("modalPromedioFaseR").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.myChartLineVoltaje1) {
+            myChartLineVoltaje1.destroy();
+            myChartLineVoltaje1 = null;
+        }
+    }
+
+    function closeModalPromedioFaseS() {
+        document.getElementById("modalPromedioFaseS").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.myChartLineVoltaje2) {
+            myChartLineVoltaje2.destroy();
+            myChartLineVoltaje2 = null;
+        }
+    }
+
+    function closeModalPromedioFaseT() {
+        document.getElementById("modalPromedioFaseT").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.myChartLineVoltaje3) {
+            myChartLineVoltaje3.destroy();
+            myChartLineVoltaje3 = null;
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 🔥 FUNCIÓN OBLIGATORIA PARA QUE SE EJECUTEN TUS GRÁFICOS
+    // ---------------------------------------------------------
+
+    function ejecutarScriptsDelContenido(elemento) {
+        const scripts = elemento.getElementsByTagName("script");
+
+        for (let i = 0; i < scripts.length; i++) {
+
+            const nuevoScript = document.createElement("script");
+
+            if (scripts[i].src) {
+                nuevoScript.src = scripts[i].src;
+            } else {
+                nuevoScript.textContent = scripts[i].innerHTML;
+            }
+
+            document.body.appendChild(nuevoScript);
+        }
+    }
+
+</script>
 
 
 
@@ -716,6 +1119,54 @@
 
         <!-- CONTENIDO CARGADO POR AJAX -->
         <div id="modalDesequilibriosCorrienteContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalPromedioFaseR" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalPromedioFaseR()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalPromedioFaseRContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalPromedioFaseS" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalPromedioFaseS()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalPromedioFaseSContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalPromedioFaseT" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalPromedioFaseT()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalPromedioFaseTContent" class="text-white">
             <p class="text-center">Cargando...</p>
         </div>
 
@@ -1088,6 +1539,17 @@
 
                                             <tbody>
                                                 @foreach ($dashboardInfo as $resultado)
+                                                    @php
+                                                        // Obtener id_ct de forma segura
+                                                        $id_ct = null;
+                                                        if (is_object($resultado) && isset($resultado->id_ct)) {
+                                                            $id_ct = $resultado->id_ct;
+                                                        } elseif (is_array($resultado) && isset($resultado['id_ct'])) {
+                                                            $id_ct = $resultado['id_ct'];
+                                                        } elseif (is_string($resultado)) {
+                                                            $id_ct = $resultado; // si $resultado ya es el id
+                                                        }
+                                                    @endphp
                                                     <tr class="highlight-row">
                                                         <td class="py-2">{{ $resultado->nombre_ct ?? 'No hay datos' }}</td>
                                                         <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
@@ -1113,7 +1575,7 @@
 
                                                             <!-- Botón para abrir modal -->
                                                             <button 
-                                                                onclick="openModalDesequilibriosVoltaje('{{ $resultado->id_ct }}')"
+                                                                onclick="openModalDesequilibriosVoltaje('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles de desequilibrio">
                                                                 📊
@@ -1128,7 +1590,7 @@
                                                             {{ $resultado->avg_pct_deseq_corriente ?? '0' }} %
 
                                                             <button 
-                                                                onclick="openModalDesequilibriosCorriente('{{ $resultado->id_ct }}')"
+                                                                onclick="openModalDesequilibriosCorriente('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles de desequilibrio">
                                                                 📊
@@ -1139,18 +1601,36 @@
                                                                 {{ ($resultado->prom_volt1 ?? 0) <= 218 ? 'yellow' : 
                                                                 (($resultado->prom_volt1 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
                                                             {{ $resultado->prom_volt1 ?? '0' }}
+                                                            <button 
+                                                                onclick="openModalPromedioFaseR('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles Fase R">
+                                                                📊
+                                                            </button>
                                                         </td>
                                                         <td class="py-2"
                                                             style="color: 
                                                                 {{ ($resultado->prom_volt2 ?? 0) <= 218 ? 'yellow' : 
                                                                 (($resultado->prom_volt2 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
                                                             {{ $resultado->prom_volt2 ?? '0' }}
+                                                            <button 
+                                                                onclick="openModalPromedioFaseS('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles Fase S">
+                                                                📊
+                                                            </button>
                                                         </td>
                                                         <td class="py-2"
                                                             style="color: 
                                                                 {{ ($resultado->prom_volt3 ?? 0) <= 218 ? 'yellow' : 
                                                                 (($resultado->prom_volt3 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
                                                             {{ $resultado->prom_volt3 ?? '0' }}
+                                                            <button 
+                                                                onclick="openModalPromedioFaseT('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles Fase T">
+                                                                📊
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 @endforeach

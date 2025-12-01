@@ -195,6 +195,57 @@ class DashboardController extends Controller
         }
     }
 
+    public function promedioFaseRModal($id_ct, Request $request)
+    {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin');
+        } else {
+            $promedioFase = $this->getPromedioFase($id_ct, $connection, $request);
+            $tensiones = $this -> getTensiones($id_ct, $connection, $request);
+
+            return view('components.promedio-fase-r', [
+                'promedioFase' => $promedioFase,
+                'tensiones' => $tensiones
+            ]);
+        }
+    }
+
+    public function promedioFaseSModal($id_ct, Request $request)
+    {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin');
+        } else {
+            $promedioFase = $this->getPromedioFase($id_ct, $connection, $request);
+            $tensiones = $this -> getTensiones($id_ct, $connection, $request);
+
+            return view('components.promedio-fase-s', [
+                'promedioFase' => $promedioFase,
+                'tensiones' => $tensiones
+            ]);
+        }
+    }
+
+    public function promedioFaseTModal($id_ct, Request $request)
+    {
+        $connection = User::conexion();
+
+        if ($connection == 'pgsql') {
+            return view('admin');
+        } else {
+            $promedioFase = $this->getPromedioFase($id_ct, $connection, $request);
+            $tensiones = $this -> getTensiones($id_ct, $connection, $request);
+
+            return view('components.promedio-fase-t', [
+                'promedioFase' => $promedioFase,
+                'tensiones' => $tensiones
+            ]);
+        }
+    }
+
 
     //CONSULTAS para DASHBOARD CT--------------------------
 
@@ -1058,6 +1109,107 @@ LIMIT 0, 100;
             $resultadosQ47 = DB::connection($connection)->select($query, $params);
 
             return $resultadosQ47 ?: [];
+        }
+    }
+
+    public function getPromedioFase($id_ct, $connection, Request $request)
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_supervisores_voltajes') &&
+                Schema::connection($connection)->hasTable('t_concentradores')
+            ) {
+                // Consulta base
+                $query = "
+                    SELECT 
+                        t_supervisores_voltajes.id_cnc,
+                        t_concentradores.id_ct,
+                        t_supervisores_voltajes.id_svr,
+                        MIN(t_supervisores_voltajes.val_voltaje_1) AS min_volt1,
+                        MAX(t_supervisores_voltajes.val_voltaje_1) AS max_volt_1,
+                        CEIL(AVG(t_supervisores_voltajes.val_voltaje_1)) AS prom_volt1,
+                        MIN(t_supervisores_voltajes.val_voltaje_2) AS min_volt2,
+                        MAX(t_supervisores_voltajes.val_voltaje_2) AS max_volt_2,
+                        CEIL(AVG(t_supervisores_voltajes.val_voltaje_2)) AS prom_volt2,
+                        MIN(t_supervisores_voltajes.val_voltaje_3) AS min_volt3,
+                        MAX(t_supervisores_voltajes.val_voltaje_3) AS max_volt_3,
+                        CEIL(AVG(t_supervisores_voltajes.val_voltaje_3)) AS prom_volt3
+                    FROM 
+                        core.t_supervisores_voltajes 
+                    JOIN 
+                        core.t_concentradores ON core.t_supervisores_voltajes.id_cnc = core.t_concentradores.id_cnc
+                    WHERE 
+                        core.t_concentradores.id_ct = :id_ct 
+                        AND core.t_supervisores_voltajes.fec_registro >= (
+                            SELECT MAX(core.t_supervisores_voltajes.fec_registro) 
+                            FROM core.t_supervisores_voltajes
+                        ) - INTERVAL '48 hours'
+                    ";
+
+                $params = ['id_ct' => $id_ct];     
+
+                // Agregar el ordenamiento
+                $query .= " GROUP BY 
+                            t_supervisores_voltajes.id_cnc, 
+                            t_supervisores_voltajes.id_svr, 
+                            t_concentradores.id_ct;";
+
+                $promedioFase = DB::connection($connection)->select($query, $params);
+
+                return $promedioFase ?: ['message' => 'No hay datos'];
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
+        }
+    }
+
+    public function getTensiones($id_ct, $connection, Request $request)
+    {
+        try {
+            if (
+                Schema::connection($connection)->hasTable('t_supervisores_voltajes') &&
+                Schema::connection($connection)->hasTable('t_concentradores')
+            ) {
+                // Consulta base
+                $query = "
+                SELECT 
+                    TO_CHAR(core.t_supervisores_voltajes.fec_registro, 'DD/MM/YYYY') as fec_registro,
+                    core.t_supervisores_voltajes.hor_registro, 
+                    core.t_supervisores_voltajes.val_voltaje_1, 
+                    core.t_supervisores_voltajes.val_voltaje_2, 
+                    core.t_supervisores_voltajes.val_voltaje_3,
+                    core.t_concentradores.id_ct
+                FROM 
+                    core.t_supervisores_voltajes
+                JOIN 
+                    core.t_concentradores ON core.t_supervisores_voltajes.id_cnc = core.t_concentradores.id_cnc
+                WHERE 
+                    core.t_concentradores.id_ct = :id_ct 
+                    AND core.t_supervisores_voltajes.fec_registro >= (
+                        SELECT MAX(core.t_supervisores_voltajes.fec_registro) 
+                        FROM core.t_supervisores_voltajes
+                    ) - INTERVAL '48 hours'
+                ";
+                    $params = ['id_ct' => $id_ct];
+
+                // Agregar el ordenamiento
+                $query .= " ORDER BY core.t_supervisores_voltajes.fec_registro ASC";
+
+                // Ejecutar la consulta con los parámetros adecuados
+                $tensiones = DB::connection($connection)->select($query, $params);
+
+                return $tensiones ?: ['message' => 'No hay datos'];
+            } else {
+                // Una de las tablas no existe, retornar un mensaje específico 
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            // Manejo de excepciones con mensaje específico
+            return ['message' => 'No hay datos'];
         }
     }
 }
