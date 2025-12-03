@@ -1014,20 +1014,23 @@ LIMIT 0, 100;
                         GROUP BY c.id_ct
                     ),
                     balance_ct AS (
-                        SELECT
-                            id_ct,
-                            (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) AS perdida,
-                            ROUND((100 - (val_ai_d_sum_cnt * 100.0) / (val_ai_d_sum_svr + val_ae_d_sum_cnt)), 1) AS porcentaje_perdida
-                        FROM core.t_balances_diarios
-                        WHERE tip_calculo = 1
-                        AND val_ai_d_sum_svr > 0
-                        AND fec_inicio = (
-                                SELECT MAX(fec_inicio)
-                                FROM core.t_balances_diarios b2
-                                WHERE b2.id_ct = core.t_balances_diarios.id_ct
-                                AND b2.tip_calculo = 1
-                        )
-                    ),
+					    SELECT
+					        id_ct,
+					        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) AS perdida,
+					        ROUND(
+					            (
+					                100 - 
+					                (SUM(val_ai_d_sum_cnt) * 100.0) / NULLIF(SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt), 0)
+					            )
+					        , 1) AS porcentaje_perdida
+					    FROM core.t_balances_diarios
+					    WHERE tip_calculo = 1
+					      AND val_ai_d_sum_svr > 0
+					      AND fec_inicio >= (
+					            (SELECT MAX(fec_inicio) FROM core.t_balances_diarios) - INTERVAL '30 days'
+					      )
+					    GROUP BY id_ct
+					),
                     desbalance_ct AS (
                         SELECT 
                             tc.id_ct,
