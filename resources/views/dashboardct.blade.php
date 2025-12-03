@@ -1518,7 +1518,7 @@
                                 style="
                                 background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                 <h1 class="text-center text-2xl" style="color: white;">
-                                    ESTADÍSTICAS POR C.T
+                                    ESTADÍSTICAS DE ENERGÍA POR C.T
                                 </h1>
                                 <div
                                     style="border-bottom: 3px solid transparent;
@@ -1576,7 +1576,7 @@
                                                     <th onclick="sortTable(5, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
                                                         <div class="flex items-center justify-center gap-1">
-                                                            Perdida
+                                                            Perdida (Últimos 30 días)
                                                             <span class="sort-arrow"></span>
                                                         </div>
                                                     </th>
@@ -1584,7 +1584,7 @@
                                                     <th onclick="sortTable(6, this)" class="mt-0 text-base font-bold text-center" 
                                                         style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
                                                         <div class="flex items-center justify-center gap-1">
-                                                            Porcentaje Perdida
+                                                            Porcentaje Perdida (Últimos 30 días)
                                                             <span class="sort-arrow"></span>
                                                         </div>
                                                     </th>
@@ -1648,9 +1648,12 @@
                                                     @endphp
                                                     <tr class="highlight-row">
                                                         <td class="py-2">
-                                                            <a href="{{ route('informacionct', ['id_ct' => $id_ct]) }}" class="text-blue-500 underline">
+                                                            <span class="inline-block">
+                                                                <a href="{{ route('informacionct', ['id_ct' => $id_ct]) }}" 
+                                                                class="text-blue-500 underline inline">
                                                                 {{ $resultado->nombre_ct ?? 'No hay datos' }}
-                                                            </a>
+                                                                </a>
+                                                            </span>
                                                         </td>
                                                         <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->capacidad_kva ?? '0' }}</td>
@@ -1660,7 +1663,7 @@
                                                             {{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %
 
                                                             <button 
-                                                                onclick="openModalCapacidadUltimoAnio('{{ $id_ct }}')"
+                                                                onclick="event.stopPropagation(); openModalCapacidadUltimoAnio('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles de capacidad">
                                                                 📊
@@ -1682,7 +1685,7 @@
 
                                                             <!-- Botón para abrir modal -->
                                                             <button 
-                                                                onclick="openModalDesequilibriosVoltaje('{{ $id_ct }}')"
+                                                                onclick="event.stopPropagation(); openModalDesequilibriosVoltaje('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles de desequilibrio">
                                                                 📊
@@ -1697,7 +1700,7 @@
                                                             {{ $resultado->avg_pct_deseq_corriente ?? '0' }} %
 
                                                             <button 
-                                                                onclick="openModalDesequilibriosCorriente('{{ $id_ct }}')"
+                                                                onclick="event.stopPropagation(); openModalDesequilibriosCorriente('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles de desequilibrio">
                                                                 📊
@@ -1709,7 +1712,7 @@
                                                                 (($resultado->prom_volt1 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
                                                             {{ $resultado->prom_volt1 ?? '0' }}
                                                             <button 
-                                                                onclick="openModalPromedioFaseR('{{ $id_ct }}')"
+                                                                onclick="event.stopPropagation(); openModalPromedioFaseR('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles Fase R">
                                                                 📊
@@ -1721,7 +1724,7 @@
                                                                 (($resultado->prom_volt2 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
                                                             {{ $resultado->prom_volt2 ?? '0' }}
                                                             <button 
-                                                                onclick="openModalPromedioFaseS('{{ $id_ct }}')"
+                                                                onclick="event.stopPropagation(); openModalPromedioFaseS('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles Fase S">
                                                                 📊
@@ -1733,7 +1736,7 @@
                                                                 (($resultado->prom_volt3 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
                                                             {{ $resultado->prom_volt3 ?? '0' }}
                                                             <button 
-                                                                onclick="openModalPromedioFaseT('{{ $id_ct }}')"
+                                                                onclick="event.stopPropagation(); openModalPromedioFaseT('{{ $id_ct }}')"
                                                                 class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
                                                                 title="Ver detalles Fase T">
                                                                 📊

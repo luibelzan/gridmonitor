@@ -31,7 +31,7 @@
                                 style="
                                         background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                 <h1 class="text-center text-2xl" style="color: white;">
-                                    ESTADÍSTICAS POR C.T
+                                    ESTADÍSTICAS DE LECTURA POR C.T
                                 </h1>
                                 <div
                                     style="border-bottom: 3px solid transparent;

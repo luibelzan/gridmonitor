@@ -1076,7 +1076,7 @@ LIMIT 0, 100;
                     LEFT JOIN balance_ct b ON b.id_ct = ct.id_ct
                     LEFT JOIN desbalance_ct d ON d.id_ct = ct.id_ct
                     LEFT JOIN prom_voltajes_ct p ON p.id_ct = ct.id_ct
-                    ORDER BY ct.nom_ct;
+                    ORDER BY ct.nom_ct
                 ";
 
                 $dashboardInfo = DB::connection($connection)->select($query);
