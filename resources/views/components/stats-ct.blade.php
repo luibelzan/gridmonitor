@@ -1,3 +1,26 @@
+<style>
+.sort-arrow2 {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid white;
+    border-bottom: 2px solid white;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+/* Ascendente */
+.sort-arrow2.asc {
+    transform: rotate(-135deg);
+}
+
+/* Descendente */
+.sort-arrow2.desc {
+    transform: rotate(45deg);
+}
+</style>
+
+
 {{-- SEGUNDA FILA --}}
                         <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
                             {{-- 1º cuadro --}}
@@ -21,71 +44,123 @@
                                             <table id="testTableEstadisticasCt" class="w-full text-white text-center">
                                                 <thead style="border-bottom: 1px solid #ffffff;">
                                                     <tr>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            NOMBRE CT</th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            FECHA LECTURA</th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            LECTURAS S02 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % S02 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            LECTURAS S05 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % S05 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            LECTURAS S04 </th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % S04</th>
+                                                        <th onclick="sortTableEstadisticas(0, this)" class="mt-0 text-xl font-bold text-center" 
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                NOMBRE CT
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(1, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                FECHA LECTURA
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(2, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                LECTURAS S02
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(3, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                % S02
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(4, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                LECTURAS S05
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(5, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                % S05
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(6, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                LECTURAS S04
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
+
+                                                        <th onclick="sortTableEstadisticas(7, this)" class="mt-0 text-xl font-bold text-center"
+                                                            style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                            <div class="flex items-center justify-center gap-1">
+                                                                % S04
+                                                                <span class="sort-arrow2"></span>
+                                                            </div>
+                                                        </th>
                                                     </tr>
                                                 </thead>
 
                                                 <tbody>
-                                                    @foreach ($resultadosQ9dashboard as $resultado)
-                                                        <tr class="highlight-row ">
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->fec_lectura) ? $resultado->fec_lectura : 'No hay datos' }}
-                                                            </td>
-                                                            <td class="py-2">                                                                
-                                                                {{ !empty($resultado->lec_s02_hoy) ? $resultado->lec_s02_hoy : '0' }}
-                                                                /
-                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->porcentaje_s02) ? $resultado->porcentaje_s02 : '0' }}
-                                                                %
-                                                            </td>
-                                                            <td class="py-2">                                                                
-                                                                {{ !empty($resultado->lec_s05_hoy) ? $resultado->lec_s05_hoy : '0' }}
-                                                                /
-                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->porcentaje_s05) ? $resultado->porcentaje_s05 : '0' }}
-                                                                %
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->lec_s04_hoy) ? $resultado->lec_s04_hoy : '0' }}
-                                                                /
-                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->porcentaje_s04) ? $resultado->porcentaje_s04 : '0' }}
-                                                                %
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
+                                                @foreach ($resultadosQ9dashboard as $resultado)
+
+                                                    @php
+                                                        $p_s02 = $resultado->porcentaje_s02 ?? 0;
+                                                        $p_s05 = $resultado->porcentaje_s05 ?? 0;
+                                                        $p_s04 = $resultado->porcentaje_s04 ?? 0;
+
+                                                        // función de color simplificada inline
+                                                        $color_s02 = $p_s02 <= 50 ? 'red' : ($p_s02 <= 90 ? 'yellow' : 'rgb(76,218,19)');
+                                                        $color_s05 = $p_s05 <= 50 ? 'red' : ($p_s05 <= 90 ? 'yellow' : 'rgb(76,218,19)');
+                                                        $color_s04 = $p_s04 <= 50 ? 'red' : ($p_s04 <= 90 ? 'yellow' : 'rgb(76,218,19)');
+                                                    @endphp
+
+                                                    <tr class="highlight-row">
+                                                        <td class="py-2">
+                                                            {{ $resultado->nom_ct ?? 'No hay datos' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ $resultado->fec_lectura ?? 'No hay datos' }}
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ $resultado->lec_s02_hoy ?? '0' }} /
+                                                            {{ $resultado->total_cups_ct ?? '0' }}
+                                                        </td>
+
+                                                        <td class="py-2" style="color: {{ $color_s02 }};">
+                                                            {{ $p_s02 }} %
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ $resultado->lec_s05_hoy ?? '0' }} /
+                                                            {{ $resultado->total_cups_ct ?? '0' }}
+                                                        </td>
+
+                                                        <td class="py-2" style="color: {{ $color_s05 }};">
+                                                            {{ $p_s05 }} %
+                                                        </td>
+
+                                                        <td class="py-2">
+                                                            {{ $resultado->lec_s04_hoy ?? '0' }} /
+                                                            {{ $resultado->total_cups_ct ?? '0' }}
+                                                        </td>
+
+                                                        <td class="py-2" style="color: {{ $color_s04 }};">
+                                                            {{ $p_s04 }} %
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
                                                 </tbody>
                                             </table>
                                         </div>

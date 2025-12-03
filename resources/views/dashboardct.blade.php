@@ -1089,6 +1089,40 @@
         // Insertar filas ordenadas
         rows.forEach(row => tbody.appendChild(row));
     }
+
+    function sortTableEstadisticas(colIndex, thElement) {
+
+    const table = thElement.closest("table"); // encuentra la tabla real
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+
+    // detectar dirección
+    let direction = thElement.getAttribute("data-sort") === "asc" ? "desc" : "asc";
+    thElement.setAttribute("data-sort", direction);
+
+    // resetear flechas solo en esta tabla
+    table.querySelectorAll(".sort-arrow2").forEach(arrow => {
+        arrow.classList.remove("asc", "desc");
+    });
+
+    thElement.querySelector(".sort-arrow2").classList.add(direction);
+
+    rows.sort((a, b) => {
+        let valA = a.cells[colIndex].innerText.replace('%','').trim();
+        let valB = b.cells[colIndex].innerText.replace('%','').trim();
+
+        if (!isNaN(valA) && !isNaN(valB)) {
+            valA = parseFloat(valA);
+            valB = parseFloat(valB);
+        }
+
+        return direction === "asc"
+            ? valA > valB ? 1 : -1
+            : valA < valB ? 1 : -1;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+}
     </script>
 
 
@@ -1456,11 +1490,21 @@
                                                 </div>
                                             </div>
                                             <div class="flex justify-around items-center mx-0 m-2 text-white pt-2">
+                                                <!-- Botón 1 -->
+                                                <div class="flex flex-col items-center">
                                                     <button onclick="openModalEstadisticasCt()" title="Estadísticas CT">
-                                                        <img src="/images/ctstats.png" alt="Estadísticas CT" class="w-10 h-10"></button>
-                                                    <button onclick="openModalRecuperacionLecturasCt()">
-                                                        <img src="/images/recuperacion.png" alt="Recuperacion Lecturas" title="Recuperacion Lecturas" class="w-10 h-10">
+                                                        <img src="/images/ctstats.png" alt="Estadísticas CT" class="w-12 h-12">
                                                     </button>
+                                                    <span class="mt-1 text-sm text-white">Estadísticas CT</span>
+                                                </div>
+
+                                                <!-- Botón 2 -->
+                                                <div class="flex flex-col items-center">
+                                                    <button onclick="openModalRecuperacionLecturasCt()" title="Recuperación Lecturas">
+                                                        <img src="/images/recuperacion.png" alt="Recuperacion Lecturas" class="w-12 h-12">
+                                                    </button>
+                                                    <span class="mt-1 text-sm text-white">Recuperación Lecturas</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -1603,7 +1647,11 @@
                                                         }
                                                     @endphp
                                                     <tr class="highlight-row">
-                                                        <td class="py-2">{{ $resultado->nombre_ct ?? 'No hay datos' }}</td>
+                                                        <td class="py-2">
+                                                            <a href="{{ route('informacionct', ['id_ct' => $id_ct]) }}" class="text-blue-500 underline">
+                                                                {{ $resultado->nombre_ct ?? 'No hay datos' }}
+                                                            </a>
+                                                        </td>
                                                         <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->capacidad_kva ?? '0' }}</td>
                                                         <td class="py-2">{{ $resultado->nro_lineas ?? '0' }}</td>
