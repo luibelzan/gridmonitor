@@ -289,14 +289,9 @@ class CupsController extends Controller
             return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
         }
 
-
-
-
         $id_cups = strtoupper($request->input('id_cups'));
         $id_cnt = strtoupper($request->input('id_cnt')); // Obtener el id_cnt
         $nom_cups = strtoupper($request->input('nom_cups'));
-
-
 
         // Guardar el id_ct en la sesión
         Session::put('id_cups', $id_cups);
@@ -305,13 +300,8 @@ class CupsController extends Controller
         // Guardar el nombre de la vista actual en la sesión
         Session::put('vista_actual', 'detalleseventoscups');
 
-
-
         // Obtener la conexión dinámica
         $connection = User::conexion();
-
-
-
 
         if ($connection == 'pgsql') {
             // Si la conexión es la predeterminada, retornar un mensaje de bienvenida para el admin
@@ -319,9 +309,6 @@ class CupsController extends Controller
         } else {
             // Obtener los datos de todos los CTs
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct')->get();
-
-
-
 
             // Si hay un valor de búsqueda, realizar la consulta por ID de CUPS
             if ($id_cups || $id_cnt || $nom_cups) {
@@ -337,9 +324,6 @@ class CupsController extends Controller
                 $resultadosSumaEventos = [];
             }
 
-
-
-
             // Pasar los datos de los CTs a la vista
             return view('cups/detalleseventoscups', [
                 'ct_info' => $ct_info,
@@ -350,8 +334,6 @@ class CupsController extends Controller
                 'resultadosQ6cups' => $resultadosQ6cups,
                 'resultadosQ7cups' => $resultadosQ7cups,
                 'resultadosSumaEventos' => $resultadosSumaEventos,
-
-
             ]);
         }
     }
@@ -1278,159 +1260,157 @@ class CupsController extends Controller
 
 
 
-    public function consultaSeisCups($id_cups, $connection, Request $request) //Eventos cups
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-        $fecha_inicio = $request->input('fecha_inicio');
-        $fecha_fin = $request->input('fecha_fin');
+    public function consultaSeisCups($id_cups, $connection, Request $request) // Eventos CUPS
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
-
-        if (
-            Schema::connection($connection)->hasTable('t_eventos_contador') &&
-            Schema::connection($connection)->hasTable('t_descripcion_eventos_contador')
-        ) {
-            if ($id_cups) {
-                $query = "
+    if (
+        Schema::connection($connection)->hasTable('t_eventos_contador') &&
+        Schema::connection($connection)->hasTable('t_descripcion_eventos_contador') &&
+        Schema::connection($connection)->hasTable('t_cups')
+    ) {
+        if ($id_cups) {
+            $query = "
             SELECT
                 t_eventos_contador.id_cups,
                 t_eventos_contador.id_cnt,
-                TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
+                TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') AS fecha,
                 t_eventos_contador.hor_evento,
                 t_eventos_contador.txt_adicionales_1,
                 t_eventos_contador.txt_adicionales_2,
-                t_descripcion_eventos_contador.des_evento_contador
-            FROM core.t_eventos_contador, core.t_descripcion_eventos_contador
-            WHERE t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
-            AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
-           ";
+                t_descripcion_eventos_contador.des_evento_contador,
+                t_cups.cod_fase,
+                t_cups.id_linea
+            FROM core.t_eventos_contador
+            JOIN core.t_descripcion_eventos_contador
+                ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+                AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+            JOIN core.t_cups
+                ON t_eventos_contador.id_cups = t_cups.id_cups
+            WHERE t_eventos_contador.id_cups LIKE :id_cups
+            ";
 
+            $params = ['id_cups' => "%$id_cups%"];
 
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND t_eventos_contador.fec_evento >= :fecha_inicio
+                    AND t_eventos_contador.fec_evento <= :fecha_fin
+                    ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= "
+                    ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
+                    LIMIT 100
+                ";
+            }
 
+            $resultadosQ6cups = DB::connection($connection)->select($query, $params);
+            $resultadosQ6cupsCollection = new Collection($resultadosQ6cups);
 
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "
-                        AND t_eventos_contador.fec_evento >= :fecha_inicio
-                        AND t_eventos_contador.fec_evento <= :fecha_fin
-                        AND t_eventos_contador.id_cups LIKE :id_cups
-                    ORDER BY
-                        t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 100; // Número de elementos por página
+            $currentItems = $resultadosQ6cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
-
-
-
-                    $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    $query .= "
-                AND t_eventos_contador.id_cups LIKE :id_cups
-                ORDER BY
-                    t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
-                LIMIT 100;";
-
-
-
-
-                    $params = ['id_cups' => "%$id_cups%"];
-                }
-
-
-
-
-                $resultadosQ6cups = DB::connection($connection)->select($query, $params);
-                $resultadosQ6cupsCollection = new Collection($resultadosQ6cups);
-                $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                $perPage = 100; // Número de elementos por página
-                $currentItems = $resultadosQ6cupsCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
-
-
-                // Crear paginador manualmente
-                $resultadosQ6cups = new LengthAwarePaginator($currentItems, count($resultadosQ6cupsCollection), $perPage, $currentPage, [
+            // Crear paginador manualmente
+            $resultadosQ6cups = new LengthAwarePaginator(
+                $currentItems,
+                count($resultadosQ6cupsCollection),
+                $perPage,
+                $currentPage,
+                [
                     'path' => request()->url(),
                     'query' => request()->query()
-                ]);
+                ]
+            );
 
-
-                return $resultadosQ6cups ?: [];
-            }
-        } else {
-            // Una de las tablas no existe, retornar un mensaje específico
-            return ['message' => 'No hay datos'];
+            return $resultadosQ6cups ?: [];
         }
+    } else {
+        // Una de las tablas no existe, retornar un mensaje específico
+        return ['message' => 'No hay datos'];
     }
+}
 
-    public function exportEventsCups(Request $request) //Eventos cups
-    {
-        $user = auth()->user();
-        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
-        $id_cups = strtoupper($request->input('id_cups'));
-        $fecha_inicio = $request->input('fecha_inicio');
-        $fecha_fin = $request->input('fecha_fin');
-        // NUEVO: Tipo de archivo ('excel' por default)
-        $format = $request->input('format', 'excel');
-        $extension = $format === 'csv' ? 'csv' : 'xlsx';
-        $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
-        if (
-            Schema::connection($connection)->hasTable('t_eventos_contador') &&
-            Schema::connection($connection)->hasTable('t_descripcion_eventos_contador')
-        ) {
-            if ($id_cups) {
-                $query = "
+    public function exportEventsCups(Request $request) // Eventos CUPS
+{
+    $user = auth()->user();
+    $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    // Tipo de archivo ('excel' por default)
+    $format = $request->input('format', 'excel');
+    $extension = $format === 'csv' ? 'csv' : 'xlsx';
+    $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+
+    if (
+        Schema::connection($connection)->hasTable('t_eventos_contador') &&
+        Schema::connection($connection)->hasTable('t_descripcion_eventos_contador') &&
+        Schema::connection($connection)->hasTable('t_cups')
+    ) {
+        if ($id_cups) {
+            $query = "
             SELECT
                 t_eventos_contador.id_cups,
                 t_eventos_contador.id_cnt,
-                TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
+                TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') AS fecha,
                 t_eventos_contador.hor_evento,
+                t_cups.cod_fase,
+                t_cups.id_linea,
                 t_eventos_contador.txt_adicionales_1,
                 t_eventos_contador.txt_adicionales_2,
                 t_descripcion_eventos_contador.des_evento_contador
-            FROM core.t_eventos_contador, core.t_descripcion_eventos_contador
-            WHERE t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
-            AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
-           ";
+            FROM core.t_eventos_contador
+            JOIN core.t_descripcion_eventos_contador
+                ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+                AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+            JOIN core.t_cups
+                ON t_eventos_contador.id_cups = t_cups.id_cups
+            WHERE t_eventos_contador.id_cups LIKE :id_cups
+            ";
 
+            $params = ['id_cups' => "%$id_cups%"];
 
-
-
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "
-                        AND t_eventos_contador.fec_evento >= :fecha_inicio
-                        AND t_eventos_contador.fec_evento <= :fecha_fin
-                        AND t_eventos_contador.id_cups LIKE :id_cups
-                    ORDER BY
-                        t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
-
-
-
-
-                    $params = ['id_cups' => "%$id_cups%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    $query .= "
-                AND t_eventos_contador.id_cups LIKE :id_cups
-                ORDER BY
-                    t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
-                LIMIT 100;";
-
-
-
-
-                    $params = ['id_cups' => "%$id_cups%"];
-                }
-
-
-
-
-                $exportEventsCups = DB::connection($connection)->select($query, $params);
-                if ($exportEventsCups) {
-                    return Excel::download(new EventosCupsExport($exportEventsCups), 'eventos_cups.' . $extension, $exportFormat);
-                } else {
-                    return response()->json(['message' => 'No hay datos'], 404);
-                }
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND t_eventos_contador.fec_evento >= :fecha_inicio
+                    AND t_eventos_contador.fec_evento <= :fecha_fin
+                    ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= "
+                    ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC
+                    LIMIT 100
+                ";
             }
-        } else {
-            // Una de las tablas no existe, retornar un mensaje específico
-            return ['message' => 'No hay datos'];
+
+            $exportEventsCups = DB::connection($connection)->select($query, $params);
+
+            if ($exportEventsCups) {
+                return Excel::download(
+                    new EventosCupsExport($exportEventsCups),
+                    'eventos_cups.' . $extension,
+                    $exportFormat
+                );
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            }
         }
+    } else {
+        // Una de las tablas no existe, retornar un mensaje específico
+        return ['message' => 'No hay datos'];
     }
+}
+
 
 
     public function consultaSumaEventos($id_cups, $connection, Request $request) //suma de todos los eventos de ese cups

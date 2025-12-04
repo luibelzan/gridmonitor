@@ -814,6 +814,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 <th class="mt-0 text-xl  text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     CT</th>
+                                                                                <th class="mt-0 text-xl  text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    Fase</th>
+                                                                                <th class="mt-0 text-xl  text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    Linea</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     FECHA</th>
@@ -842,6 +848,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->cod_fase) ? $resultado->cod_fase : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->fecha) ? $resultado->fecha : 'No hay datos' }}
