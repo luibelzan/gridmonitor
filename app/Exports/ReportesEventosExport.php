@@ -22,6 +22,7 @@ class ReportesEventosExport implements FromCollection, WithHeadings
             return [
                 'id_cups' => $item->id_cups ?? '',
                 'id_cnt' => $item->id_cnt ?? '',
+                'nom_ct' => $item->nom_ct ?? '',
                 'fecha' => $item->fecha ?? '',
                 'hor_evento' => $item->hor_evento ?? '',
                 'txt_adicionales_1' => $item->txt_adicionales_1 ?? '',
@@ -37,6 +38,7 @@ class ReportesEventosExport implements FromCollection, WithHeadings
         return [
             'ID Cups',
             'Contador',
+            'Nom CT',
             'Fecha',
             'Hora',
             'Adicional Inf. 1',

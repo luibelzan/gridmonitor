@@ -5040,6 +5040,7 @@ class ctController extends Controller
                     SELECT
                         t_eventos_contador.id_cups,
                         t_eventos_contador.id_cnt,
+                        tct.nom_ct,
                         TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
                         t_eventos_contador.hor_evento,
                         t_eventos_contador.txt_adicionales_1,
@@ -5049,6 +5050,10 @@ class ctController extends Controller
                     JOIN core.t_descripcion_eventos_contador 
                         ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
                         AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+                    JOIN core.t_cups tc
+                        ON t_eventos_contador.id_cups = tc.id_cups
+                    JOIN core.t_ct tct
+                        ON tc.id_ct = tct.id_ct
                     WHERE 1=1 
                 ";
 
