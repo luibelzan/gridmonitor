@@ -295,12 +295,14 @@ class SupervisionAvanzadaController extends Controller
             $id_ct = $request->input('id_ct');
             $balancesSABT = $this->getBalancesSABT($request, $connection, $id_ct);
             $balancesFasesSABT = $this->getBalancesFaseSABT($request, $connection, $id_ct);
+            $balancesGeneralSABT = $this->getBalancesGeneralSABT($request, $connection, $id_ct);
 
             Session::put('id_ct', $id_ct);
 
             return view('supervisionavanzada/balancessabt', [
                 'balancesSABT' => $balancesSABT,
                 'balancesFasesSABT' => $balancesFasesSABT,
+                'balancesGeneralSABT' => $balancesGeneralSABT,
                 'ct_info' => $ct_info,
                 'id_ct' => $id_ct,
             ]);
@@ -473,6 +475,78 @@ class SupervisionAvanzadaController extends Controller
             return ['message' => 'Error: ' . $e->getMessage()];
         }
     }
+
+    public function getBalancesGeneralSABT(Request $request, $connection, $id_ct)
+{
+    try {
+        if (Schema::connection($connection)->hasTable('t_balances_horarios_lineas')) {
+
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+
+            $params = ['id_ct' => $id_ct];
+
+            $query = "
+                SELECT
+                    id_ct,
+                    
+                    -- Promedio de contadores (suma entre número de líneas con datos)
+                    AVG(num_cnt) AS total_cnt,
+
+                    -- Totales generales del CT
+                    SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
+                    SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
+                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) AS total_lvs,
+
+                    SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
+                    SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
+
+                    -- Pérdida total
+                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
+
+                    -- Porcentaje total de pérdida
+                    CASE
+                        WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
+                        ELSE
+                            ROUND(
+                                (
+                                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0))
+                                    - SUM(COALESCE(ai_cnt, 0))
+                                ) * 100.0
+                                / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
+                                2
+                            )
+                    END AS porcentaje_perdida
+                FROM
+                    core.t_balances_horarios_lineas
+                WHERE
+                    id_ct = :id_ct
+            ";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                // Últimos 30 días si no hay fecha
+                $query .= " AND fecha_inicio >= CURRENT_DATE - INTERVAL '30 days'";
+            }
+
+            // 🔥 OJO: Sin GROUP BY id_linea → ahora es balance total CT
+            $query .= " GROUP BY id_ct ORDER BY id_ct;";
+
+            $balancesGeneralSABT = DB::connection($connection)->select($query, $params);
+
+            return $balancesGeneralSABT ?: ['message' => 'No hay datos'];
+
+        } else {
+            return ['message' => 'No hay datos'];
+        }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
+    }
+}
+
 
     public function exportBalancesSABT(Request $request) {
         try {
