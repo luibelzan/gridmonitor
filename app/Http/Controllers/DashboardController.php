@@ -994,11 +994,14 @@ LIMIT 0, 100;
                         GROUP BY c.id_ct
                     ),
                     lineas_por_ct AS (
-                        SELECT id_ct,
-                            COUNT(DISTINCT id_linea) AS nro_lineas
-                        FROM core.t_lineas
-                        GROUP BY id_ct
-                    ),
+					    SELECT 
+					        c.id_ct,
+					        COUNT(DISTINCT l.id_linea) AS nro_lineas
+					    FROM core.t_lineas l
+					    JOIN core.t_trafos t ON t.id_trafo = l.id_trafo
+					    JOIN core.t_concentradores c ON c.id_cnc = t.id_cnc
+					    GROUP BY c.id_ct
+					),
                     cups_por_ct AS (
                         SELECT id_ct,
                             COUNT(DISTINCT id_cups) AS nro_cups
