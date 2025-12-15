@@ -519,6 +519,126 @@ return [
             ]) : [],
         ],
 
+        'mysql_algimia' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_ALGIMIA_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_ALGIMIA_PORT', '3306'),
+            'database' => env('DB_MYSQL_ALGIMIA_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_ALGIMIA_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_ALGIMIA_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mysql_almenara' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_ALMENARA_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_ALMENARA_PORT', '3306'),
+            'database' => env('DB_MYSQL_ALMENARA_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_ALMENARA_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_ALMENARA_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mysql_ain' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_AIN_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_AIN_PORT', '3306'),
+            'database' => env('DB_MYSQL_AIN_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_AIN_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_AIN_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mysql_collado' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_COLLADO_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_COLLADO_PORT', '3306'),
+            'database' => env('DB_MYSQL_COLLADO_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_COLLADO_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_COLLADO_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mysql_pozo' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_POZO_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_POZO_PORT', '3306'),
+            'database' => env('DB_MYSQL_POZO_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_POZO_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_POZO_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mysql_binefar' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_BINEFAR_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_BINEFAR_PORT', '3306'),
+            'database' => env('DB_MYSQL_BINEFAR_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_BINEFAR_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_BINEFAR_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
@@ -969,6 +1089,103 @@ return [
             'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
             'sslmode' => 'prefer',
         ],
+
+        //conexion para Algimia
+        'pgsql-algimia' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_ALGIMIA_HOST', '127.0.0.1'),
+            'port' => env('DB_ALGIMIA_PORT', '5432'),
+            'database' => env('DB_ALGIMIA_DATABASE', 'Ferez'),
+            'username' => env('DB_ALGIMIA_USERNAME', 'postgres'),
+            'password' => env('DB_ALGIMIA_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Almenara
+        'pgsql-almenara' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_ALMENARA_HOST', '127.0.0.1'),
+            'port' => env('DB_ALMENARA_PORT', '5432'),
+            'database' => env('DB_ALMENARA_DATABASE', 'Ferez'),
+            'username' => env('DB_ALMENARA_USERNAME', 'postgres'),
+            'password' => env('DB_ALMENARA_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Ain
+        'pgsql-ain' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_AIN_HOST', '127.0.0.1'),
+            'port' => env('DB_AIN_PORT', '5432'),
+            'database' => env('DB_AIN_DATABASE', 'Ferez'),
+            'username' => env('DB_AIN_USERNAME', 'postgres'),
+            'password' => env('DB_AIN_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Collado
+        'pgsql-collado' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_COLLADO_HOST', '127.0.0.1'),
+            'port' => env('DB_COLLADO_PORT', '5432'),
+            'database' => env('DB_COLLADO_DATABASE', 'Ferez'),
+            'username' => env('DB_COLLADO_USERNAME', 'postgres'),
+            'password' => env('DB_COLLADO_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Pozo
+        'pgsql-pozo' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_POZO_HOST', '127.0.0.1'),
+            'port' => env('DB_POZO_PORT', '5432'),
+            'database' => env('DB_POZO_DATABASE', 'Ferez'),
+            'username' => env('DB_POZO_USERNAME', 'postgres'),
+            'password' => env('DB_POZO_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Binefar
+        'pgsql-binefar' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_BINEFAR_HOST', '127.0.0.1'),
+            'port' => env('DB_BINEFAR_PORT', '5432'),
+            'database' => env('DB_BINEFAR_DATABASE', 'Ferez'),
+            'username' => env('DB_BINEFAR_USERNAME', 'postgres'),
+            'password' => env('DB_BINEFAR_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

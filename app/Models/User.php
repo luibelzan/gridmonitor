@@ -152,7 +152,19 @@ class User extends Authenticatable
 			case 'Ferez':
                 return 'pgsql-ferez';
 			case 'Sierramagina':
-                return 'pgsql-sierramagina';				
+                return 'pgsql-sierramagina';
+            case 'Algimia':
+                return 'pgsql-algimia';
+            case 'Almenara':
+                return 'pgsql-almenara';
+            case 'Ain':
+                return 'pgsql-ain';
+            case 'Collado':
+                return 'pgsql-collado';
+            case 'Pozo':
+                return 'pgsql-pozo';
+            case 'Binefar':
+                return 'pgsql-binefar';										
             default:
                 // Si no coincide con ninguno de los casos anteriores, se devuelve una conexión por defecto.
                 return 'pgsql';
