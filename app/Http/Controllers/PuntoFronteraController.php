@@ -596,43 +596,50 @@ class PuntoFronteraController extends Controller
 }
 
 
-    public function consultaTrespf($id_cnt, $connectionpf) //Fecha ultima curva
-    {
-        if ($id_cnt) {
-            $resultadosQ3pf = DB::connection($connectionpf)
-                ->select('
-                SELECT MAX(id) as max_id, DATE_FORMAT(t_dat_iec870_load_profile_1.fh, "%d/%m/%Y %H:%i:%s") as fecha_ultima_curva
-                FROM t_dat_iec870_load_profile_1, t_meter_params_iec870
-                WHERE t_meter_params_iec870.id_cnt = :id_cnt
-                AND t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
-                GROUP BY 2
-                ORDER BY 1 DESC
-                LIMIT 1
-            ', ['id_cnt' => $id_cnt]);
-            // dd($resultadosQ3pf);
-            return $resultadosQ3pf  ?: [];
-        }
+    public function consultaTrespf($id_cnt, $connectionpf) // Fecha última curva
+{
+    if (!$id_cnt) {
+        return [];
+    }
+    $resultadosQ3pf = DB::connection($connectionpf)->select(
+        "
+        SELECT
+            fh AS max_fh,
+            TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva
+        FROM t_dat_iec870_load_profile_1
+        WHERE id_cnt = ?
+        ORDER BY fh DESC
+        LIMIT 1
+        ",
+        [$id_cnt]
+    );
+
+    return $resultadosQ3pf ?: [];
+}
+
+
+    public function consultaCuatropf($id_cnt, $connectionpf) // Fecha último evento
+{
+    if (!$id_cnt) {
+        return [];
     }
 
+    $resultadosQ4pf = DB::connection($connectionpf)->select(
+        "
+        SELECT
+            fh AS max_fh,
+            TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultimo_evento
+        FROM t_dat_iec870_events
+        WHERE id_cnt = ?
+        ORDER BY fh DESC
+        LIMIT 1
+        ",
+        [$id_cnt]
+    );
 
+    return $resultadosQ4pf ?: [];
+}
 
-
-    public function consultaCuatropf($id_cnt, $connectionpf) //Fecha ultimo evento
-    {
-        if ($id_cnt) {
-            $resultadosQ4pf = DB::connection($connectionpf)
-                ->select('
-                SELECT MAX(id) as max_id, t_dat_iec870_eventos.fh as fecha_ultimo_evento
-                FROM t_dat_iec870_eventos,t_meter_params_iec870
-                WHERE t_meter_params_iec870.id_cnt = :id_cnt
-                AND t_dat_iec870_eventos.id_cnt = t_meter_params_iec870.id_cnt
-                group by 2
-                order by 1 desc
-                limit 1
-            ', ['id_cnt' => $id_cnt]);
-            return $resultadosQ4pf  ?: [];
-        }
-    }
 
 
 
