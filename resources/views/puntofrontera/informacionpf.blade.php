@@ -375,7 +375,7 @@
 
                                 <datalist id="cntList">
                                     @foreach ($parametros as $cnt)
-                                        @if ($cnt->curva_1 == 1)
+                                        @if ($cnt->lp_1 == true)
                                             <option value="{{ $cnt->id_cnt }}">{{ $cnt->cups }}</option>
                                         @endif
                                     @endforeach

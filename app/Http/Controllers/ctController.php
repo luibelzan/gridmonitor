@@ -3202,7 +3202,10 @@ class ctController extends Controller
                     sub.sub_voltajes,
                     sub.micro_cortes,
                     sub.total_eventos,
-                    ROUND((sub.total_eventos / NULLIF(sub.total_cups, 0)), 2) AS ratio
+                    ROUND(
+                        sub.total_eventos::numeric / NULLIF(sub.total_cups, 0),
+                        2
+                    ) AS ratio
                 FROM (
                     SELECT
                         t.nom_ct,

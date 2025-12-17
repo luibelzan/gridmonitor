@@ -433,7 +433,7 @@ class PuntoFronteraController extends Controller
 
 
         $datos = DB::connection($connectionpf)
-            ->select("SELECT * FROM t_reader_groups WHERE cod_id_group = $cod_id_group;");
+            ->select("SELECT * FROM t_reader_dsos WHERE dso_id = $cod_id_group;");
         //  dd($datos);
         return $datos ?: [];
     }
@@ -449,7 +449,7 @@ class PuntoFronteraController extends Controller
 
         $parametros = DB::connection($connectionpf)
             ->select("SELECT * FROM t_meter_params_iec870
-            WHERE cod_id_group = $cod_id_group;");
+            WHERE dso_id = $cod_id_group;");
         //  dd($parametros);
         return $parametros ?: [];
     }
@@ -515,25 +515,26 @@ class PuntoFronteraController extends Controller
                 $query = "
                 SELECT 
                     t_meter_params_iec870.id_cnt,
-                    t_meter_params_iec870.cups,
-                    t_meter_params_iec870.description,
-                    t_meter_params_iec870.direnlace,
-                    t_meter_params_iec870.pm,
-                    t_meter_params_iec870.password,
-                    t_reader_meter_data.rel_trafos_intensidad,
-                    t_reader_meter_data.rel_trafos_tension,
-                    t_reader_meter_data.dir_punto_medida,
-                    t_reader_meter_data.tip_punto_medida,
-                    t_reader_meter_data.id_punto_medida,
-                    t_reader_meter_data.lat_punto_medida,
-                    t_reader_meter_data.lon_punto_medida,
+                    t_meter_params_iec870.id_cups,
+                    t_meter_params_iec870.cnt_enlace,
+                    t_meter_params_iec870.cnt_pm,
+                    t_meter_params_iec870.cnt_password,
+                    t_reader_meter_data.voltage_primary,
+                    t_reader_meter_data.voltage_secondary,
+                    t_reader_meter_data.current_primary,
+                    t_reader_meter_data.current_secondary,
+                    t_reader_meter_data.dir_cups,
+                    t_reader_meter_data.tip_cups,
+                    t_reader_meter_data.lat_cups,
+                    t_reader_meter_data.lon_cups,
                     t_reader_connections.conx_name,
                     t_reader_connections.conx_info
                 FROM 
                     t_meter_params_iec870, t_reader_meter_data, t_reader_connections
-                WHERE  
-                    t_meter_params_iec870.id_cnt = t_reader_meter_data.id_cnt
-                    AND t_meter_params_iec870.cod_id_conx = t_reader_connections.cod_id_conx
+                WHERE
+                    t_meter_params_iec870.id_cups = t_reader_meter_data.id_cups  
+                    AND t_meter_params_iec870.id_cnt = t_reader_meter_data.id_cnt
+                    AND t_meter_params_iec870.conx_id = t_reader_connections.conx_id
                     AND t_meter_params_iec870.id_cnt IN ($placeholders)
             ";
                 $resultadosQ1pf = DB::connection($connectionpf)->select($query, $id_cnt);
@@ -542,25 +543,26 @@ class PuntoFronteraController extends Controller
                 $query = "
                 SELECT 
                     t_meter_params_iec870.id_cnt,
-                    t_meter_params_iec870.cups,
-                    t_meter_params_iec870.description,
-                    t_meter_params_iec870.direnlace,
-                    t_meter_params_iec870.pm,
-                    t_meter_params_iec870.password,
-                    t_reader_meter_data.rel_trafos_intensidad,
-                    t_reader_meter_data.rel_trafos_tension,
-                    t_reader_meter_data.dir_punto_medida,
-                    t_reader_meter_data.tip_punto_medida,
-                    t_reader_meter_data.id_punto_medida,
-                    t_reader_meter_data.lat_punto_medida,
-                    t_reader_meter_data.lon_punto_medida,
+                    t_meter_params_iec870.id_cups,
+                    t_meter_params_iec870.cnt_enlace,
+                    t_meter_params_iec870.cnt_pm,
+                    t_meter_params_iec870.cnt_password,
+                    t_reader_meter_data.voltage_primary,
+                    t_reader_meter_data.voltage_secondary,
+                    t_reader_meter_data.current_primary,
+                    t_reader_meter_data.current_secondary,
+                    t_reader_meter_data.dir_cups,
+                    t_reader_meter_data.tip_cups,
+                    t_reader_meter_data.lat_cups,
+                    t_reader_meter_data.lon_cups,
                     t_reader_connections.conx_name,
                     t_reader_connections.conx_info
                 FROM 
                     t_meter_params_iec870, t_reader_meter_data, t_reader_connections
                 WHERE  
-                    t_meter_params_iec870.id_cnt = t_reader_meter_data.id_cnt
-                    AND t_meter_params_iec870.cod_id_conx = t_reader_connections.cod_id_conx
+                    t_meter_params_iec870.id_cups = t_reader_meter_data.id_cups  
+                    AND t_meter_params_iec870.id_cnt = t_reader_meter_data.id_cnt
+                    AND t_meter_params_iec870.conx_id = t_reader_connections.conx_id
                     AND t_meter_params_iec870.id_cnt = :id_cnt
             ";
                 $resultadosQ1pf = DB::connection($connectionpf)->select($query, ['id_cnt' => $id_cnt]);

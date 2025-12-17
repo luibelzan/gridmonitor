@@ -164,7 +164,9 @@ class User extends Authenticatable
             case 'Pozo':
                 return 'pgsql-pozo';
             case 'Binefar':
-                return 'pgsql-binefar';										
+                return 'pgsql-binefar';
+            case 'Reader':
+                return 'pgsql-reader';										
             default:
                 // Si no coincide con ninguno de los casos anteriores, se devuelve una conexión por defecto.
                 return 'pgsql';
@@ -206,6 +208,17 @@ class User extends Authenticatable
     return 'mysql';
 }
 
+    public static function setReaderConnection($nom_distribuidora)
+    {
+        $connectionName = 'pgsql-reader';
+
+        if (config('database.connections.' . $connectionName)) {
+            return $connectionName;
+        }
+
+        return 'pgsql';
+    }
+
 
 
     public static function conexionPuntoFrontera()
@@ -218,7 +231,7 @@ class User extends Authenticatable
 
             if ($user->cod_id_group != 'admin') {
                 // Determinar la conexión de base de datos correspondiente utilizando el modelo User
-                return User::setDynamicMySQLConnection($user->nom_distribuidora);
+                return User::setReaderConnection($user->nom_distribuidora);
             }
             return 'pgsql';
         }
