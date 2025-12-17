@@ -573,28 +573,27 @@ class PuntoFronteraController extends Controller
     }
 
 
-
-
-
-
-    public function consultaDospf($id_cnt, $connectionpf) //Fecha ultimo cierre
-    {
-        if ($id_cnt) {
-            $resultadosQ2pf = DB::connection($connectionpf)
-                ->select('
-                SELECT MAX(id) as max_id, DATE_FORMAT(t_dat_iec870_monthly_billing.fhf, "%d/%m/%Y %H:%i:%s") as fecha_ultima_cierre
-                FROM t_dat_iec870_monthly_billing,t_meter_params_iec870
-                WHERE t_meter_params_iec870.id_cnt = :id_cnt
-                AND t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
-                GROUP BY 2
-                ORDER BY 1 DESC
-                LIMIT 1
-            ', ['id_cnt' => $id_cnt]);
-            return $resultadosQ2pf  ?: [];
-        }
+    public function consultaDospf($id_cnt, $connectionpf) // Fecha último cierre
+{
+    if (!$id_cnt) {
+        return [];
     }
 
+    $resultadosQ2pf = DB::connection($connectionpf)->select(
+        "
+        SELECT
+            fhf AS max_fhf,
+            TO_CHAR(fhf, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_cierre
+        FROM t_dat_iec870_monthly_billing
+        WHERE id_cnt = ?
+        ORDER BY fhf DESC
+        LIMIT 1
+        ",
+        [$id_cnt]
+    );
 
+    return $resultadosQ2pf ?: [];
+}
 
 
     public function consultaTrespf($id_cnt, $connectionpf) //Fecha ultima curva
