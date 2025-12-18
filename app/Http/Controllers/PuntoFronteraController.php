@@ -85,7 +85,7 @@ class PuntoFronteraController extends Controller
         $resultadosQ2pf = $this->consultaDospf($id_cnt, $connectionpf);
         $resultadosQ3pf = $this->consultaTrespf($id_cnt, $connectionpf);
         $resultadosQ4pf = $this->consultaCuatropf($id_cnt, $connectionpf);
-        $resultadosQ5pf = $this->consultaCincopf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin);
+        //$resultadosQ5pf = $this->consultaCincopf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin);
         $resultadosQ6pf = $this->consultaSeispf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin);
         $resultadosQ7pf = $this->consultaSietepf($id_cnt, $connectionpf);
         $resultadosQ26pf = $this->consultaVeintiSeispf($id_cnt, $connectionpf);
@@ -106,7 +106,7 @@ class PuntoFronteraController extends Controller
             'resultadosQ2pf' => $resultadosQ2pf,
             'resultadosQ3pf' => $resultadosQ3pf,
             'resultadosQ4pf' => $resultadosQ4pf,
-            'resultadosQ5pf' => $resultadosQ5pf,
+            //'resultadosQ5pf' => $resultadosQ5pf,
             'resultadosQ6pf' => $resultadosQ6pf,
             'resultadosQ7pf' => $resultadosQ7pf,
             'resultadosQ26pf' => $resultadosQ26pf,
@@ -447,10 +447,12 @@ class PuntoFronteraController extends Controller
         $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
 
 
-        $parametros = DB::connection($connectionpf)
-            ->select("SELECT * FROM t_meter_params_iec870
-            WHERE dso_id = $cod_id_group;");
-        //  dd($parametros);
+        $parametros = DB::connection($connectionpf)->select(
+            "SELECT * FROM t_meter_params_iec870 WHERE dso_id = :dso_id",
+            ['dso_id' => $cod_id_group]
+        );
+
+
         return $parametros ?: [];
     }
 
@@ -467,9 +469,9 @@ class PuntoFronteraController extends Controller
                 // Consulta para múltiples id_cnts
                 $placeholders = implode(',', array_fill(0, count($id_cnt), '?'));
                 $query = "
-                SELECT curva_1, cod_id_group
+                SELECT lp_2, dso_id
                 FROM t_meter_params_iec870
-                WHERE cod_id_group = ?
+                WHERE dso_id = ?
                 AND id_cnt IN ($placeholders)";
 
 
@@ -478,9 +480,9 @@ class PuntoFronteraController extends Controller
             } else {
                 // Consulta para un solo id_cnt
                 $query = "
-                SELECT curva_1, cod_id_group
+                SELECT lp_2, dso_id
                 FROM t_meter_params_iec870
-                WHERE cod_id_group = ?
+                WHERE dso_id = ?
                 AND id_cnt = ?";
 
 
@@ -643,7 +645,7 @@ class PuntoFronteraController extends Controller
 
 
 
-
+/*
     public function consultaCincopf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
     {
         if ($id_cnt) {
@@ -678,66 +680,63 @@ class PuntoFronteraController extends Controller
             return $resultadosQ5pf ?: [];
         }
     }
-
+*/
 
 
 
     public function consultaSeispf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        if ($id_cnt) {
-            $query = "SELECT
-                    t_meter_params_iec870.cups as CUPS,
-                    t_dat_iec870_monthly_billing.id_cnt,
-                    t_dat_iec870_monthly_billing.ctr as Contrato,
-                    t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
-                    date_format(t_dat_iec870_monthly_billing.fhi,'%d/%m/%Y') as Fecha_Inicio,
-                    date_format(t_dat_iec870_monthly_billing.fhf,'%d/%m/%Y') as Fecha_Fin,
-                    t_dat_iec870_monthly_billing.e_act_abs as Energia_Activa_Absoluta,
-                    t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
-                    t_dat_iec870_monthly_billing.e_act_cualif as Bit_Calidad_Activa,
-                    t_dat_iec870_monthly_billing.e_react_ind_abs as Energia_Reactiva_Inductiva_Absoluta,
-                    t_dat_iec870_monthly_billing.e_react_ind_inc as Energia_Reactiva_Inductiva_Incremental,
-                    t_dat_iec870_monthly_billing.e_react_ind_cualif as Bit_Calidad_Reactiva_Inductiva,
-                    t_dat_iec870_monthly_billing.e_react_cap_abs as Energia_Reactiva_Capacitiva_Absoluta,
-                    t_dat_iec870_monthly_billing.e_react_cap_inc as Energia_Reactiva_Capacitiva_Incremental,
-                    t_dat_iec870_monthly_billing.e_react_cap_cualif as Bit_Calidad_Reactiva_Capacitiva,
-                    t_dat_iec870_monthly_billing.e_act_exceso as Excesos_de_Potencias,
-                    t_dat_iec870_monthly_billing.e_act_exceso_cualif as Bit_Calidad_Excesos,
-                    t_dat_iec870_monthly_billing.pot_max as Maximetros,
-                    date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
-                    t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
-                FROM t_dat_iec870_monthly_billing
-                INNER JOIN t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
-                WHERE t_dat_iec870_monthly_billing.id_cnt = :id_cnt";
+{
+    if ($id_cnt) {
+        $query = "SELECT
+                t_meter_params_iec870.id_cups AS CUPS,
+                t_dat_iec870_monthly_billing.id_cnt,
+                t_dat_iec870_monthly_billing.ctr AS Contrato,
+                t_dat_iec870_monthly_billing.pt AS Periodo_Tarifario,
+                TO_CHAR(t_dat_iec870_monthly_billing.fhi, 'DD/MM/YYYY') AS Fecha_Inicio,
+                TO_CHAR(t_dat_iec870_monthly_billing.fhf, 'DD/MM/YYYY') AS Fecha_Fin,
+                t_dat_iec870_monthly_billing.e_act_abs AS Energia_Activa_Absoluta,
+                t_dat_iec870_monthly_billing.e_act_inc AS Energia_Activa_Incremental,
+                t_dat_iec870_monthly_billing.e_act_bc AS Bit_Calidad_Activa,
+                t_dat_iec870_monthly_billing.e_react_ind_abs AS Energia_Reactiva_Inductiva_Absoluta,
+                t_dat_iec870_monthly_billing.e_react_ind_inc AS Energia_Reactiva_Inductiva_Incremental,
+                t_dat_iec870_monthly_billing.e_react_ind_bc AS Bit_Calidad_Reactiva_Inductiva,
+                t_dat_iec870_monthly_billing.e_react_cap_abs AS Energia_Reactiva_Capacitiva_Absoluta,
+                t_dat_iec870_monthly_billing.e_react_cap_inc AS Energia_Reactiva_Capacitiva_Incremental,
+                t_dat_iec870_monthly_billing.e_react_cap_bc AS Bit_Calidad_Reactiva_Capacitiva,
+                t_dat_iec870_monthly_billing.e_act_exceso AS Excesos_de_Potencias,
+                t_dat_iec870_monthly_billing.e_act_exceso_bc AS Bit_Calidad_Excesos,
+                t_dat_iec870_monthly_billing.pot_max AS Maximetros,
+                TO_CHAR(t_dat_iec870_monthly_billing.pot_max_fh, 'DD/MM/YYYY HH24:MI:SS') AS Fecha_Maximetros,
+                t_dat_iec870_monthly_billing.pot_max_bc AS Bit_Calidad_Maximetros
+            FROM t_dat_iec870_monthly_billing
+            INNER JOIN t_meter_params_iec870
+                ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+            WHERE t_dat_iec870_monthly_billing.id_cnt = :id_cnt";
 
+        if ($fecha_inicio && $fecha_fin) {
+            $query .= "
+            AND t_dat_iec870_monthly_billing.fhi >= :fecha_inicio
+            AND t_dat_iec870_monthly_billing.fhf <= :fecha_fin
+            ORDER BY t_dat_iec870_monthly_billing.fhi DESC,
+                     t_dat_iec870_monthly_billing.fhf DESC";
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "
-                AND t_dat_iec870_monthly_billing.fhi >= :fecha_inicio
-                AND t_dat_iec870_monthly_billing.fhf <= :fecha_fin
-                ORDER BY t_dat_iec870_monthly_billing.fhi DESC, t_dat_iec870_monthly_billing.fhf DESC";
-                $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-            } else {
-                $query .= "
-            ORDER BY t_dat_iec870_monthly_billing.fhi DESC, t_dat_iec870_monthly_billing.fhf DESC";
-                // No se aplican restricciones de fecha
-                $params = ['id_cnt' => $id_cnt];
-            }
+            $params = [
+                'id_cnt' => $id_cnt,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin
+            ];
+        } else {
+            $query .= "
+            ORDER BY t_dat_iec870_monthly_billing.fhi DESC,
+                     t_dat_iec870_monthly_billing.fhf DESC";
 
-
-
-
-            $resultadosQ6pf = DB::connection($connectionpf)->select($query, $params);
-            // dd($resultadosQ6pf);
-            return $resultadosQ6pf ?: [];
+            $params = ['id_cnt' => $id_cnt];
         }
+
+        $resultadosQ6pf = DB::connection($connectionpf)->select($query, $params);
+        return $resultadosQ6pf ?: [];
     }
-
-
-
-
-
-
+}
 
 
     public function consultaSietepf($id_cnt, $connectionpf) //Log de Comnicaciones
@@ -745,10 +744,13 @@ class PuntoFronteraController extends Controller
         if ($id_cnt) {
             $resultadosQ7pf = DB::connection($connectionpf)
                 ->select('
-                SELECT des_fab as fabricante
-                FROM t_reader_meter_vendors, t_meter_params_iec870
-                WHERE substring(t_meter_params_iec870.id_cnt, 1, 1) = t_reader_meter_vendors.id_fab
-                AND t_meter_params_iec870.id_cnt = :id_cnt
+                SELECT v.des_fab AS fabricante
+                FROM t_meter_params_iec870 p
+                JOIN t_reader_meter_data d
+                    ON d.id_cnt = p.id_cnt
+                JOIN t_reader_meter_vendors v
+                    ON v.cod_fab = d.cod_fab
+                WHERE p.id_cnt = :id_cnt;
             ', ['id_cnt' => $id_cnt]);
             return $resultadosQ7pf  ?: [];
         }
@@ -2273,84 +2275,76 @@ public function exportCurvasCuartihorarias(Request $request)
 
 
     public function consultaVeintiSeispf($id_cnt, $connectionpf)
-    {
-        if ($id_cnt) {
-            // Ejecuta la consulta usando el valor de $id_cnt en el parámetro
-            $resultadosQ26pf = DB::connection($connectionpf)->select("
+{
+    if ($id_cnt) {
+        $resultadosQ26pf = DB::connection($connectionpf)->select("
             SELECT
-                date_format(t_dat_iec870_monthly_billing.fhi, '%m/%Y') as Fecha_Inicio,
-                t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
-                t_dat_iec870_monthly_billing.ctr as Contrato
+                TO_CHAR(t_dat_iec870_monthly_billing.fhi, 'MM/YYYY') AS fecha_inicio,
+                t_dat_iec870_monthly_billing.e_act_inc AS energia_activa_incremental,
+                t_dat_iec870_monthly_billing.ctr AS contrato
             FROM
                 t_dat_iec870_monthly_billing
             INNER JOIN
-                t_meter_params_iec870 
+                t_meter_params_iec870
                 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
             WHERE
-                t_dat_iec870_monthly_billing.id_cnt = :id_cnt1                
+                t_dat_iec870_monthly_billing.id_cnt = :id_cnt1
                 AND t_dat_iec870_monthly_billing.pt = '0'  -- Periodo Tarifario 0
                 AND t_dat_iec870_monthly_billing.fhf >= (
-                    SELECT 
-                        DATE_SUB(MAX(fhf), INTERVAL 11 MONTH)
-                    FROM 
+                    SELECT
+                        MAX(fhf) - INTERVAL '11 months'
+                    FROM
                         t_dat_iec870_monthly_billing
-                    WHERE 
+                    WHERE
                         id_cnt = :id_cnt2
                 )
-            ORDER BY 
+            ORDER BY
                 t_dat_iec870_monthly_billing.fhi ASC;
         ", [
-                'id_cnt1' => $id_cnt,  // Primer uso de id_cnt
-                'id_cnt2' => $id_cnt   // Segundo uso de id_cnt en la subconsulta
-            ]);
+            'id_cnt1' => $id_cnt,
+            'id_cnt2' => $id_cnt
+        ]);
 
 
-            // Depuración de resultados
-            //dd($resultadosQ26pf); // Descomenta si necesitas inspeccionar los resultados en desarrollo
-
-
-            // Devuelve los resultados o un array vacío si no hay datos
-            return $resultadosQ26pf ?: [];
-        }
-
-
-        // Si $id_cnt no está presente, retorna un array vacío
-        return [];
+        return $resultadosQ26pf ?: [];
     }
+
+    return [];
+}
+
 
 
     public function consultaVeintiSietepf($id_cnt, $connectionpf)
-    {
-        if ($id_cnt) {
-            // Ejecuta la consulta usando el valor de $id_cnt
-            $resultadosQ27pf = DB::connection($connectionpf)->select("
-                 SELECT 
-                    DATE_FORMAT(t_dat_iec870_monthly_billing.pot_max_fh, '%m/%Y') AS Fecha,
-                    FORMAT(MAX(t_dat_iec870_monthly_billing.pot_max), 2) AS Maximetros
-                FROM 
-                    t_dat_iec870_monthly_billing
-                INNER JOIN 
-                    t_meter_params_iec870 
-                    ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
-                WHERE 
-                    t_dat_iec870_monthly_billing.id_cnt = :id_cnt
-                    AND t_dat_iec870_monthly_billing.pot_max_fh >= DATE_SUB(CURRENT_DATE, INTERVAL 12 MONTH)
-                GROUP BY 
-                    DATE_FORMAT(t_dat_iec870_monthly_billing.pot_max_fh, '%m/%Y')
-                ORDER BY 
-                    MAX(t_dat_iec870_monthly_billing.pot_max_fh) DESC;
-            ", ['id_cnt' => $id_cnt]);
-    
-    
-            //dd($resultadosQ27pf); // Descomenta si necesitas inspeccionar los resultados en desarrollo
-    
-    
-            // Retorna los resultados o un array vacío si no hay datos
-            return $resultadosQ27pf ?: [];
-        }
-    
-        return [];
+{
+    if ($id_cnt) {
+        $resultadosQ27pf = DB::connection($connectionpf)->select("
+            SELECT 
+                TO_CHAR(t_dat_iec870_monthly_billing.pot_max_fh, 'MM/YYYY') AS fecha,
+                TO_CHAR(
+                    MAX(t_dat_iec870_monthly_billing.pot_max),
+                    'FM999999990.00'
+                ) AS maximetros
+            FROM 
+                t_dat_iec870_monthly_billing
+            INNER JOIN 
+                t_meter_params_iec870
+                ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+            WHERE 
+                t_dat_iec870_monthly_billing.id_cnt = :id_cnt
+                AND t_dat_iec870_monthly_billing.pot_max_fh >=
+                    CURRENT_DATE - INTERVAL '12 months'
+            GROUP BY 
+                TO_CHAR(t_dat_iec870_monthly_billing.pot_max_fh, 'MM/YYYY')
+            ORDER BY 
+                MAX(t_dat_iec870_monthly_billing.pot_max_fh) DESC;
+        ", ['id_cnt' => $id_cnt]);
+
+        return $resultadosQ27pf ?: [];
     }
+
+    return [];
+}
+
     
 
 
@@ -2360,9 +2354,9 @@ public function consultaVeintiOchopf($id_cnt, $connectionpf)
         // Ejecuta la consulta usando el valor de $id_cnt
         $resultadosQ28pf = DB::connection($connectionpf)->select("
              SELECT  
-            t_dat_iec870_monthly_billing.ctr as Contrato,
-            t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
-            SUM(t_dat_iec870_monthly_billing.e_act_inc) as Energia_Activa_Incremental
+            t_dat_iec870_monthly_billing.ctr as contrato,
+            t_dat_iec870_monthly_billing.pt as periodo_tarifario,
+            SUM(t_dat_iec870_monthly_billing.e_act_inc) as energia_activa_incremental
         FROM 
             t_dat_iec870_monthly_billing
         INNER JOIN 
