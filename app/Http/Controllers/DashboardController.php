@@ -673,7 +673,7 @@ class DashboardController extends Controller
                 ->select("
                    SELECT count(id_cnt) as num_contadores
                     FROM t_meter_params_iec870
-                    Where cod_id_group = $cod_id_group;
+                    Where dso_id = $cod_id_group;
                     ");
 
             // dd($cod_id_group);
@@ -685,83 +685,96 @@ class DashboardController extends Controller
         }
     }
 
-    public function consultaCatorceDashboard($connectionpf) //Interrupciones de Servicio (Cortes)
-    {
-        $user = Auth::user(); //obtenemos los datos del usuario autenticado
-        $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
-        try {
-            $resultadosQ14dashboard = DB::connection($connectionpf)
-                ->select("
-                 SELECT count(t_dat_iec870_eventos.fh) AS cortes
-                    FROM
-                        t_dat_iec870_eventos,t_meter_params_iec870
-                    WHERE
-                        t_dat_iec870_eventos.DR = '52'
-                        AND t_dat_iec870_eventos.SPA = '3'
-                        AND t_dat_iec870_eventos.SPQ = '0'
-                        AND t_dat_iec870_eventos.SPI = '1'
-                        AND t_dat_iec870_eventos.id_cnt = t_meter_params_iec870.id_cnt
-                        AND t_meter_params_iec870.cod_id_group = $cod_id_group
-                        AND month(t_dat_iec870_eventos.fh) = month (current_date);
-                    ");
-            //$nombre = DB::connection($connectionpf)->getDatabaseName();
-            //dd($nombre);
-            // dd($resultadosQ14dashboard);
-            return $resultadosQ14dashboard ?: ['message' => 'No hay datos'];
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'No hay datos'];
-        }
+    public function consultaCatorceDashboard($connectionpf) // Interrupciones de Servicio (Cortes)
+{
+    $user = Auth::user();
+    $cod_id_group = $user->cod_id_group;
+
+    try {
+        $resultadosQ14dashboard = DB::connection($connectionpf)->select("
+            SELECT
+                COUNT(e.fh) AS cortes
+            FROM t_dat_iec870_events e
+            JOIN t_meter_params_iec870 mp
+                ON e.id_cnt = mp.id_cnt
+            WHERE
+                e.dr = '52'
+                AND e.spa = '3'
+                AND e.spq = '0'
+                AND e.spi = '1'
+                AND mp.dso_id = :cod_id_group
+                AND EXTRACT(MONTH FROM e.fh) = EXTRACT(MONTH FROM CURRENT_DATE)
+        ", [
+            'cod_id_group' => $cod_id_group
+        ]);
+
+        return $resultadosQ14dashboard ?: ['message' => 'No hay datos'];
+
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
     }
+}
 
-    public function consultaQuinceDashboard($connectionpf) //Curvas Horarias Leidas (Mes Actual)
-    {
-        $user = Auth::user(); //obtenemos los datos del usuario autenticado
-        $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
 
-        try {
-            $resultadosQ15dashboard = DB::connection($connectionpf)
-                ->select("
-                 SELECT count(t_dat_iec870_load_profile_1.fh) as leidas
-                FROM t_dat_iec870_load_profile_1, t_meter_params_iec870
-                Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
-                t_meter_params_iec870.cod_id_group = $cod_id_group
-                and month(t_dat_iec870_load_profile_1.fh) = month(current_date)
-                    ");
+    public function consultaQuinceDashboard($connectionpf) // Curvas Horarias Leídas (Mes Actual)
+{
+    $user = Auth::user();
+    $cod_id_group = $user->cod_id_group;
 
-            // dd($cod_id_group);
-            // dd($resultadosQ15dashboard);
-            return $resultadosQ15dashboard ?: ['message' => 'No hay datos'];
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'No hay datos'];
-        }
+    try {
+        $resultadosQ15dashboard = DB::connection($connectionpf)->select("
+            SELECT
+                COUNT(lp.fh) AS leidas
+            FROM t_dat_iec870_load_profile_2 lp
+            JOIN t_meter_params_iec870 mp
+                ON lp.id_cnt = mp.id_cnt
+            WHERE
+                mp.dso_id = :cod_id_group
+                AND lp.fh >= date_trunc('month', CURRENT_DATE)
+                AND lp.fh <  date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+        ", [
+            'cod_id_group' => $cod_id_group
+        ]);
+
+        return $resultadosQ15dashboard ?: ['message' => 'No hay datos'];
+
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
     }
+}
 
-    public function consultaDieciseisDashboard($connectionpf) //Curvas Horarias Invalidas (Mes Actual)
-    {
-        $user = Auth::user(); //obtenemos los datos del usuario autenticado
-        $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
 
-        try {
-            $resultadosQ16dashboard = DB::connection($connectionpf)
-                ->select("
-                 SELECT count(t_dat_iec870_load_profile_1.fh)  as invalidas
-                FROM t_dat_iec870_load_profile_1,t_meter_params_iec870
-                Where t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt and
-                t_meter_params_iec870.cod_id_group = $cod_id_group
-                and month(t_dat_iec870_load_profile_1.fh) = month(current_date) and
-                t_dat_iec870_load_profile_1.e_act_imp_cualif > 0
-                    ");
+    public function consultaDieciseisDashboard($connectionpf) // Curvas Horarias Inválidas (Mes Actual)
+{
+    $user = Auth::user();
+    $cod_id_group = $user->cod_id_group;
 
-            // dd($cod_id_group);
-            // dd($resultadosQ16dashboard);
-            return $resultadosQ16dashboard ?: ['message' => 'No hay datos'];
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'No hay datos'];
-        }
+    try {
+        $resultadosQ16dashboard = DB::connection($connectionpf)->select("
+            SELECT
+                COUNT(lp2.fh) AS invalidas
+            FROM t_dat_iec870_load_profile_2 lp2
+            JOIN t_dat_iec870_load_profile_1 lp1
+                ON lp2.id_cnt = lp1.id_cnt
+               AND lp2.fh = lp1.fh
+            JOIN t_meter_params_iec870 mp
+                ON lp2.id_cnt = mp.id_cnt
+            WHERE
+                mp.dso_id = :cod_id_group
+                AND lp1.ai_bc = 128
+                AND lp2.fh >= date_trunc('month', CURRENT_DATE)
+                AND lp2.fh <  date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+        ", [
+            'cod_id_group' => $cod_id_group
+        ]);
+
+        return $resultadosQ16dashboard ?: ['message' => 'No hay datos'];
+
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
     }
+}
+
 
     public function consultaDiecisieteDashboard($connectionpf) //Excesos de Potencia 
     {
@@ -774,7 +787,7 @@ class DashboardController extends Controller
                  SELECT count(t_dat_iec870_monthly_billing.fhi) excesos_potencia
                 FROM t_dat_iec870_monthly_billing,t_meter_params_iec870
                 Where t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt and
-                t_meter_params_iec870.cod_id_group = $cod_id_group 
+                t_meter_params_iec870.dso_id = $cod_id_group 
                 and t_dat_iec870_monthly_billing.e_act_exceso > 0
                     ");
 
@@ -787,92 +800,94 @@ class DashboardController extends Controller
         }
     }
 
-    public function consultaDieciochoDashboard($connectionpf) //PUNTOS de medida
-    {
-        $user = Auth::user(); //obtenemos los datos del usuario autenticado
-        $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
+    public function consultaDieciochoDashboard($connectionpf) // PUNTOS de medida
+{
+    $user = Auth::user();
+    $cod_id_group = $user->cod_id_group;
 
-        try {
-            $resultadosQ18dashboard = DB::connection($connectionpf)
-                ->select("
-                    SELECT 
-    t_meter_params_iec870.id_cnt AS Contador,
-    t_meter_params_iec870.cups AS CUPS,
-    t_meter_params_iec870.description AS Descripcion,
-    t_meter_params_iec870.password AS Clave,
-    t_reader_meter_data.rel_trafos_intensidad AS Trafos_Intensidad,
-    t_reader_meter_data.rel_trafos_tension AS Trafos_Tension,
-    t_reader_meter_data.tip_punto_medida AS Tipo_Punto_Medida,      
-    t_reader_connections.conx_name AS Tipo_Conexion,
-    uc.fecha_ultima_curva,
-    uc2.fecha_ultima_curva_15,
-    ulc.fecha_ultima_cierre,
-    ue.fecha_ultimo_evento
-FROM 
-    t_meter_params_iec870
-    JOIN t_reader_meter_data ON t_meter_params_iec870.id_cnt = t_reader_meter_data.id_cnt
-    JOIN t_reader_connections ON t_meter_params_iec870.cod_id_conx = t_reader_connections.cod_id_conx
-    LEFT JOIN (
-        SELECT 
-            id_cnt,
-            DATE_FORMAT(fh, '%d/%m/%Y %H:%i:%s') AS fecha_ultima_curva
-        FROM 
-            t_dat_iec870_load_profile_2
-        WHERE id IN (
-            SELECT MAX(id)
-            FROM t_dat_iec870_load_profile_2
-            GROUP BY id_cnt
-        )
-    ) uc ON t_meter_params_iec870.id_cnt = uc.id_cnt
-    LEFT JOIN (
-        SELECT 
-            id_cnt,
-            DATE_FORMAT(fh, '%d/%m/%Y %H:%i:%s') AS fecha_ultima_curva_15
-        FROM 
-            t_dat_iec870_load_profile_1
-        WHERE id IN (
-            SELECT MAX(id)
-            FROM t_dat_iec870_load_profile_1
-            GROUP BY id_cnt
-        )
-    ) uc2 ON t_meter_params_iec870.id_cnt = uc2.id_cnt
-    LEFT JOIN (
-        SELECT 
-            id_cnt,
-            DATE_FORMAT(fhf, '%d/%m/%Y %H:%i:%s') AS fecha_ultima_cierre
-        FROM 
-            t_dat_iec870_monthly_billing
-        WHERE id IN (
-            SELECT MAX(id)
-            FROM t_dat_iec870_monthly_billing
-            GROUP BY id_cnt
-        )
-    ) ulc ON t_meter_params_iec870.id_cnt = ulc.id_cnt
-    LEFT JOIN (
-        SELECT 
-            id_cnt,
-            fh AS fecha_ultimo_evento
-        FROM 
-            t_dat_iec870_eventos
-        WHERE id IN (
-            SELECT MAX(id)
-            FROM t_dat_iec870_eventos
-            GROUP BY id_cnt
-        )
-    ) ue ON t_meter_params_iec870.id_cnt = ue.id_cnt
-WHERE 
-    t_meter_params_iec870.cod_id_group = " . $cod_id_group . "
-LIMIT 0, 100;
-                    ");
+    try {
+        $resultadosQ18dashboard = DB::connection($connectionpf)->select("
+            SELECT 
+                mp.id_cnt AS contador,
+                mp.id_cups AS cups,
+                mp.cnt_password AS clave,
+                md.voltage_primary AS trafos_intensidad1,
+                md.voltage_secondary AS trafos_intensidad2,
+                md.current_primary AS trafos_tension1,
+                md.current_secondary AS trafos_tension2,
+                md.tip_cups AS tipo_punto_medida,
+                rc.conx_name AS tipo_conexion,
+                uc.fecha_ultima_curva,
+                uc2.fecha_ultima_curva_15,
+                ulc.fecha_ultima_cierre,
+                ue.fecha_ultimo_evento
+            FROM t_meter_params_iec870 mp
+            JOIN t_reader_meter_data md
+                ON mp.id_cnt = md.id_cnt
+            JOIN t_reader_connections rc
+                ON mp.conx_id = rc.conx_id
 
-            // dd($cod_id_group);
-            // dd($resultadosQ18dashboard);
-            return $resultadosQ18dashboard ?: ['message' => 'No hay datos'];
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return ['message' => 'No hay datos'];
-        }
+            LEFT JOIN (
+                SELECT
+                    id_cnt,
+                    TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva
+                FROM t_dat_iec870_load_profile_2
+                WHERE fh IN (
+                    SELECT MAX(fh)
+                    FROM t_dat_iec870_load_profile_2
+                    GROUP BY id_cnt
+                )
+            ) uc ON mp.id_cnt = uc.id_cnt
+
+            LEFT JOIN (
+                SELECT
+                    id_cnt,
+                    TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva_15
+                FROM t_dat_iec870_load_profile_1
+                WHERE fh IN (
+                    SELECT MAX(fh)
+                    FROM t_dat_iec870_load_profile_1
+                    GROUP BY id_cnt
+                )
+            ) uc2 ON mp.id_cnt = uc2.id_cnt
+
+            LEFT JOIN (
+                SELECT
+                    id_cnt,
+                    TO_CHAR(fhf, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_cierre
+                FROM t_dat_iec870_monthly_billing
+                WHERE fhi IN (
+                    SELECT MAX(fhi)
+                    FROM t_dat_iec870_monthly_billing
+                    GROUP BY id_cnt
+                )
+            ) ulc ON mp.id_cnt = ulc.id_cnt
+
+            LEFT JOIN (
+                SELECT
+                    id_cnt,
+                    fh AS fecha_ultimo_evento
+                FROM t_dat_iec870_events
+                WHERE fh IN (
+                    SELECT MAX(fh)
+                    FROM t_dat_iec870_events
+                    GROUP BY id_cnt
+                )
+            ) ue ON mp.id_cnt = ue.id_cnt
+
+            WHERE mp.dso_id = :cod_id_group
+            LIMIT 100 OFFSET 0
+        ", [
+            'cod_id_group' => $cod_id_group
+        ]);
+
+        return $resultadosQ18dashboard ?: ['message' => 'No hay datos'];
+
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
     }
+}
+
 
     public function consultaDiecinueveDashboard($connectionpf) //fecha ultimo cierre
     {

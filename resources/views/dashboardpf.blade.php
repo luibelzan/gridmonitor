@@ -374,8 +374,6 @@
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">CUPS</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
-                                                        style="color:rgb(88,226,194)">Descripción</th>
-                                                    <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">T.I</th>
                                                     <th class="mt-0 text-xl font-bold text-center"
                                                         style="color:rgb(88,226,194)">T.T</th>
@@ -396,31 +394,28 @@
                                                     <tr class="highlight-row">
                                                         <td class="py-2">{{ $loop->iteration }}</td>
                                                         <td class="py-2">
-                                                            @if (!empty($resultado->Contador))
-                                                                <a href="informacionpf?id_cnt={{ $resultado->Contador }}"
+                                                            @if (!empty($resultado->contador))
+                                                                <a href="informacionpf?id_cnt={{ $resultado->contador }}"
                                                                     target="_blank"
-                                                                    style="color:rgb(0, 0, 238)">{{ $resultado->Contador }}</a>
+                                                                    style="color:rgb(0, 0, 238)">{{ $resultado->contador }}</a>
                                                             @else
                                                                 No hay datos
                                                             @endif
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ !empty($resultado->CUPS) ? $resultado->CUPS : 'No hay datos' }}
+                                                            {{ !empty($resultado->cups) ? $resultado->cups : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ !empty($resultado->Descripcion) ? $resultado->Descripcion : 'No hay datos' }}
+                                                            {{ !empty($resultado->trafos_intensidad) ? $resultado->trafos_intensidad : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ !empty($resultado->Trafos_Intensidad) ? $resultado->Trafos_Intensidad : 'No hay datos' }}
+                                                            {{ !empty($resultado->trafos_tension) ? $resultado->trafos_tension : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ !empty($resultado->Trafos_Tension) ? $resultado->Trafos_Tension : 'No hay datos' }}
+                                                            {{ !empty($resultado->tipo_punto_medida) ? $resultado->tipo_punto_medida : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ !empty($resultado->Tipo_Punto_Medida) ? $resultado->Tipo_Punto_Medida : 'No hay datos' }}
-                                                        </td>
-                                                        <td class="py-2">
-                                                            {{ !empty($resultado->Tipo_Conexion) ? $resultado->Tipo_Conexion : 'No hay datos' }}
+                                                            {{ !empty($resultado->tipo_conexion) ? $resultado->tipo_conexion : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
                                                             {{ !empty($resultado->fecha_ultima_cierre) ? $resultado->fecha_ultima_cierre : 'No hay datos' }}
