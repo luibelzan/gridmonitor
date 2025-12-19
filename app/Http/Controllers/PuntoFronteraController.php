@@ -1307,277 +1307,328 @@ class PuntoFronteraController extends Controller
 
 
     //CONSULTAS CURVAS CUARTIHORARIAS --------------------
-    public function consultaDiecisietepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin,) //Cuenta de curvas a 0
-    {
-        if ($id_cnt) {
-            $query = "
+    public function consultaDiecisietepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin) // Cuenta de curvas a 0
+{
+    if ($id_cnt) {
+
+        $query = "
             SELECT
-                COUNT(t_dat_iec870_load_profile_1.fh) AS Energia_Activa_Importada_A
-            FROM
-                t_dat_iec870_load_profile_1,  t_meter_params_iec870
-                WHERE t_meter_params_iec870.id_cnt = :id_cnt
-            AND t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
-                AND t_dat_iec870_load_profile_1.e_act_imp = 0";
+                COUNT(lp2.fh) AS energia_activa_importada_a
+            FROM t_dat_iec870_load_profile_2 lp2
+            JOIN t_meter_params_iec870 mp
+                ON lp2.id_cnt = mp.id_cnt
+            WHERE
+                mp.id_cnt = :id_cnt
+                AND lp2.ai = 0
+        ";
 
+        if ($fecha_inicio && $fecha_fin) {
+            $query .= "
+                AND lp2.fh BETWEEN :fecha_inicio AND :fecha_fin
+            ";
 
+            $params = [
+                'id_cnt' => $id_cnt,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin
+            ];
+        } else {
+            $query .= "
+                AND lp2.fh >= (
+                    SELECT MAX(fh) - INTERVAL '168 hours'
+                    FROM t_dat_iec870_load_profile_2
+                )
+            ";
 
-
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "
-                AND t_dat_iec870_load_profile_1.fh BETWEEN :fecha_inicio AND :fecha_fin";
-                $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-            } else {
-                $query .= "
-                AND t_dat_iec870_load_profile_1.fh >= (
-                    SELECT MAX(fh) - INTERVAL 168 HOUR
-                    FROM t_dat_iec870_load_profile_1
-                  );
-                ";
-                $params = ['id_cnt' => $id_cnt];
-            }
-
-
-            $resultadosQ17pf = DB::connection($connectionpf)
-                ->select($query, $params);
-
-
-            // dd($resultadosQ17pf);
-
-
-            return $resultadosQ17pf ?: [];
+            $params = [
+                'id_cnt' => $id_cnt
+            ];
         }
+
+        $resultadosQ17pf = DB::connection($connectionpf)->select($query, $params);
+
+        return $resultadosQ17pf ?: [];
     }
+
+    return [];
+}
+
 
 
     public function consultaDieciochopf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        try {
-            if ($id_cnt) {
-                $query = "
-                    SELECT 
-                        SUM(e_act_imp) AS suma_importada
-                    FROM 
-                        t_dat_iec870_load_profile_1
-                    WHERE 
-                        id_cnt = :id_cnt";
-
-
-                // Aplicar filtro por fechas si están definidas
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "
-                        AND fh BETWEEN :fecha_inicio AND :fecha_fin";
-                    $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    // Si no hay fechas definidas, calcular para el mes actual
-                    $query .= "
-                        AND MONTH(fh) = MONTH(CURRENT_DATE)";
-                    $params = ['id_cnt' => $id_cnt];
-                }
-
-
-                $resultadosQ18pf = DB::connection($connectionpf)
-                    ->select($query, $params);
-
-
-                // dd($resultadosQ18pf);
-                return $resultadosQ18pf ?: [];
-            }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
-        }
-    }
-
-
-    public function consultaDiecinuevepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        try {
-            if ($id_cnt) {
-                $query = "
-                SELECT 
-                    SUM(e_act_exp) AS suma_exportada
-                FROM 
-                    t_dat_iec870_load_profile_1
-                WHERE 
-                    id_cnt = :id_cnt";
-
-
-                // Aplicar filtro por fechas si están definidas
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "
-                    AND fh BETWEEN :fecha_inicio AND :fecha_fin";
-                    $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    // Si no hay fechas definidas, calcular para el mes actual
-                    $query .= "
-                    AND MONTH(fh) = MONTH(CURRENT_DATE)";
-                    $params = ['id_cnt' => $id_cnt];
-                }
-
-
-                $resultadosQ19pf = DB::connection($connectionpf)
-                    ->select($query, $params);
-
-
-                return $resultadosQ19pf ?: [];
-            }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
-        }
-    }
-
-
-    public function consultaVeintepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
+{
+    try {
         if ($id_cnt) {
+
             $query = "
-            SELECT
-                t_meter_params_iec870.cups as 'CUPS',
-                t_dat_iec870_load_profile_1.id_cnt,
-                DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as 'Fecha',
-                DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as 'Hora',
-                t_dat_iec870_load_profile_1.e_act_imp as 'Energia_Activa_Importada_A',
-                t_dat_iec870_load_profile_1.e_act_imp_cualif as 'Bit_Calidad_Activa_A',
-                t_dat_iec870_load_profile_1.e_act_exp as 'Energia_Activa_Exportada_A',
-                t_dat_iec870_load_profile_1.e_act_exp_cualif as 'Bit_Calidad_Activa_A2',
-                t_dat_iec870_load_profile_1.e_react_ind_imp as 'Energia_Reactiva_Inductiva_Importada_Ri',
-                t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri',
-                t_dat_iec870_load_profile_1.e_react_ind_exp as 'Energia_Reactiva_Inductiva_Exportada_Ri',
-                t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri2',
-                t_dat_iec870_load_profile_1.e_react_cap_imp as 'Energia_Reactiva_Capacitiva_Importada_Rc',
-                t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
-                t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
-                t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-            FROM t_dat_iec870_load_profile_1
-            INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
-            WHERE t_dat_iec870_load_profile_1.id_cnt = :id_cnt";
-
-
-
+                SELECT
+                    SUM(ai) AS suma_importada
+                FROM t_dat_iec870_load_profile_2
+                WHERE id_cnt = :id_cnt
+            ";
 
             if ($fecha_inicio && $fecha_fin) {
                 $query .= "
-                AND t_dat_iec870_load_profile_1.fh >= :fecha_inicio
-                AND t_dat_iec870_load_profile_1.fh <= :fecha_fin
-                ORDER BY t_dat_iec870_load_profile_1.fh ASC
+                    AND fh BETWEEN :fecha_inicio AND :fecha_fin
                 ";
-                $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+
+                $params = [
+                    'id_cnt' => $id_cnt,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ];
             } else {
+                // Mes actual (año incluido)
                 $query .= "
-                ORDER BY t_dat_iec870_load_profile_1.fh DESC
-                LIMIT 2880";
+                    AND fh >= date_trunc('month', CURRENT_DATE)
+                    AND fh <  date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+                ";
+
+                $params = [
+                    'id_cnt' => $id_cnt
+                ];
+            }
+
+            $resultadosQ18pf = DB::connection($connectionpf)->select($query, $params);
+
+            return $resultadosQ18pf ?: [];
+        }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
+    }
+
+    return [];
+}
+
+
+
+    public function consultaDiecinuevepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
+{
+    try {
+        if ($id_cnt) {
+
+            $query = "
+                SELECT 
+                    SUM(ae) AS suma_exportada
+                FROM t_dat_iec870_load_profile_2
+                WHERE id_cnt = :id_cnt
+            ";
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND fh BETWEEN :fecha_inicio AND :fecha_fin
+                ";
+                $params = [
+                    'id_cnt' => $id_cnt,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ];
+            } else {
+                // Mes actual (correcto por año)
+                $query .= "
+                    AND fh >= date_trunc('month', CURRENT_DATE)
+                    AND fh <  date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
+                ";
                 $params = ['id_cnt' => $id_cnt];
             }
 
+            $resultadosQ19pf = DB::connection($connectionpf)->select($query, $params);
 
-
-
-            $resultadosQ20pf = DB::connection($connectionpf)->select($query, $params);
-
-            // Invertir resultados para orden ascendente si no hay fechas
-            if (!$fecha_inicio && !$fecha_fin) {
-                $resultadosQ20pf = array_reverse($resultadosQ20pf);
-            }
-
-
-            // dd($resultadosQ20pf);
-            return $resultadosQ20pf ?: [];
+            return $resultadosQ19pf ?: [];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
+
+
+    public function consultaVeintepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
+{
+    if ($id_cnt) {
+
+        $query = "
+        SELECT
+            t_meter_params_iec870.id_cups AS cups,
+            t_dat_iec870_load_profile_2.id_cnt AS id_cnt,
+            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'DD/MM/YYYY') AS fecha,
+            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'HH24:MI:SS') AS hora,
+            t_dat_iec870_load_profile_2.ai AS energia_activa_importada_a,
+            t_dat_iec870_load_profile_2.ai_bc AS bit_calidad_activa_a,
+            t_dat_iec870_load_profile_2.ae AS energia_activa_exportada_a,
+            t_dat_iec870_load_profile_2.ae_bc AS bit_calidad_activa_a2,
+            t_dat_iec870_load_profile_2.r1 AS energia_reactiva_inductiva_importada_ri,
+            t_dat_iec870_load_profile_2.r1_bc AS bit_calidad_reactiva_imp_ri,
+            t_dat_iec870_load_profile_2.r2 AS energia_reactiva_inductiva_exportada_ri,
+            t_dat_iec870_load_profile_2.r2_bc AS bit_calidad_reactiva_imp_ri2,
+            t_dat_iec870_load_profile_2.r3 AS energia_reactiva_capacitiva_importada_rc,
+            t_dat_iec870_load_profile_2.r3_bc AS bit_calidad_reactiva_imp_rc,
+            t_dat_iec870_load_profile_2.r4 AS energia_reactiva_capacitiva_exportada_rc,
+            t_dat_iec870_load_profile_2.r4_bc AS bit_calidad_reactiva_exp_rc
+        FROM t_dat_iec870_load_profile_2
+        INNER JOIN t_meter_params_iec870
+            ON t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
+        WHERE t_dat_iec870_load_profile_2.id_cnt = :id_cnt
+        ";
+
+        if ($fecha_inicio && $fecha_fin) {
+            $query .= "
+            AND t_dat_iec870_load_profile_2.fh >= :fecha_inicio
+            AND t_dat_iec870_load_profile_2.fh <= :fecha_fin
+            ORDER BY t_dat_iec870_load_profile_2.fh ASC
+            ";
+
+            $params = [
+                'id_cnt' => $id_cnt,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin
+            ];
+        } else {
+            $query .= "
+            ORDER BY t_dat_iec870_load_profile_2.fh DESC
+            LIMIT 2880
+            ";
+
+            $params = ['id_cnt' => $id_cnt];
+        }
+
+        $resultadosQ20pf = DB::connection($connectionpf)->select($query, $params);
+
+        // Invertir resultados para orden ascendente si no hay fechas
+        if (!$fecha_inicio && !$fecha_fin) {
+            $resultadosQ20pf = array_reverse($resultadosQ20pf);
+        }
+
+        return $resultadosQ20pf ?: [];
+    }
+}
 
 
     public function consultaVeintiunopf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        try {
-            if ($id_cnt) {
-                $query = "
-                SELECT 
-                    DATE_FORMAT(fh, '%H:00:00') AS hora,
-                    ROUND(AVG(e_act_imp), 2) AS media_consumo_hora_imp,
-                    ROUND(AVG(e_act_exp), 2) AS media_consumo_hora_exp
-                FROM 
-                    t_dat_iec870_load_profile_1
-                WHERE 
-                    id_cnt = :id_cnt";
+{
+    try {
+        if ($id_cnt) {
+            $query = "
+            SELECT 
+                TO_CHAR(fh, 'HH24:00:00') AS hora,
+                ROUND(AVG(ai), 2) AS media_consumo_hora_imp,
+                ROUND(AVG(ae), 2) AS media_consumo_hora_exp
+            FROM 
+                t_dat_iec870_load_profile_2
+            WHERE 
+                id_cnt = :id_cnt
+            ";
 
-
-                // Aplicar filtro por fechas si están definidas
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "
-                    AND fh BETWEEN :fecha_inicio AND :fecha_fin";
-                    $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    // Si no hay fechas definidas, calcular para el último mes
-                    $query .= "
-                    AND fh >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
-                    $params = ['id_cnt' => $id_cnt];
-                }
-
-
+            // Aplicar filtro por fechas si están definidas
+            if ($fecha_inicio && $fecha_fin) {
                 $query .= "
-                GROUP BY 
-                    hora
-                ORDER BY 
-                    hora";
-
-
-                $resultadosQ21pf = DB::connection($connectionpf)
-                    ->select($query, $params);
-
-
-                return $resultadosQ21pf ?: [];
+                AND fh BETWEEN :fecha_inicio AND :fecha_fin";
+                $params = [
+                    'id_cnt' => $id_cnt,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ];
+            } else {
+                // Si no hay fechas definidas, calcular para el último mes
+                $query .= "
+                AND fh >= NOW() - INTERVAL '1 month'";
+                $params = ['id_cnt' => $id_cnt];
             }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+
+            $query .= "
+            GROUP BY 
+                hora
+            ORDER BY 
+                hora
+            ";
+
+            $resultadosQ21pf = DB::connection($connectionpf)
+                ->select($query, $params);
+
+            return $resultadosQ21pf ?: [];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
 
 
     public function consultaVeintidospf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        try {
-            if ($id_cnt) {
-                $query = "
-                SELECT 
-                    ELT(DAYOFWEEK(fh), 'Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado') AS dia_semana,
-                    ROUND(AVG(e_act_imp), 2) AS media_consumo_dia_imp,
-                    ROUND(AVG(e_act_exp), 2) AS media_consumo_dia_exp
+{
+    try {
+        if ($id_cnt) {
+
+            $query = "
+            SELECT *
+            FROM (
+                SELECT
+                    CASE EXTRACT(DOW FROM fh)
+                        WHEN 0 THEN 'domingo'
+                        WHEN 1 THEN 'lunes'
+                        WHEN 2 THEN 'martes'
+                        WHEN 3 THEN 'miércoles'
+                        WHEN 4 THEN 'jueves'
+                        WHEN 5 THEN 'viernes'
+                        WHEN 6 THEN 'sábado'
+                    END AS dia_semana,
+                    ROUND(AVG(ai), 2) AS media_consumo_dia_imp,
+                    ROUND(AVG(ae), 2) AS media_consumo_dia_exp
                 FROM 
-                    t_dat_iec870_load_profile_1
+                    t_dat_iec870_load_profile_2
                 WHERE 
-                    id_cnt = :id_cnt";
+                    id_cnt = :id_cnt
+            ";
 
-
-                // Aplicar filtro por fechas si están definidas
-                if ($fecha_inicio && $fecha_fin) {
-                    $query .= "
-                    AND fh BETWEEN :fecha_inicio AND :fecha_fin";
-                    $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-                } else {
-                    // Si no hay fechas definidas, calcular para el último mes
-                    $query .= "
-                    AND fh >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
-                    AND fh < CURDATE()";
-                    $params = ['id_cnt' => $id_cnt];
-                }
-
-
+            if ($fecha_inicio && $fecha_fin) {
                 $query .= "
-                GROUP BY 
-                    dia_semana
-                ORDER BY 
-                    FIELD(dia_semana, 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo')";
-
-
-                $resultadosQ22pf = DB::connection($connectionpf)
-                    ->select($query, $params);
-
-
-                return $resultadosQ22pf ?: [];
+                AND fh BETWEEN :fecha_inicio AND :fecha_fin";
+                $params = [
+                    'id_cnt' => $id_cnt,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ];
+            } else {
+                $query .= "
+                AND fh >= CURRENT_DATE - INTERVAL '1 month'
+                AND fh < CURRENT_DATE";
+                $params = ['id_cnt' => $id_cnt];
             }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+
+            $query .= "
+                GROUP BY 
+                    CASE EXTRACT(DOW FROM fh)
+                        WHEN 0 THEN 'domingo'
+                        WHEN 1 THEN 'lunes'
+                        WHEN 2 THEN 'martes'
+                        WHEN 3 THEN 'miércoles'
+                        WHEN 4 THEN 'jueves'
+                        WHEN 5 THEN 'viernes'
+                        WHEN 6 THEN 'sábado'
+                    END
+            ) AS sub
+            ORDER BY 
+                CASE dia_semana
+                    WHEN 'lunes' THEN 1
+                    WHEN 'martes' THEN 2
+                    WHEN 'miércoles' THEN 3
+                    WHEN 'jueves' THEN 4
+                    WHEN 'viernes' THEN 5
+                    WHEN 'sábado' THEN 6
+                    WHEN 'domingo' THEN 7
+                END
+            ";
+
+            $resultadosQ22pf = DB::connection($connectionpf)
+                ->select($query, $params);
+            return $resultadosQ22pf ?: [];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
+
 
 
     //REPORTES PF 
