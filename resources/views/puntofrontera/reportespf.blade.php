@@ -1051,7 +1051,7 @@
                                                         name="id_cnts[]" value="{{ $cnt->id_cnt }}"
                                                         id="cnt{{ $cnt->id_cnt }}" {{ in_array($cnt->id_cnt, (array) request('id_cnts', [])) ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="cnt{{ $cnt->id_cnt }}"
-                                                        style="word-break: break-word; margin-top: 0; margin-bottom: 0;">{{ $cnt->cups }}</label>
+                                                        style="word-break: break-word; margin-top: 0; margin-bottom: 0;">{{ $cnt->id_cups }}</label>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -1237,69 +1237,69 @@
                                                                         @foreach ($resultadosQ23pf as $resultado)
                                                                             <tr class="highlight-row ">
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->CUPS) ? $resultado->CUPS : 'No hay datos' }}
+                                                                                    {{ !empty($resultado->cups) ? $resultado->cups : 'No hay datos' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
                                                                                     {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Contrato) ? $resultado->Contrato : 'No hay datos' }}
+                                                                                    {{ !empty($resultado->contrato) ? $resultado->contrato : 'No hay datos' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Periodo_Tarifario) ? $resultado->Periodo_Tarifario : '0' }}
+                                                                                    {{ !empty($resultado->periodo_tarifario) ? $resultado->periodo_tarifario : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Fecha_Inicio) ? $resultado->Fecha_Inicio : 'No hay datos' }}
+                                                                                    {{ !empty($resultado->fecha_inicio) ? $resultado->fecha_inicio : 'No hay datos' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Fecha_Fin) ? $resultado->Fecha_Fin : 'No hay datos' }}
+                                                                                    {{ !empty($resultado->fecha_fin) ? $resultado->fecha_fin : 'No hay datos' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Activa_Absoluta) ? $resultado->Energia_Activa_Absoluta : '0' }}
+                                                                                    {{ !empty($resultado->energia_activa_absoluta) ? $resultado->energia_activa_absoluta : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Activa_Incremental) ? $resultado->Energia_Activa_Incremental : '0' }}
+                                                                                    {{ !empty($resultado->energia_activa_incremental) ? $resultado->energia_activa_incremental : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Activa) ? $resultado->Bit_Calidad_Activa : '0' }}
+                                                                                    {{ !empty($resultado->bit_calidad_activa) ? $resultado->bit_calidad_activa : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Inductiva_Absoluta) ? $resultado->Energia_Reactiva_Inductiva_Absoluta : '0' }}
+                                                                                    {{ !empty($resultado->energia_reactiva_inductiva_absoluta) ? $resultado->energia_reactiva_inductiva_absoluta : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Inductiva_Incremental) ? $resultado->Energia_Reactiva_Inductiva_Incremental : '0' }}
+                                                                                    {{ !empty($resultado->energia_reactiva_inductiva_incremental) ? $resultado->energia_reactiva_inductiva_incremental : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Reactiva_Inductiva) ? $resultado->Bit_Calidad_Reactiva_Inductiva : '0' }}
+                                                                                    {{ !empty($resultado->bit_calidad_reactiva_inductiva) ? $resultado->bit_calidad_reactiva_inductiva : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Capacitiva_Absoluta) ? $resultado->Energia_Reactiva_Capacitiva_Absoluta : '0' }}
+                                                                                    {{ !empty($resultado->energia_reactiva_capacitiva_absoluta) ? $resultado->energia_reactiva_capacitiva_absoluta : '0' }}
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Energia_Reactiva_Capacitiva_Incremental) ? $resultado->Energia_Reactiva_Capacitiva_Incremental : '0' }}
-                                                                                </td>
-                                                                                </td>
-                                                                                <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Reactiva_Capacitiva) ? $resultado->Bit_Calidad_Reactiva_Capacitiva : '0' }}
+                                                                                    {{ !empty($resultado->energia_reactiva_capacitiva_incremental) ? $resultado->energia_reactiva_capacitiva_incremental : '0' }}
                                                                                 </td>
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Excesos_de_Potencias) ? $resultado->Excesos_de_Potencias : '0' }}
+                                                                                    {{ !empty($resultado->bit_calidad_reactiva_capacitiva) ? $resultado->bit_calidad_reactiva_capacitiva : '0' }}
                                                                                 </td>
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Excesos) ? $resultado->Bit_Calidad_Excesos : '0' }}
+                                                                                    {{ !empty($resultado->excesos_de_potencias) ? $resultado->excesos_de_potencias : '0' }}
                                                                                 </td>
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Maximetros) ? $resultado->Maximetros : '0' }}
+                                                                                    {{ !empty($resultado->bit_calidad_excesos) ? $resultado->bit_calidad_excesos : '0' }}
                                                                                 </td>
                                                                                 </td>
                                                                                 <td class="py-6 small">
-                                                                                    {{ !empty($resultado->Fecha_Maximetros) ? $resultado->Fecha_Maximetros : 'No hay datos' }}
+                                                                                    {{ !empty($resultado->maximetros) ? $resultado->maximetros : '0' }}
+                                                                                </td>
+                                                                                </td>
+                                                                                <td class="py-6 small">
+                                                                                    {{ !empty($resultado->fecha_maximetros) ? $resultado->fecha_maximetros : 'No hay datos' }}
                                                                                 </td>
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->Bit_Calidad_Maximetros) ? $resultado->Bit_Calidad_Maximetros : '0' }}
+                                                                                    {{ !empty($resultado->bit_calidad_maximetros) ? $resultado->bit_calidad_maximetros : '0' }}
                                                                                 </td>
                                                                                 </td>
                                                                             </tr>
@@ -1533,52 +1533,52 @@
                                                                             @foreach ($resultadosQ25pf as $resultado)
                                                                                 <tr class="highlight-row ">
                                                                                     <td class="p-8 small ">
-                                                                                        {{ !empty($resultado->CUPS) ? $resultado->CUPS : '0' }}
+                                                                                        {{ !empty($resultado->cups) ? $resultado->cups : '0' }}
                                                                                     </td>
                                                                                     <td class="p-8 small">
                                                                                         {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : '0' }}
                                                                                     </td>
                                                                                     <td class="p-8 small ">
-                                                                                        {{ !empty($resultado->Fecha) ? $resultado->Fecha : '0' }}
+                                                                                        {{ !empty($resultado->fecha) ? $resultado->fecha : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2 small">
-                                                                                        {{ !empty($resultado->Hora) ? $resultado->Hora : '0' }}
+                                                                                        {{ !empty($resultado->hora) ? $resultado->hora : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Energia_Activa_Importada_A) ? $resultado->Energia_Activa_Importada_A : '0' }}
+                                                                                        {{ !empty($resultado->energia_activa_importada_a) ? $resultado->energia_activa_importada_a : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Activa_A) ? $resultado->Bit_Calidad_Activa_A : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_activa_a) ? $resultado->bit_calidad_activa_a : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Energia_Activa_Exportada_A) ? $resultado->Energia_Activa_Exportada_A : '0' }}
+                                                                                        {{ !empty($resultado->energia_activa_exportada_a) ? $resultado->energia_activa_exportada_a : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Activa_A2) ? $resultado->Bit_Calidad_Activa_A2 : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_activa_a2) ? $resultado->bit_calidad_activa_a2 : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Inductiva_Importada_Ri) ? $resultado->Energia_Reactiva_Inductiva_Importada_Ri : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_inductiva_importada_ri) ? $resultado->energia_reactiva_inductiva_importada_ri : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Reactiva_Imp_Ri) ? $resultado->Bit_Calidad_Reactiva_Imp_Ri : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_reactiva_imp_ri) ? $resultado->bit_calidad_reactiva_imp_ri : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Inductiva_Exportada_Ri) ? $resultado->Energia_Reactiva_Inductiva_Exportada_Ri : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_inductiva_exportada_ri) ? $resultado->energia_reactiva_inductiva_exportada_ri : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Reactiva_Imp_Ri2) ? $resultado->Bit_Calidad_Reactiva_Imp_Ri2 : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_reactiva_imp_ri2) ? $resultado->bit_calidad_reactiva_imp_ri2 : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Capacitiva_Importada_Rc) ? $resultado->Energia_Reactiva_Capacitiva_Importada_Rc : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_capacitiva_importada_rc) ? $resultado->energia_reactiva_capacitiva_importada_rc : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Reactiva_Imp_Rc) ? $resultado->Bit_Calidad_Reactiva_Imp_Rc : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_reactiva_imp_rc) ? $resultado->bit_calidad_reactiva_imp_rc : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Capacitiva_Exportada_Rc) ? $resultado->Energia_Reactiva_Capacitiva_Exportada_Rc : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_capacitiva_exportada_rc) ? $resultado->energia_reactiva_capacitiva_exportada_rc : '0' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Reactiva_Exp_Rc) ? $resultado->Bit_Calidad_Reactiva_Exp_Rc : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_reactiva_exp_rc) ? $resultado->bit_calidad_reactiva_exp_rc : '0' }}
                                                                                     </td>
                                                                                 </tr>
                                                                             @endforeach

@@ -1694,84 +1694,88 @@ class PuntoFronteraController extends Controller
 
     //con paginacion y descarga en excel:
     public function consultaVeintitrespf(Request $request, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        set_time_limit(0);
+{
+    set_time_limit(0);
 
+    $id_cnts = $request->input('id_cnts', []);
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+    $tipo_reporte = $request->input('tipo_reporte', []);
+    $perPage = 15;  
+    $page = max(1, (int)$request->input('page', 1));
+    $offset = ($page - 1) * $perPage;
 
-        $id_cnts = $request->input('id_cnts', []);
-        $fecha_inicio = $request->input('fecha_inicio');
-        $fecha_fin = $request->input('fecha_fin');
-        $tipo_reporte = request()->input('tipo_reporte', []);
-
-
-        if (!empty($id_cnts) && in_array('cierres_mensuales', $tipo_reporte)) {
-            $query = "SELECT
-            t_meter_params_iec870.cups as CUPS,
-            t_dat_iec870_monthly_billing.id_cnt,
-            t_dat_iec870_monthly_billing.ctr as Contrato,
-            t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
-            date_format(t_dat_iec870_monthly_billing.fhi,'%d/%m/%Y') as Fecha_Inicio,
-            date_format(t_dat_iec870_monthly_billing.fhf,'%d/%m/%Y') as Fecha_Fin,
-            t_dat_iec870_monthly_billing.e_act_abs as Energia_Activa_Absoluta,
-            t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
-            t_dat_iec870_monthly_billing.e_act_cualif as Bit_Calidad_Activa,
-            t_dat_iec870_monthly_billing.e_react_ind_abs as Energia_Reactiva_Inductiva_Absoluta,
-            t_dat_iec870_monthly_billing.e_react_ind_inc as Energia_Reactiva_Inductiva_Incremental,
-            t_dat_iec870_monthly_billing.e_react_ind_cualif as Bit_Calidad_Reactiva_Inductiva,
-            t_dat_iec870_monthly_billing.e_react_cap_abs as Energia_Reactiva_Capacitiva_Absoluta,
-            t_dat_iec870_monthly_billing.e_react_cap_inc as Energia_Reactiva_Capacitiva_Incremental,
-            t_dat_iec870_monthly_billing.e_react_cap_cualif as Bit_Calidad_Reactiva_Capacitiva,
-            t_dat_iec870_monthly_billing.e_act_exceso as Excesos_de_Potencias,
-            t_dat_iec870_monthly_billing.e_act_exceso_cualif as Bit_Calidad_Excesos,
-            t_dat_iec870_monthly_billing.pot_max as Maximetros,
-            date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
-            t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
-        FROM t_dat_iec870_monthly_billing
-        INNER JOIN t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
-        WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
-
-
-            $params = $id_cnts;
-
-
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "
-            AND t_dat_iec870_monthly_billing.fhi >= ?
-            AND t_dat_iec870_monthly_billing.fhf <= ?
-            ORDER BY t_dat_iec870_monthly_billing.fhi DESC, t_dat_iec870_monthly_billing.fhf DESC";
-                $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
-            } else {
-                $query .= "
-                    ORDER BY 
-                    t_dat_iec870_monthly_billing.id_cnt ASC,          
-                    t_dat_iec870_monthly_billing.fhi DESC,            
-                    t_dat_iec870_monthly_billing.ctr ASC,             
-                    t_dat_iec870_monthly_billing.pt ASC    ";
-            }
-
-
-            // Añadir paginación
-            $perPage = 15;  // Número de resultados por página
-            $page = $request->input('page', 1);  // Página actual
-            $offset = ($page - 1) * $perPage;
-
-
-            // Obtener todos los resultados
-            $resultadosQ23pf = DB::connection($connectionpf)->select($query, $params);
-
-            // Crear una colección paginada manualmente
-            $items = array_slice($resultadosQ23pf, $offset, $perPage);
-            $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ23pf), $perPage, $page, [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]);
-            //dd($params); // En ambos métodos
-            return $paginatedResults;
-        }
-
-
+    if (empty($id_cnts) || !in_array('cierres_mensuales', $tipo_reporte)) {
         return [];
     }
+
+    // Construir query con Query Builder
+    $queryBuilder = DB::connection($connectionpf)
+        ->table('t_dat_iec870_monthly_billing as b')
+        ->join('t_meter_params_iec870 as m', 'b.id_cnt', '=', 'm.id_cnt')
+        ->selectRaw("
+            m.id_cups as cups,
+            b.id_cnt,
+            b.ctr as contrato,
+            b.pt as periodo_tarifario,
+            TO_CHAR(b.fhi,'DD/MM/YYYY') as fecha_inicio,
+            TO_CHAR(b.fhf,'DD/MM/YYYY') as fecha_fin,
+            b.e_act_abs as energia_activa_absoluta,
+            b.e_act_inc as energia_activa_incremental,
+            b.e_act_bc as bit_calidad_activa,
+            b.e_react_ind_abs as energia_reactiva_inductiva_absoluta,
+            b.e_react_ind_inc as energia_reactiva_inductiva_incremental,
+            b.e_react_ind_bc as bit_calidad_reactiva_inductiva,
+            b.e_react_cap_abs as energia_reactiva_capacitiva_absoluta,
+            b.e_react_cap_inc as energia_reactiva_capacitiva_incremental,
+            b.e_react_cap_bc as bit_calidad_reactiva_capacitiva,
+            b.e_act_exceso as excesos_de_potencias,
+            b.e_act_exceso_bc as bit_calidad_excesos,
+            b.pot_max as maximetros,
+            TO_CHAR(b.pot_max_fh, 'DD/MM/YYYY HH24:MI:SS') as fecha_maximetros,
+            b.pot_max_bc as bit_calidad_maximetros
+        ")
+        ->whereIn('b.id_cnt', $id_cnts);
+
+    if ($fecha_inicio && $fecha_fin) {
+        $queryBuilder = $queryBuilder
+            ->where('b.fhi', '>=', $fecha_inicio)
+            ->where('b.fhf', '<=', $fecha_fin)
+            ->orderByDesc('b.fhi')
+            ->orderByDesc('b.fhf');
+    } else {
+        $queryBuilder = $queryBuilder
+            ->orderBy('b.id_cnt')
+            ->orderByDesc('b.fhi')
+            ->orderBy('b.ctr')
+            ->orderBy('b.pt');
+    }
+
+    // Clonar query para contar total registros
+    $total = (clone $queryBuilder)->count();
+
+    // Obtener resultados con paginación SQL
+    $resultadosQ23pf = $queryBuilder
+        ->offset($offset)
+        ->limit($perPage)
+        ->get();
+
+    // Crear paginación
+    $paginatedResults = new LengthAwarePaginator(
+        $resultadosQ23pf,
+        $total,
+        $perPage,
+        $page,
+        [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]
+    );
+
+    return $paginatedResults;
+}
+
+
 
     public function exportCierresMensuales(Request $request) {
         try {
@@ -1992,86 +1996,76 @@ class PuntoFronteraController extends Controller
 
 
     public function consultaVeintiCuatropf(Request $request, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        set_time_limit(0);
+{
+    set_time_limit(0);
 
+    $id_cnts = $request->input('id_cnts', []);
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
-        $id_cnts = $request->input('id_cnts', []);
-        $fecha_inicio = $request->input('fecha_inicio');
-        $fecha_fin = $request->input('fecha_fin');
-
-
-        if (!empty($id_cnts)) {
-            $query = "
-            SELECT
-                t_meter_params_iec870.cups as 'CUPS',
+    if (!empty($id_cnts)) {
+        // Construir query con Query Builder para compatibilidad PostgreSQL
+        $resultadosQ24pf = DB::connection($connectionpf)
+            ->table('t_dat_iec870_load_profile_2')
+            ->join('t_meter_params_iec870', 't_dat_iec870_load_profile_2.id_cnt', '=', 't_meter_params_iec870.id_cnt')
+            ->selectRaw("
+                t_meter_params_iec870.id_cups as cups,
                 t_dat_iec870_load_profile_2.id_cnt,
-                DATE_FORMAT(t_dat_iec870_load_profile_2.fh, '%d/%m/%Y') as 'Fecha',
-                DATE_FORMAT(t_dat_iec870_load_profile_2.fh, '%H:%i:%s') as 'Hora',
-                t_dat_iec870_load_profile_2.e_act_imp as 'Energia_Activa_Importada_A',
-                t_dat_iec870_load_profile_2.e_act_imp_cualif as 'Bit_Calidad_Activa_A',
-                t_dat_iec870_load_profile_2.e_act_exp as 'Energia_Activa_Exportada_A',
-                t_dat_iec870_load_profile_2.e_act_exp_cualif as 'Bit_Calidad_Activa_A2',
-                t_dat_iec870_load_profile_2.e_react_ind_imp as 'Energia_Reactiva_Inductiva_Importada_Ri',
-                t_dat_iec870_load_profile_2.e_react_ind_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri',
-                t_dat_iec870_load_profile_2.e_react_ind_exp as 'Energia_Reactiva_Inductiva_Exportada_Ri',
-                t_dat_iec870_load_profile_2.e_react_ind_exp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri2',
-                t_dat_iec870_load_profile_2.e_react_cap_imp as 'Energia_Reactiva_Capacitiva_Importada_Rc',
-                t_dat_iec870_load_profile_2.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
-                t_dat_iec870_load_profile_2.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
-                t_dat_iec870_load_profile_2.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-            FROM t_dat_iec870_load_profile_2
-            INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_2.id_cnt = t_meter_params_iec870.id_cnt
-            WHERE t_dat_iec870_load_profile_2.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
+                TO_CHAR(t_dat_iec870_load_profile_2.fh, 'DD/MM/YYYY') as fecha,
+                TO_CHAR(t_dat_iec870_load_profile_2.fh, 'HH24:MI:SS') as hora,
+                t_dat_iec870_load_profile_2.ai as energia_activa_importada_a,
+                t_dat_iec870_load_profile_2.ai_bc as bit_calidad_activa_a,
+                t_dat_iec870_load_profile_2.ae as energia_activa_exportada_a,
+                t_dat_iec870_load_profile_2.ae_bc as bit_calidad_activa_a2,
+                t_dat_iec870_load_profile_2.r1 as energia_reactiva_inductiva_importada_ri,
+                t_dat_iec870_load_profile_2.r1_bc as bit_calidad_reactiva_imp_ri,
+                t_dat_iec870_load_profile_2.r2 as energia_reactiva_inductiva_exportada_ri,
+                t_dat_iec870_load_profile_2.r2_bc as bit_calidad_reactiva_imp_ri2,
+                t_dat_iec870_load_profile_2.r3 as energia_reactiva_capacitiva_importada_rc,
+                t_dat_iec870_load_profile_2.r3_bc as bit_calidad_reactiva_imp_rc,
+                t_dat_iec870_load_profile_2.r4 as energia_reactiva_capacitiva_exportada_rc,
+                t_dat_iec870_load_profile_2.r4_bc as bit_calidad_reactiva_exp_rc
+            ")
+            ->whereIn('t_dat_iec870_load_profile_2.id_cnt', $id_cnts);
 
-
-            $params = $id_cnts;
-
-
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "
-                AND t_dat_iec870_load_profile_2.fh >= ?
-                AND t_dat_iec870_load_profile_2.fh <= ?
-                ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_2.fh DESC";
-                $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
-            } else {
-                $query .= "
-                ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_2.fh DESC
-                LIMIT 168";
-            }
-
-
-            // Añadir paginación
-            $perPage = 15;  // Número de resultados por página
-            $page = $request->input('page', 1);  // Página actual
-            $offset = ($page - 1) * $perPage;
-
-
-            // Obtener todos los resultados
-            $resultadosQ24pf = DB::connection($connectionpf)->select($query, $params);
-
-
-            if ($request->input('export24') === 'excel24') {
-                // Llama a la clase ResultsExport para generar y descargar el archivo Excel
-                $export = new ResultsExport($resultadosQ24pf);
-                return $export->downloadQ24pf();
-            }
-
-
-            // Crear una colección paginada manualmente
-            $items = array_slice($resultadosQ24pf, $offset, $perPage);
-            $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ24pf), $perPage, $page, [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]);
-
-
-            return $paginatedResults;
+        if ($fecha_inicio && $fecha_fin) {
+            $resultadosQ24pf = $resultadosQ24pf
+                ->where('t_dat_iec870_load_profile_2.fh', '>=', $fecha_inicio)
+                ->where('t_dat_iec870_load_profile_2.fh', '<=', $fecha_fin)
+                ->orderByDesc('t_meter_params_iec870.id_cups')
+                ->orderByDesc('t_dat_iec870_load_profile_2.fh');
+        } else {
+            $resultadosQ24pf = $resultadosQ24pf
+                ->orderByDesc('t_meter_params_iec870.id_cups')
+                ->orderByDesc('t_dat_iec870_load_profile_2.fh')
+                ->limit(168);
         }
 
+        // Obtener resultados
+        $resultadosQ24pf = $resultadosQ24pf->get();
 
-        return [];
+        // Exportación a Excel si se solicita
+        if ($request->input('export24') === 'excel24') {
+            $export = new ResultsExport($resultadosQ24pf);
+            return $export->downloadQ24pf();
+        }
+
+        // Paginación manual
+        $perPage = 15;
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $perPage;
+        $items = $resultadosQ24pf->slice($offset, $perPage);
+        $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ24pf), $perPage, $page, [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]);
+
+        return $paginatedResults;
     }
+
+    return [];
+}
+
 
 
 
@@ -2204,79 +2198,71 @@ class PuntoFronteraController extends Controller
 
     //con paginacion y descarga:
     public function consultaVeintiCincopf(Request $request, $connectionpf, $fecha_inicio, $fecha_fin)
-    {
-        set_time_limit(0);
+{
+    set_time_limit(0);
 
-        $id_cnts = $request->input('id_cnts', []);
-        $fecha_inicio = $request->input('fecha_inicio');
-        $fecha_fin = $request->input('fecha_fin');
-        $tipo_reporte = request()->input('tipo_reporte', []);
+    $id_cnts = $request->input('id_cnts', []);
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+    $tipo_reporte = $request->input('tipo_reporte', []);
 
+    if (!empty($id_cnts) && in_array('curvas_cuartihorarias', $tipo_reporte)) {
+        // Construir query con Query Builder para PostgreSQL
+        $resultadosQ25pf = DB::connection($connectionpf)
+            ->table('t_dat_iec870_load_profile_2')
+            ->join('t_meter_params_iec870', 't_dat_iec870_load_profile_2.id_cnt', '=', 't_meter_params_iec870.id_cnt')
+            ->selectRaw("
+                t_meter_params_iec870.id_cups as cups,
+                t_dat_iec870_load_profile_2.id_cnt,
+                TO_CHAR(t_dat_iec870_load_profile_2.fh, 'DD/MM/YYYY') as fecha,
+                TO_CHAR(t_dat_iec870_load_profile_2.fh, 'HH24:MI:SS') as hora,
+                t_dat_iec870_load_profile_2.ai as energia_activa_importada_a,
+                t_dat_iec870_load_profile_2.ai_bc as bit_calidad_activa_a,
+                t_dat_iec870_load_profile_2.ae as energia_activa_exportada_a,
+                t_dat_iec870_load_profile_2.ae_bc as bit_calidad_activa_a2,
+                t_dat_iec870_load_profile_2.r1 as energia_reactiva_inductiva_importada_ri,
+                t_dat_iec870_load_profile_2.r1_bc as bit_calidad_reactiva_imp_ri,
+                t_dat_iec870_load_profile_2.r2 as energia_reactiva_inductiva_exportada_ri,
+                t_dat_iec870_load_profile_2.r2_bc as bit_calidad_reactiva_imp_ri2,
+                t_dat_iec870_load_profile_2.r3 as energia_reactiva_capacitiva_importada_rc,
+                t_dat_iec870_load_profile_2.r3_bc as bit_calidad_reactiva_imp_rc,
+                t_dat_iec870_load_profile_2.r4 as energia_reactiva_capacitiva_exportada_rc,
+                t_dat_iec870_load_profile_2.r4_bc as bit_calidad_reactiva_exp_rc
+            ")
+            ->whereIn('t_dat_iec870_load_profile_2.id_cnt', $id_cnts);
 
-        if (!empty($id_cnts) && in_array('curvas_cuartihorarias', $tipo_reporte)) {
-            $query = "
-        SELECT
-            t_meter_params_iec870.cups as 'CUPS',
-            t_dat_iec870_load_profile_1.id_cnt,
-            DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as 'Fecha',
-            DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as 'Hora',
-            t_dat_iec870_load_profile_1.e_act_imp as 'Energia_Activa_Importada_A',
-            t_dat_iec870_load_profile_1.e_act_imp_cualif as 'Bit_Calidad_Activa_A',
-            t_dat_iec870_load_profile_1.e_act_exp as 'Energia_Activa_Exportada_A',
-            t_dat_iec870_load_profile_1.e_act_exp_cualif as 'Bit_Calidad_Activa_A2',
-            t_dat_iec870_load_profile_1.e_react_ind_imp as 'Energia_Reactiva_Inductiva_Importada_Ri',
-            t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri',
-            t_dat_iec870_load_profile_1.e_react_ind_exp as 'Energia_Reactiva_Inductiva_Exportada_Ri',
-            t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as 'Bit_Calidad_Reactiva_Imp_Ri2',
-            t_dat_iec870_load_profile_1.e_react_cap_imp as 'Energia_Reactiva_Capacitiva_Importada_Rc',
-            t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as 'Bit_Calidad_Reactiva_Imp_Rc',
-            t_dat_iec870_load_profile_1.e_react_cap_exp as 'Energia_Reactiva_Capacitiva_Exportada_Rc',
-            t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as 'Bit_Calidad_Reactiva_Exp_Rc'
-        FROM t_dat_iec870_load_profile_1
-        INNER JOIN t_meter_params_iec870 ON t_dat_iec870_load_profile_1.id_cnt = t_meter_params_iec870.id_cnt
-        WHERE t_dat_iec870_load_profile_1.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
-
-
-            $params = $id_cnts;
-
-
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "
-            AND t_dat_iec870_load_profile_1.fh >= ?
-            AND t_dat_iec870_load_profile_1.fh <= ?
-            ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC";
-                $params = array_merge($params, [$fecha_inicio, $fecha_fin]);
-            } else {
-                $query .= "
-            ORDER BY t_meter_params_iec870.cups desc, t_dat_iec870_load_profile_1.fh DESC
-            LIMIT 168";
-            }
-
-
-            // Añadir paginación
-            $perPage = 15;  // Número de resultados por página
-            $page = $request->input('page', 1);  // Página actual
-            $offset = ($page - 1) * $perPage;
-
-
-            // Obtener todos los resultados
-            $resultadosQ25pf = DB::connection($connectionpf)->select($query, $params);
-
-
-            // Crear una colección paginada manualmente
-            $items = array_slice($resultadosQ25pf, $offset, $perPage);
-            $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ25pf), $perPage, $page, [
-                'path' => $request->url(),
-                'query' => $request->query(),
-            ]);
-
-            //dd(strval($connectionpf));
-            return $paginatedResults;
+        if ($fecha_inicio && $fecha_fin) {
+            $resultadosQ25pf = $resultadosQ25pf
+                ->where('t_dat_iec870_load_profile_2.fh', '>=', $fecha_inicio)
+                ->where('t_dat_iec870_load_profile_2.fh', '<=', $fecha_fin)
+                ->orderByDesc('t_meter_params_iec870.id_cups')
+                ->orderByDesc('t_dat_iec870_load_profile_2.fh');
+        } else {
+            $resultadosQ25pf = $resultadosQ25pf
+                ->orderByDesc('t_meter_params_iec870.id_cups')
+                ->orderByDesc('t_dat_iec870_load_profile_2.fh')
+                ->limit(168);
         }
 
+        // Obtener resultados
+        $resultadosQ25pf = $resultadosQ25pf->get();
 
-        return [];
+        // Paginación manual
+        $perPage = 15;
+        $page = $request->input('page', 1);
+        $offset = ($page - 1) * $perPage;
+        $items = $resultadosQ25pf->slice($offset, $perPage);
+        $paginatedResults = new LengthAwarePaginator($items, count($resultadosQ25pf), $perPage, $page, [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]);
+
+        return $paginatedResults;
     }
+
+    return [];
+}
+
 
 
 public function exportCurvasCuartihorarias(Request $request)
