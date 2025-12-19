@@ -825,12 +825,12 @@ class PuntoFronteraController extends Controller
             $resultadosQ9pf = DB::connection($connectionpf)
                 ->select("
                 SELECT Count(*) as numero
-                FROM t_dat_iec870_eventos
-                WHERE t_dat_iec870_eventos.id_cnt = :id_cnt
-                and t_dat_iec870_eventos.DR = '52'
-                and t_dat_iec870_eventos.SPA = '3'
-                and t_dat_iec870_eventos.SPQ = '0'
-                and t_dat_iec870_eventos.SPI = '1';
+                FROM t_dat_iec870_events
+                WHERE t_dat_iec870_events.id_cnt = :id_cnt
+                and t_dat_iec870_events.dr = '52'
+                and t_dat_iec870_events.spa = '3'
+                and t_dat_iec870_events.spq = '0'
+                and t_dat_iec870_events.spi = '1';
         ", ['id_cnt' => $id_cnt]);
             return $resultadosQ9pf  ?: [];
         }
@@ -840,71 +840,72 @@ class PuntoFronteraController extends Controller
 
 
     public function consultaDiezpf($id_cnt, $connectionpf) //Estadisticas de Cortes
-    {
-        if ($id_cnt) {
+{
+    if ($id_cnt) {
 
-            if(Str::startsWith($id_cnt, 'B') || Str::startsWith($id_cnt, 'C')) {
-                $resultadosQ10pf = DB::connection($connectionpf)
+        if (Str::startsWith($id_cnt, 'B') || Str::startsWith($id_cnt, 'C')) {
+            $resultadosQ10pf = DB::connection($connectionpf)
                 ->select("
                 SELECT
-                    t_meter_params_iec870.cups AS 'CUPS',
+                    t_meter_params_iec870.cups AS cups,
                     e.id_cnt,
-                    e.fh AS 'Fecha_Corte',
-                    (SELECT TIMESTAMPDIFF(SECOND, 
-                                STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
-                                STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
-                    FROM t_dat_iec870_eventos fin
-                    WHERE fin.id_cnt = e.id_cnt
-                    AND fin.DR = 52 AND fin.SPA = 1 AND fin.SPQ = 2 AND fin.SPI = 1
-                    AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
-                    ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
-                    LIMIT 1
-                    ) AS 'duracion_segundos'
-                FROM t_dat_iec870_eventos e
+                    e.fh AS fecha_corte,
+                    (
+                        SELECT EXTRACT(EPOCH FROM (
+                            TO_TIMESTAMP(fin.fh, 'DD/MM/YYYY HH24:MI:SS') - TO_TIMESTAMP(e.fh, 'DD/MM/YYYY HH24:MI:SS')
+                        ))
+                        FROM t_dat_iec870_events fin
+                        WHERE fin.id_cnt = e.id_cnt
+                        AND fin.dr = 52 AND fin.spa = 1 AND fin.spq = 2 AND fin.spi = 1
+                        AND TO_TIMESTAMP(fin.fh, 'DD/MM/YYYY HH24:MI:SS') > TO_TIMESTAMP(e.fh, 'DD/MM/YYYY HH24:MI:SS')
+                        ORDER BY TO_TIMESTAMP(fin.fh, 'DD/MM/YYYY HH24:MI:SS') ASC
+                        LIMIT 1
+                    ) AS duracion_segundos
+                FROM t_dat_iec870_events e
                 JOIN t_meter_params_iec870
                     ON e.id_cnt = t_meter_params_iec870.id_cnt
                 WHERE e.id_cnt = :id_cnt
-                AND e.DR = '52'
-                AND e.SPA = '3'
-                AND e.SPQ = '0'
-                AND e.SPI = '1'
-                ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;
-
+                AND e.dr = '52'
+                AND e.spa = '3'
+                AND e.spq = '0'
+                AND e.spi = '1'
+                ORDER BY TO_TIMESTAMP(e.fh, 'DD/MM/YYYY HH24:MI:SS') DESC
                 ", ['id_cnt' => $id_cnt]);
 
-            } else if(Str::startsWith($id_cnt, 'Q') || Str::startsWith($id_cnt, 'Z')) {
-                $resultadosQ10pf = DB::connection($connectionpf)
+        } else if (Str::startsWith($id_cnt, 'Q') || Str::startsWith($id_cnt, 'Z')) {
+            $resultadosQ10pf = DB::connection($connectionpf)
                 ->select("
                 SELECT
-                    t_meter_params_iec870.cups AS 'CUPS',
+                    t_meter_params_iec870.cups AS cups,
                     e.id_cnt,
-                    e.fh AS 'Fecha_Corte',
-                    (SELECT TIMESTAMPDIFF(SECOND, 
-                                STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s'), 
-                                STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s'))
-                    FROM t_dat_iec870_eventos fin
-                    WHERE fin.id_cnt = e.id_cnt
-                    AND fin.DR = 52 AND fin.SPA = 3 AND fin.SPQ = 0 AND fin.SPI = 0
-                    AND STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') > STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s')
-                    ORDER BY STR_TO_DATE(fin.fh, '%d/%m/%Y %H:%i:%s') ASC
-                    LIMIT 1
-                    ) AS 'duracion_segundos'
-                FROM t_dat_iec870_eventos e
+                    e.fh AS fecha_corte,
+                    (
+                        SELECT EXTRACT(EPOCH FROM (
+                            TO_TIMESTAMP(fin.fh, 'DD/MM/YYYY HH24:MI:SS') - TO_TIMESTAMP(e.fh, 'DD/MM/YYYY HH24:MI:SS')
+                        ))
+                        FROM t_dat_iec870_events fin
+                        WHERE fin.id_cnt = e.id_cnt
+                        AND fin.dr = 52 AND fin.spa = 3 AND fin.spq = 0 AND fin.spi = 0
+                        AND TO_TIMESTAMP(fin.fh, 'DD/MM/YYYY HH24:MI:SS') > TO_TIMESTAMP(e.fh, 'DD/MM/YYYY HH24:MI:SS')
+                        ORDER BY TO_TIMESTAMP(fin.fh, 'DD/MM/YYYY HH24:MI:SS') ASC
+                        LIMIT 1
+                    ) AS duracion_segundos
+                FROM t_dat_iec870_events e
                 JOIN t_meter_params_iec870
                     ON e.id_cnt = t_meter_params_iec870.id_cnt
                 WHERE e.id_cnt = :id_cnt
-                AND e.DR = '52'
-                AND e.SPA = '1'
-                AND e.SPQ = '2'
-                AND e.SPI = '0'
-                ORDER BY STR_TO_DATE(e.fh, '%d/%m/%Y %H:%i:%s') DESC;
-
+                AND e.dr = '52'
+                AND e.spa = '1'
+                AND e.spq = '2'
+                AND e.spi = '0'
+                ORDER BY TO_TIMESTAMP(e.fh, 'DD/MM/YYYY HH24:MI:SS') DESC
                 ", ['id_cnt' => $id_cnt]);
-
-            } 
-            return $resultadosQ10pf  ?: [];
         }
+
+        return $resultadosQ10pf ?: [];
     }
+}
+
 
 
 
