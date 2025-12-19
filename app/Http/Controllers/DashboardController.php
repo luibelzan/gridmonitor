@@ -808,75 +808,54 @@ class DashboardController extends Controller
     try {
         $resultadosQ18dashboard = DB::connection($connectionpf)->select("
             SELECT 
-                mp.id_cnt AS contador,
-                mp.id_cups AS cups,
-                mp.cnt_password AS clave,
-                md.voltage_primary AS trafos_intensidad1,
-                md.voltage_secondary AS trafos_intensidad2,
-                md.current_primary AS trafos_tension1,
-                md.current_secondary AS trafos_tension2,
-                md.tip_cups AS tipo_punto_medida,
-                rc.conx_name AS tipo_conexion,
+                t_meter_params_iec870.id_cnt AS contador,
+                t_meter_params_iec870.id_cups AS cups,
+                t_meter_params_iec870.cnt_password AS clave,
+                t_reader_meter_data.voltage_primary AS trafos_intensidad1,
+                t_reader_meter_data.voltage_secondary AS trafos_intensidad2,
+                t_reader_meter_data.current_primary AS trafos_tension1,
+                t_reader_meter_data.current_secondary AS trafos_tension2,
+                t_reader_meter_data.tip_cups AS tipo_punto_medida,
+                t_reader_connections.conx_name AS tipo_conexion,
                 uc.fecha_ultima_curva,
                 uc2.fecha_ultima_curva_15,
                 ulc.fecha_ultima_cierre,
                 ue.fecha_ultimo_evento
-            FROM t_meter_params_iec870 mp
-            JOIN t_reader_meter_data md
-                ON mp.id_cnt = md.id_cnt
-            JOIN t_reader_connections rc
-                ON mp.conx_id = rc.conx_id
-
+            FROM t_meter_params_iec870
+            JOIN t_reader_meter_data 
+                ON t_meter_params_iec870.id_cnt = t_reader_meter_data.id_cnt
+            JOIN t_reader_connections 
+                ON t_meter_params_iec870.conx_id = t_reader_connections.conx_id
             LEFT JOIN (
-                SELECT
-                    id_cnt,
+                SELECT DISTINCT ON (id_cnt) 
+                    id_cnt, 
                     TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva
                 FROM t_dat_iec870_load_profile_2
-                WHERE fh IN (
-                    SELECT MAX(fh)
-                    FROM t_dat_iec870_load_profile_2
-                    GROUP BY id_cnt
-                )
-            ) uc ON mp.id_cnt = uc.id_cnt
-
+                ORDER BY id_cnt, fh DESC
+            ) uc ON t_meter_params_iec870.id_cnt = uc.id_cnt
             LEFT JOIN (
-                SELECT
-                    id_cnt,
+                SELECT DISTINCT ON (id_cnt) 
+                    id_cnt, 
                     TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva_15
                 FROM t_dat_iec870_load_profile_1
-                WHERE fh IN (
-                    SELECT MAX(fh)
-                    FROM t_dat_iec870_load_profile_1
-                    GROUP BY id_cnt
-                )
-            ) uc2 ON mp.id_cnt = uc2.id_cnt
-
+                ORDER BY id_cnt, fh DESC
+            ) uc2 ON t_meter_params_iec870.id_cnt = uc2.id_cnt
             LEFT JOIN (
-                SELECT
-                    id_cnt,
+                SELECT DISTINCT ON (id_cnt) 
+                    id_cnt, 
                     TO_CHAR(fhf, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_cierre
                 FROM t_dat_iec870_monthly_billing
-                WHERE fhi IN (
-                    SELECT MAX(fhi)
-                    FROM t_dat_iec870_monthly_billing
-                    GROUP BY id_cnt
-                )
-            ) ulc ON mp.id_cnt = ulc.id_cnt
-
+                ORDER BY id_cnt, fhf DESC
+            ) ulc ON t_meter_params_iec870.id_cnt = ulc.id_cnt
             LEFT JOIN (
-                SELECT
-                    id_cnt,
+                SELECT DISTINCT ON (id_cnt) 
+                    id_cnt, 
                     fh AS fecha_ultimo_evento
                 FROM t_dat_iec870_events
-                WHERE fh IN (
-                    SELECT MAX(fh)
-                    FROM t_dat_iec870_events
-                    GROUP BY id_cnt
-                )
-            ) ue ON mp.id_cnt = ue.id_cnt
-
-            WHERE mp.dso_id = :cod_id_group
-            LIMIT 100 OFFSET 0
+                ORDER BY id_cnt, fh DESC
+            ) ue ON t_meter_params_iec870.id_cnt = ue.id_cnt
+            WHERE t_meter_params_iec870.dso_id = :cod_id_group
+            LIMIT 100;
         ", [
             'cod_id_group' => $cod_id_group
         ]);
