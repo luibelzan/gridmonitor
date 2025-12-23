@@ -317,8 +317,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                 <datalist id="cntList">
                                     @foreach ($parametros as $cnt)
-                                        @if ($cnt->curva_1 == 1)
-                                            <option value="{{ $cnt->id_cnt }}">{{ $cnt->cups }}</option>
+                                        @if ($cnt->lp_2 == true)
+                                            <option value="{{ $cnt->id_cnt }}">{{ $cnt->id_cups }}</option>
                                         @endif
                                     @endforeach
                                 </datalist>
@@ -397,6 +397,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                                             {{-- PL8 --}}
+                                            {{--
                                             <div class="col-span-3 md:col-span-1 lg:col-span-3">
                                                 <div class="card text-white mb-3 h-full"
                                                     style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
@@ -488,7 +489,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     </div>
                                                 </div>
                                             </div>
-
+                                            --}}
 
 
 

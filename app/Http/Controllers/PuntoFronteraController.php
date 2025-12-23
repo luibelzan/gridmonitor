@@ -256,7 +256,7 @@ class PuntoFronteraController extends Controller
 
         $resultadosQ1pf = $this->consultaUnopf($id_cnt, $connectionpf);
         $resultadosQ9pf = $this->consultaNuevepf($id_cnt, $connectionpf);
-        $resultadosQ10pf = $this->consultaDiezpf($id_cnt, $connectionpf);
+        //$resultadosQ10pf = $this->consultaDiezpf($id_cnt, $connectionpf);
         $resultadosQ11pf = $this->consultaOncepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
         $resultadosQ11pfFiltro =  $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
         $mostrarcurvascuartihorarias = $this->mostrarCurvasCuartihorarias($id_cnt, $connectionpf);
@@ -274,7 +274,7 @@ class PuntoFronteraController extends Controller
             'parametros' => $parametros,
             'resultadosQ1pf' => $resultadosQ1pf,
             'resultadosQ9pf' => $resultadosQ9pf,
-            'resultadosQ10pf' => $resultadosQ10pf,
+            //'resultadosQ10pf' => $resultadosQ10pf,
             'resultadosQ11pf' => $resultadosQ11pf,
             'resultadosQ11pfFiltro' => $resultadosQ11pfFiltro,
             'mostrarcurvascuartihorarias' => $mostrarcurvascuartihorarias,
@@ -727,7 +727,9 @@ class PuntoFronteraController extends Controller
             AND t_dat_iec870_monthly_billing.fhi >= :fecha_inicio
             AND t_dat_iec870_monthly_billing.fhf <= :fecha_fin
             ORDER BY t_dat_iec870_monthly_billing.fhi DESC,
-                     t_dat_iec870_monthly_billing.fhf DESC";
+                     t_dat_iec870_monthly_billing.fhf DESC,
+                     t_dat_iec870_monthly_billing.ctr,
+                     t_dat_iec870_monthly_billing.pt";
 
             $params = [
                 'id_cnt' => $id_cnt,
@@ -737,7 +739,9 @@ class PuntoFronteraController extends Controller
         } else {
             $query .= "
             ORDER BY t_dat_iec870_monthly_billing.fhi DESC,
-                     t_dat_iec870_monthly_billing.fhf DESC";
+                     t_dat_iec870_monthly_billing.fhf DESC,
+                     t_dat_iec870_monthly_billing.ctr,
+                     t_dat_iec870_monthly_billing.pt";
 
             $params = ['id_cnt' => $id_cnt];
         }
@@ -847,7 +851,7 @@ class PuntoFronteraController extends Controller
 
 
 
-
+/*
     public function consultaDiezpf($id_cnt, $connectionpf) //Estadisticas de Cortes
 {
     if ($id_cnt) {
@@ -914,80 +918,94 @@ class PuntoFronteraController extends Controller
         return $resultadosQ10pf ?: [];
     }
 }
+    */
 
 
 
 
 
     public function consultaOncepf($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, Request $request)
-    {
-        if ($id_cnt) {
+{
+    if ($id_cnt) {
 
-            // Si ha hecho una búsqueda por filtro, lo mandamos a su método
-            if ($request->filled('descripcion')) {
-                return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
-            }
+        // Si ha hecho una búsqueda por filtro
+        if ($request->filled('descripcion')) {
+            return $this->buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, $request);
+        }
 
-            $query = "
+        $query = "
         SELECT    
-            t_dat_iec870_eventos.id_cnt,
-            t_dat_iec870_eventos.fh,    
-            t_dat_iec870_eventos.DR,
-            t_dat_iec870_eventos.SPA,
-            t_dat_iec870_eventos.SPQ,
-            t_dat_iec870_eventos.SPI,
-            t_reader_events_description.description
-        FROM t_dat_iec870_eventos, t_reader_events_description
-        WHERE
-            t_dat_iec870_eventos.DR = t_reader_events_description.DR
-            AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
-            AND t_dat_iec870_eventos.SPQ = t_reader_events_description.SPQ
-            AND t_dat_iec870_eventos.SPI = t_reader_events_description.SPI
-            AND t_dat_iec870_eventos.id_cnt = :id_cnt";
+            e.id_cnt,
+            e.fh,
+            e.dr,
+            e.spa,
+            e.spq,
+            e.spi,
+            d.description
+        FROM t_dat_iec870_events e
+        JOIN t_reader_events_description d
+          ON e.dr  = d.dr
+         AND e.spa = d.spa
+         AND e.spq = d.spq
+         AND e.spi = d.spi
+        WHERE e.id_cnt = :id_cnt
+        ";
+
+        if ($fecha_inicio && $fecha_fin) {
+            $query .= "
+            AND e.fh >= :fecha_inicio
+            AND e.fh <= :fecha_fin
+            ORDER BY e.fh DESC
+            ";
+            $params = [
+                'id_cnt' => $id_cnt,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin
+            ];
+        } else {
+            $query .= "
+            AND e.fh >= CURRENT_DATE - INTERVAL '30 days'
+            ORDER BY e.fh DESC
+            ";
+            $params = ['id_cnt' => $id_cnt];
+        }
 
 
-            if ($fecha_inicio && $fecha_fin) {
-                $query .= "
-                AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
-                AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') <= :fecha_fin";
-                $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-            } else {
-                $query .= "
-                AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-                ORDER BY STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') DESC";
-                $params = ['id_cnt' => $id_cnt];
-            }
+        $resultadosQ11pf = DB::connection($connectionpf)->select($query, $params);
 
+        $collection = new Collection($resultadosQ11pf);
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 100;
 
-            $resultadosQ11pf = DB::connection($connectionpf)
-                ->select($query, $params);
-            $resultadosQ11pfCollection = new Collection($resultadosQ11pf);
-            $currentPage = LengthAwarePaginator::resolveCurrentPage();
-            $perPage = 100; // Número de elementos por página
-            $currentItems = $resultadosQ11pfCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $currentItems = $collection
+            ->slice(($currentPage - 1) * $perPage, $perPage)
+            ->values()
+            ->all();
 
-
-                    // Crear paginador manualmente
-            $resultadosQ11pf = new LengthAwarePaginator($currentItems, count($resultadosQ11pfCollection), $perPage, $currentPage, [
+        return new LengthAwarePaginator(
+            $currentItems,
+            $collection->count(),
+            $perPage,
+            $currentPage,
+            [
                 'path' => request()->url(),
                 'query' => request()->query()
-            ]);
-
-            return $resultadosQ11pf ?: [];
-        }
+            ]
+        );
     }
+}
+
 
     public function exportEventsPF(Request $request)
 {
-    $id_cnt = $request->input('id_cnt'); // <- lo obtienes aquí
+    $id_cnt = $request->input('id_cnt');
     $fecha_inicio = $request->input('fecha_inicio');
     $fecha_fin = $request->input('fecha_fin');
-    // NUEVO: Tipo de archivo ('excel' por default)
-    $format = $request->input('format', 'excel'); 
+
+    $format = $request->input('format', 'excel');
     $extension = $format === 'csv' ? 'csv' : 'xlsx';
     $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
-    // Obtener la conexión dinámica (esto lo puedes mover a un método privado si se repite)
     $connectionpf = User::conexionPuntoFrontera();
 
     if ($request->filled('descripcion')) {
@@ -996,105 +1014,128 @@ class PuntoFronteraController extends Controller
 
     $query = "
         SELECT    
-            t_dat_iec870_eventos.id_cnt,
-            t_dat_iec870_eventos.fh,    
-            t_dat_iec870_eventos.DR,
-            t_dat_iec870_eventos.SPA,
-            t_dat_iec870_eventos.SPQ,
-            t_dat_iec870_eventos.SPI,
-            t_reader_events_description.description
-        FROM t_dat_iec870_eventos, t_reader_events_description
-        WHERE
-            t_dat_iec870_eventos.DR = t_reader_events_description.DR
-            AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
-            AND t_dat_iec870_eventos.SPQ = t_reader_events_description.SPQ
-            AND t_dat_iec870_eventos.SPI = t_reader_events_description.SPI
-            AND t_dat_iec870_eventos.id_cnt = :id_cnt";
+            e.id_cnt,
+            e.fh,    
+            e.dr,
+            e.spa,
+            e.spq,
+            e.spi,
+            d.description
+        FROM t_dat_iec870_events e
+        JOIN t_reader_events_description d
+          ON e.dr  = d.dr
+         AND e.spa = d.spa
+         AND e.spq = d.spq
+         AND e.spi = d.spi
+        WHERE e.id_cnt = :id_cnt
+    ";
 
     if ($fecha_inicio && $fecha_fin) {
         $query .= "
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') <= :fecha_fin";
-        $params = ['id_cnt' => $id_cnt, 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
+            AND e.fh >= :fecha_inicio
+            AND e.fh <= :fecha_fin
+            ORDER BY e.fh DESC
+        ";
+        $params = [
+            'id_cnt' => $id_cnt,
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin
+        ];
     } else {
         $query .= "
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-            ORDER BY STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') DESC";
+            AND e.fh >= now() - interval '30 days'
+            ORDER BY e.fh DESC
+        ";
         $params = ['id_cnt' => $id_cnt];
     }
 
-    $exportEventsPF = DB::connection($connectionpf)
-        ->select($query, $params);
+    $data = DB::connection($connectionpf)->select($query, $params);
 
-    if ($exportEventsPF) {
-        return Excel::download(new EventosPFExport($exportEventsPF), 'eventos_pf.' . $extension, $exportFormat);
-    } else {
+    if (!$data) {
         return response()->json(['message' => 'No hay datos'], 404);
     }
+
+    return Excel::download(
+        new EventosPFExport($data),
+        'eventos_pf.' . $extension,
+        $exportFormat
+    );
 }
+
 
 
 
     /* FILTRO DE BÚSQUEDA */
     public function buscarDescripcion($id_cnt, $connectionpf, $fecha_inicio, $fecha_fin, Request $request)
-    {
-        $descripcion = strtolower($request->input('descripcion'));
+{
+    $descripcion = strtolower($request->input('descripcion'));
 
-
-        $query = "
+    $query = "
         SELECT    
-            t_dat_iec870_eventos.id_cnt,
-            t_dat_iec870_eventos.fh,    
-            t_dat_iec870_eventos.DR,
-            t_dat_iec870_eventos.SPA,
-            t_dat_iec870_eventos.SPQ,
-            t_dat_iec870_eventos.SPI,
-            t_reader_events_description.description
-        FROM t_dat_iec870_eventos, t_reader_events_description
-        WHERE
-            t_dat_iec870_eventos.DR = t_reader_events_description.DR
-            AND t_dat_iec870_eventos.SPA = t_reader_events_description.SPA
-            AND t_dat_iec870_eventos.SPQ = t_reader_events_description.SPQ
-            AND t_dat_iec870_eventos.SPI = t_reader_events_description.SPI
-            AND t_dat_iec870_eventos.id_cnt = :id_cnt";
+            e.id_cnt,
+            e.fh,    
+            e.dr,
+            e.spa,
+            e.spq,
+            e.spi,
+            d.description
+        FROM t_dat_iec870_events e
+        JOIN t_reader_events_description d
+            ON e.dr = d.DR
+            AND e.spa = d.spa
+            AND e.spq = d.spq
+            AND e.spi = d.spi
+        WHERE e.id_cnt = :id_cnt
+          AND LOWER(d.description) LIKE :descripcion
+    ";
 
+    if ($fecha_inicio && $fecha_fin) {
+        $query .= "
+            AND e.fh >= :fecha_inicio
+            AND e.fh <= :fecha_fin
+            ORDER BY e.fh DESC
+        ";
 
+        $params = [
+            'id_cnt' => $id_cnt,
+            'descripcion' => "%$descripcion%",
+            'fecha_inicio' => $fecha_inicio,
+            'fecha_fin' => $fecha_fin
+        ];
+    } else {
+        $query .= "
+            AND e.fh >= NOW() - INTERVAL '30 days'
+            ORDER BY e.fh DESC
+        ";
 
+        $params = [
+            'id_cnt' => $id_cnt,
+            'descripcion' => "%$descripcion%"
+        ];
+    }
 
-        if ($fecha_inicio && $fecha_fin) {
-            $query .= "
-            AND LOWER(t_reader_events_description.description) LIKE :descripcion
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') >= :fecha_inicio
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') <= :fecha_fin";
-            $params = ['id_cnt' => $id_cnt, 'descripcion' => "%$descripcion%", 'fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin];
-        } else {
-            $query .= "
-            AND LOWER(t_reader_events_description.description) LIKE :descripcion
-            AND STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s')
-            ORDER BY STR_TO_DATE(t_dat_iec870_eventos.fh, '%d/%m/%Y %H:%i:%s') DESC";
-            $params = ['id_cnt' => $id_cnt, 'descripcion' => "%$descripcion%"];
-        }
-        $resultadosQ11pfFiltro = DB::connection($connectionpf)
-            ->select($query, $params);
-        $resultadosQ11pfFiltroCollection = new Collection($resultadosQ11pfFiltro);
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = 100; // Número de elementos por página
-        $currentItems = $resultadosQ11pfFiltroCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
+    $resultados = DB::connection($connectionpf)->select($query, $params);
 
+    $collection = new Collection($resultados);
+    $currentPage = LengthAwarePaginator::resolveCurrentPage();
+    $perPage = 100;
 
-        // Crear paginador manualmente
-        $resultadosQ11pfFiltro = new LengthAwarePaginator($currentItems, count($resultadosQ11pfFiltroCollection), $perPage, $currentPage, [
+    $currentItems = $collection
+        ->slice(($currentPage - 1) * $perPage, $perPage)
+        ->values();
+
+    return new LengthAwarePaginator(
+        $currentItems,
+        $collection->count(),
+        $perPage,
+        $currentPage,
+        [
             'path' => request()->url(),
             'query' => request()->query()
-        ]);
+        ]
+    );
+}
 
-
-
-
-
-
-        return $resultadosQ11pfFiltro ?: [];
-    }
 
 
 
