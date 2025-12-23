@@ -37,52 +37,54 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
     }
 
     public function query()
-    {
-        return DB::connection($this->dbConnectionName)->table('t_dat_iec870_load_profile_1')
-            ->join('t_meter_params_iec870', 't_dat_iec870_load_profile_1.id_cnt', '=', 't_meter_params_iec870.id_cnt')
-            ->whereIn('t_dat_iec870_load_profile_1.id_cnt', $this->id_cnts)
-            ->when($this->fecha_inicio && $this->fecha_fin, function ($q) {
-                $q->whereBetween('t_dat_iec870_load_profile_1.fh', [$this->fecha_inicio, $this->fecha_fin]);
-            })
-            ->selectRaw("
-                t_meter_params_iec870.cups as CUPS,
-                t_dat_iec870_load_profile_1.id_cnt,
-                DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%d/%m/%Y') as Fecha,
-                DATE_FORMAT(t_dat_iec870_load_profile_1.fh, '%H:%i:%s') as Hora,
-                t_dat_iec870_load_profile_1.e_act_imp as Energia_Activa_Importada_A,
-                t_dat_iec870_load_profile_1.e_act_imp_cualif as Bit_Calidad_Activa_A,
-                t_dat_iec870_load_profile_1.e_act_exp as Energia_Activa_Exportada_A,
-                t_dat_iec870_load_profile_1.e_act_exp_cualif as Bit_Calidad_Activa_A2,
-                t_dat_iec870_load_profile_1.e_react_ind_imp as Energia_Reactiva_Inductiva_Importada_Ri,
-                t_dat_iec870_load_profile_1.e_react_ind_imp_cualif as Bit_Calidad_Reactiva_Imp_Ri,
-                t_dat_iec870_load_profile_1.e_react_ind_exp as Energia_Reactiva_Inductiva_Exportada_Ri,
-                t_dat_iec870_load_profile_1.e_react_ind_exp_cualif as Bit_Calidad_Reactiva_Imp_Ri2,
-                t_dat_iec870_load_profile_1.e_react_cap_imp as Energia_Reactiva_Capacitiva_Importada_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_imp_cualif as Bit_Calidad_Reactiva_Imp_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_exp as Energia_Reactiva_Capacitiva_Exportada_Rc,
-                t_dat_iec870_load_profile_1.e_react_cap_exp_cualif as Bit_Calidad_Reactiva_Exp_Rc"
-            );
-    }
+{
+    return DB::connection($this->dbConnectionName)
+        ->table('t_dat_iec870_load_profile_2')
+        ->join('t_meter_params_iec870', 't_dat_iec870_load_profile_2.id_cnt', '=', 't_meter_params_iec870.id_cnt')
+        ->whereIn('t_dat_iec870_load_profile_2.id_cnt', $this->id_cnts)
+        ->when($this->fecha_inicio && $this->fecha_fin, function ($q) {
+            $q->whereBetween('t_dat_iec870_load_profile_2.fh', [$this->fecha_inicio, $this->fecha_fin]);
+        })
+        ->selectRaw("
+            t_meter_params_iec870.id_cups AS cups,
+            t_dat_iec870_load_profile_2.id_cnt,
+            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'DD/MM/YYYY') AS fecha,
+            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'HH24:MI:SS') AS hora,
+            t_dat_iec870_load_profile_2.ai AS energia_activa_importada_a,
+            t_dat_iec870_load_profile_2.ai_bc AS bit_calidad_activa_a,
+            t_dat_iec870_load_profile_2.ae AS energia_activa_exportada_a,
+            t_dat_iec870_load_profile_2.ae_bc AS bit_calidad_activa_a2,
+            t_dat_iec870_load_profile_2.r1 AS energia_reactiva_inductiva_importada_ri,
+            t_dat_iec870_load_profile_2.r1_bc AS bit_calidad_reactiva_imp_ri,
+            t_dat_iec870_load_profile_2.r2 AS energia_reactiva_inductiva_exportada_ri,
+            t_dat_iec870_load_profile_2.r2_bc AS bit_calidad_reactiva_imp_ri2,
+            t_dat_iec870_load_profile_2.r3 AS energia_reactiva_capacitiva_importada_rc,
+            t_dat_iec870_load_profile_2.r3_bc AS bit_calidad_reactiva_imp_rc,
+            t_dat_iec870_load_profile_2.r4 AS energia_reactiva_capacitiva_exportada_rc,
+            t_dat_iec870_load_profile_2.r4_bc AS bit_calidad_reactiva_exp_rc
+        ");
+}
+
 
     public function map($row): array
     {
         return [
-            $row->CUPS ?? '',
+            $row->cups ?? '',
             $row->id_cnt ?? '',
-            $row->Fecha ?? '',
-            $row->Hora ?? '',
-            strval($row->Energia_Activa_Importada_A ?? '0'),
-            strval($row->Bit_Calidad_Activa_A ?? '0'),
-            strval($row->Energia_Activa_Exportada_A ?? '0'),
-            strval($row->Bit_Calidad_Activa_A2 ?? '0'),
-            strval($row->Energia_Reactiva_Inductiva_Importada_Ri ?? '0'),
-            strval($row->Bit_Calidad_Reactiva_Imp_Ri ?? '0'),
-            strval($row->Energia_Reactiva_Inductiva_Exportada_Ri ?? '0'),
-            strval($row->Bit_Calidad_Reactiva_Imp_Ri2 ?? '0'),
-            strval($row->Energia_Reactiva_Capacitiva_Importada_Rc ?? '0'),
-            strval($row->Bit_Calidad_Reactiva_Imp_Rc ?? '0'),
-            strval($row->Energia_Reactiva_Capacitiva_Exportada_Rc ?? '0'),
-            strval($row->Bit_Calidad_Reactiva_Exp_Rc ?? '0'),
+            $row->fecha ?? '',
+            $row->hora ?? '',
+            strval($row->energia_activa_importada_a ?? '0'),
+            strval($row->bit_calidad_activa_a ?? '0'),
+            strval($row->energia_activa_exportada_a ?? '0'),
+            strval($row->bit_calidad_activa_a2 ?? '0'),
+            strval($row->energia_reactiva_inductiva_importada_ri ?? '0'),
+            strval($row->bit_calidad_reactiva_imp_ri ?? '0'),
+            strval($row->energia_reactiva_inductiva_exportada_ri ?? '0'),
+            strval($row->bit_calidad_reactiva_imp_ri2 ?? '0'),
+            strval($row->energia_reactiva_capacitiva_importada_rc ?? '0'),
+            strval($row->bit_calidad_reactiva_imp_rc ?? '0'),
+            strval($row->energia_reactiva_capacitiva_exportada_rc ?? '0'),
+            strval($row->bit_calidad_reactiva_exp_rc ?? '0'),
         ];
     }
 
@@ -133,7 +135,7 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
                 // Aseguramos que el progreso no exceda el 89% en esta fase
                 $progress = min(89, $progress);
 
-                ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
+                ExportProgress::on('pgsql-exports')->where('export_id', $this->exportId)->update([
                     'progress' => $progress,
                 ]);
                 Log::info("Exportador: AfterBatch event para export_id: {$this->exportId}. Chunks procesados: {$this->processedChunks}. Progreso: {$progress}%");
@@ -141,7 +143,7 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
 
             BeforeWriting::class => function(BeforeWriting $event) {
                 Log::info("Exportador: Evento BeforeWriting para export_id: " . $this->exportId);
-                ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
+                ExportProgress::on('pgsql-exports')->where('export_id', $this->exportId)->update([
                     'progress' => 90, // El 90% indica que la escritura final del archivo está a punto de comenzar
                 ]);
             },

@@ -471,7 +471,7 @@
                                                                 </h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->rel_trafos_tension) ? $resultadosQ1pf[0]->rel_trafos_tension : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->voltage_primary) && !empty($resultadosQ1pf[0]->voltage_secondary) ? $resultadosQ1pf[0]->voltage_primary . '/' . $resultadosQ1pf[0]->voltage_secondary : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -488,7 +488,7 @@
                                                                     Intensidad</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->rel_trafos_intensidad) ? $resultadosQ1pf[0]->rel_trafos_intensidad : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->current_primary) && !empty($resultadosQ1pf[0]->current_secondary) ? $resultadosQ1pf[0]->current_primary . '/' . $resultadosQ1pf[0]->current_secondary : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -519,7 +519,7 @@
                                                                 </h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->direnlace) ? $resultadosQ1pf[0]->direnlace : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cnt_enlace) ? $resultadosQ1pf[0]->cnt_enlace : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -534,7 +534,7 @@
                                                                 </h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->pm) ? $resultadosQ1pf[0]->pm : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cnt_pm) ? $resultadosQ1pf[0]->cnt_pm : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -551,7 +551,7 @@
                                                                 </h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->password) ? $resultadosQ1pf[0]->password : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cnt_password) ? $resultadosQ1pf[0]->cnt_password : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -566,7 +566,7 @@
                                                                     Conexión</h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_name) ? $resultadosQ1pf[0]->conx_name : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_info) ? $resultadosQ1pf[0]->conx_info : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -584,7 +584,7 @@
                                                             </h2>
                                                             <p class="mt-4 text-sm  text-center"
                                                                 style="color:rgb(88,226,194);">
-                                                                {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_info) ? $resultadosQ1pf[0]->conx_info : 'No hay datos' }}
+                                                                {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_params) ? $resultadosQ1pf[0]->conx_params : 'No hay datos' }}
                                                             </p>
                                                             <div
                                                                 style="border-bottom: 3px solid transparent;
@@ -614,7 +614,7 @@
                                                                     de Medida</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->tip_punto_medida) ? $resultadosQ1pf[0]->tip_punto_medida : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->tip_cups) ? $resultadosQ1pf[0]->tip_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -630,7 +630,7 @@
                                                                 </h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->id_punto_medida) ? $resultadosQ1pf[0]->id_punto_medida : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->id_cups) ? $resultadosQ1pf[0]->id_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -646,7 +646,7 @@
                                                                 <h2 class="text-sm text-center font-normal">Cups</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cups) ? $resultadosQ1pf[0]->cups : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->id_cups) ? $resultadosQ1pf[0]->id_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -678,7 +678,7 @@
                                                                     Física</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->dir_punto_medida) ? $resultadosQ1pf[0]->dir_punto_medida : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->dir_cups) ? $resultadosQ1pf[0]->dir_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -694,9 +694,9 @@
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
                                                                     {{ count($resultadosQ1pf) > 0 &&
-                                                                    !empty($resultadosQ1pf[0]->lon_punto_medida) &&
-                                                                    !empty($resultadosQ1pf[0]->lat_punto_medida)
-                                                                        ? $resultadosQ1pf[0]->lon_punto_medida . '/' . $resultadosQ1pf[0]->lat_punto_medida
+                                                                    !empty($resultadosQ1pf[0]->lon_cups) &&
+                                                                    !empty($resultadosQ1pf[0]->lat_cups)
+                                                                        ? $resultadosQ1pf[0]->lon_cups . '/' . $resultadosQ1pf[0]->lat_cups
                                                                         : 'No hay datos' }}
                                                                 </p>
                                                                 <div

@@ -675,7 +675,7 @@ return [
         ],
 
 
-        //conexion para cela
+        //conexion para Reader
         'pgsql-reader' => [
             'driver' => 'pgsql',
             'url' => env('DB_URL'),
@@ -684,6 +684,22 @@ return [
             'database' => env('DB_READER_DATABASE', 'Reader'),
             'username' => env('DB_READER_USERNAME', 'postgres'),
             'password' => env('DB_READER_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Exports
+        'pgsql-exports' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_EXPORTS_HOST', '127.0.0.1'),
+            'port' => env('DB_EXPORTS_PORT', '5432'),
+            'database' => env('DB_EXPORTS_DATABASE', 'Exports'),
+            'username' => env('DB_EXPORTS_USERNAME', 'postgres'),
+            'password' => env('DB_EXPORTS_PASSWORD', 'Vosnos2013*'),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,

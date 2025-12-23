@@ -39,7 +39,7 @@ class ExportCurvasCuartihorariasJob implements ShouldQueue
     public function handle()
     {
         try {
-            $exportProgressModel = ExportProgress::on('mysql_exports');
+            $exportProgressModel = ExportProgress::on('pgsql-exports');
 
             // 1. Marcar como "processing" y 10%
             $exportProgressModel->where('export_id', $this->exportId)->update([
@@ -85,7 +85,7 @@ class ExportCurvasCuartihorariasJob implements ShouldQueue
         } catch (\Exception $e) {
             Log::error("Error al iniciar la exportación para export_id {$this->exportId}: " . $e->getMessage());
 
-            ExportProgress::on('mysql_exports')->where('export_id', $this->exportId)->update([
+            ExportProgress::on('pgsql-exports')->where('export_id', $this->exportId)->update([
                 'status' => 'failed',
                 'progress' => 0
             ]);

@@ -44,6 +44,17 @@ return [
             'timeout' => 3600,
         ],
 
+        // 👇 conexión para la base de datos exports
+        'pgsql-exports' => [
+            'driver' => 'database',          // siempre 'database' para colas basadas en DB
+            'connection' => 'pgsql-exports', // nombre de la conexión de BD que definiste en database.php
+            'table' => 'jobs',               // tabla donde se guardan los jobs
+            'queue' => 'default',
+            'retry_after' => 90,
+            'after_commit' => false,
+        ],
+
+
         'beanstalkd' => [
             'driver' => 'beanstalkd',
             'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'),
@@ -106,7 +117,7 @@ return [
 
     'failed' => [
         'driver' => env('QUEUE_FAILED_DRIVER', 'database-uuids'),
-        'database' => env('DB_CONNECTION', 'sqlite'),
+        'database' => env('DB_QUEUE_CONNECTION', 'pgsql-exports'), // usar la conexión correcta
         'table' => 'failed_jobs',
     ],
 

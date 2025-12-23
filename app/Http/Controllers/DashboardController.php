@@ -837,7 +837,7 @@ class DashboardController extends Controller
                 SELECT DISTINCT ON (id_cnt) 
                     id_cnt, 
                     TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva_15
-                FROM t_dat_iec870_load_profile_1
+                FROM t_dat_iec870_load_profile_2
                 ORDER BY id_cnt, fh DESC
             ) uc2 ON t_meter_params_iec870.id_cnt = uc2.id_cnt
             LEFT JOIN (

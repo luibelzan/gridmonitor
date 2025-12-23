@@ -648,9 +648,9 @@
                                                 <div class="flex flex-col items-center justify-center text-center m-2 p-2 rounded-lg">
                                                     <h2 class="text-white text-sm">Nº CURVAS CUARTIHORARIAS <br>SIN CONSUMO</h2>
                                                     <div class="#205E86 text-white rounded-lg shadow-xl">
-                                                        <p class="mt-2 text-{{ count($resultadosQ17pf) > 0 && !empty($resultadosQ17pf[0]->Energia_Activa_Importada_A) ? '5xl' : '5xl' }}"
+                                                        <p class="mt-2 text-{{ count($resultadosQ17pf) > 0 && !empty($resultadosQ17pf[0]->energia_activa_importada_a) ? '5xl' : '5xl' }}"
                                                             style="color:rgb(248,73,90)">
-                                                            {{ count($resultadosQ17pf) > 0 && !empty($resultadosQ17pf[0]->Energia_Activa_Importada_A) ? number_format($resultadosQ17pf[0]->Energia_Activa_Importada_A, 0, '.', '.') : '0' }}
+                                                            {{ count($resultadosQ17pf) > 0 && !empty($resultadosQ17pf[0]->energia_activa_importada_a) ? number_format($resultadosQ17pf[0]->energia_activa_importada_a, 0, '.', '.') : '0' }}
                                                         </p>
                                                     </div>
                                                 </div>

@@ -530,7 +530,8 @@ class PuntoFronteraController extends Controller
                     t_reader_meter_data.lat_cups,
                     t_reader_meter_data.lon_cups,
                     t_reader_connections.conx_name,
-                    t_reader_connections.conx_info
+                    t_reader_connections.conx_info,
+                    t_reader_connections.conx_params
                 FROM 
                     t_meter_params_iec870, t_reader_meter_data, t_reader_connections
                 WHERE
@@ -558,7 +559,8 @@ class PuntoFronteraController extends Controller
                     t_reader_meter_data.lat_cups,
                     t_reader_meter_data.lon_cups,
                     t_reader_connections.conx_name,
-                    t_reader_connections.conx_info
+                    t_reader_connections.conx_info,
+                    t_reader_connections.conx_params
                 FROM 
                     t_meter_params_iec870, t_reader_meter_data, t_reader_connections
                 WHERE  
@@ -608,7 +610,7 @@ class PuntoFronteraController extends Controller
         SELECT
             fh AS max_fh,
             TO_CHAR(fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_ultima_curva
-        FROM t_dat_iec870_load_profile_1
+        FROM t_dat_iec870_load_profile_2
         WHERE id_cnt = ?
         ORDER BY fh DESC
         LIMIT 1
@@ -1792,7 +1794,7 @@ class PuntoFronteraController extends Controller
 
                 if (!empty($id_cnts)) {
                     $query = "SELECT
-                    t_meter_params_iec870.cups as CUPS,
+                    t_meter_params_iec870.id_cups as CUPS,
                     t_dat_iec870_monthly_billing.id_cnt,
                     t_dat_iec870_monthly_billing.ctr as Contrato,
                     t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
@@ -2269,9 +2271,9 @@ public function exportCurvasCuartihorarias(Request $request)
 {
     try {
         $connectionName = User::conexionPuntoFrontera();
-        //$connectionName2 = 'mysql_exports';
+        //$connectionName2 = 'pgsql-exports';
 
-        if (!Schema::connection($connectionName)->hasTable('t_dat_iec870_load_profile_1')) {
+        if (!Schema::connection($connectionName)->hasTable('t_dat_iec870_load_profile_2')) {
             return response()->json(['message' => 'La tabla no existe'], 404);
         }
 
@@ -2297,7 +2299,7 @@ public function exportCurvasCuartihorarias(Request $request)
 
         ExportCurvasCuartihorariasJob::dispatch($id_cnts, $fecha_inicio, $fecha_fin, $fileName, $connectionName, $exportId)
             ->onQueue('default')
-            ->onConnection('database');
+            ->onConnection('pgsql-exports');
 
         return response()->json([
             'message' => 'Exportación iniciada.',
