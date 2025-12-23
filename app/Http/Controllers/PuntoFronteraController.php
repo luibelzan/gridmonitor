@@ -24,6 +24,7 @@ use Maatwebsite\Excel\Excel as ExcelFormat;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use App\Models\ExportProgress;
+use Carbon\Carbon;
 
 
 
@@ -298,6 +299,12 @@ class PuntoFronteraController extends Controller
         $id_cnt = $request->input('id_cnt');
         $fecha_inicio = $request->input('fecha_inicio');
         $fecha_fin = $request->input('fecha_fin');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if ($fecha_fin) {
+            $fecha_fin = Carbon::parse($fecha_fin)->addDay()->toDateString();
+        }
+
 
 
 
