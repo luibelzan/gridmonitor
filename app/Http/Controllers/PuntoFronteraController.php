@@ -1800,30 +1800,34 @@ class PuntoFronteraController extends Controller
 
 
                 if (!empty($id_cnts)) {
-                    $query = "SELECT
-                    t_meter_params_iec870.id_cups as CUPS,
-                    t_dat_iec870_monthly_billing.id_cnt,
-                    t_dat_iec870_monthly_billing.ctr as Contrato,
-                    t_dat_iec870_monthly_billing.pt as Periodo_Tarifario,
-                    date_format(t_dat_iec870_monthly_billing.fhi,'%d/%m/%Y') as Fecha_Inicio,
-                    date_format(t_dat_iec870_monthly_billing.fhf,'%d/%m/%Y') as Fecha_Fin,
-                    t_dat_iec870_monthly_billing.e_act_abs as Energia_Activa_Absoluta,
-                    t_dat_iec870_monthly_billing.e_act_inc as Energia_Activa_Incremental,
-                    t_dat_iec870_monthly_billing.e_act_cualif as Bit_Calidad_Activa,
-                    t_dat_iec870_monthly_billing.e_react_ind_abs as Energia_Reactiva_Inductiva_Absoluta,
-                    t_dat_iec870_monthly_billing.e_react_ind_inc as Energia_Reactiva_Inductiva_Incremental,
-                    t_dat_iec870_monthly_billing.e_react_ind_cualif as Bit_Calidad_Reactiva_Inductiva,
-                    t_dat_iec870_monthly_billing.e_react_cap_abs as Energia_Reactiva_Capacitiva_Absoluta,
-                    t_dat_iec870_monthly_billing.e_react_cap_inc as Energia_Reactiva_Capacitiva_Incremental,
-                    t_dat_iec870_monthly_billing.e_react_cap_cualif as Bit_Calidad_Reactiva_Capacitiva,
-                    t_dat_iec870_monthly_billing.e_act_exceso as Excesos_de_Potencias,
-                    t_dat_iec870_monthly_billing.e_act_exceso_cualif as Bit_Calidad_Excesos,
-                    t_dat_iec870_monthly_billing.pot_max as Maximetros,
-                    date_format(t_dat_iec870_monthly_billing.pot_max_fh, '%d/%m/%Y %H:%i:%s') as Fecha_Maximetros,
-                    t_dat_iec870_monthly_billing.pot_max_cualif as Bit_Calidad_Maximetros
-                FROM t_dat_iec870_monthly_billing
-                INNER JOIN t_meter_params_iec870 ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
-                WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")";
+                    $query = "
+                        SELECT
+                            t_meter_params_iec870.id_cups AS cups,
+                            t_dat_iec870_monthly_billing.id_cnt,
+                            t_dat_iec870_monthly_billing.ctr AS contrato,
+                            t_dat_iec870_monthly_billing.pt AS periodo_tarifario,
+                            to_char(t_dat_iec870_monthly_billing.fhi, 'DD/MM/YYYY') AS fecha_inicio,
+                            to_char(t_dat_iec870_monthly_billing.fhf, 'DD/MM/YYYY') AS fecha_fin,
+                            t_dat_iec870_monthly_billing.e_act_abs AS energia_activa_absoluta,
+                            t_dat_iec870_monthly_billing.e_act_inc AS energia_activa_incremental,
+                            t_dat_iec870_monthly_billing.e_act_bc AS bit_calidad_activa,
+                            t_dat_iec870_monthly_billing.e_react_ind_abs AS energia_reactiva_inductiva_absoluta,
+                            t_dat_iec870_monthly_billing.e_react_ind_inc AS energia_reactiva_inductiva_incremental,
+                            t_dat_iec870_monthly_billing.e_react_ind_bc AS bit_calidad_reactiva_inductiva,
+                            t_dat_iec870_monthly_billing.e_react_cap_abs AS energia_reactiva_capacitiva_absoluta,
+                            t_dat_iec870_monthly_billing.e_react_cap_inc AS energia_reactiva_capacitiva_incremental,
+                            t_dat_iec870_monthly_billing.e_react_cap_bc AS bit_calidad_reactiva_capacitiva,
+                            t_dat_iec870_monthly_billing.e_act_exceso AS excesos_de_potencias,
+                            t_dat_iec870_monthly_billing.e_act_exceso_bc AS bit_calidad_excesos,
+                            t_dat_iec870_monthly_billing.pot_max AS maximetros,
+                            to_char(t_dat_iec870_monthly_billing.pot_max_fh, 'DD/MM/YYYY HH24:MI:SS') AS fecha_maximetros,
+                            t_dat_iec870_monthly_billing.pot_max_bc AS bit_calidad_maximetros
+                        FROM t_dat_iec870_monthly_billing
+                        INNER JOIN t_meter_params_iec870
+                            ON t_dat_iec870_monthly_billing.id_cnt = t_meter_params_iec870.id_cnt
+                        WHERE t_dat_iec870_monthly_billing.id_cnt IN (" . implode(',', array_fill(0, count($id_cnts), '?')) . ")
+                        ";
+
 
 
                     $params = $id_cnts;

@@ -350,8 +350,6 @@
                             active-color="rgb(88, 226, 194">Información</a>
                         <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
-                        <a href="{{ route('eventospf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
-                            active-color="rgb(88, 226, 194">Eventos</a>
                         <a href="{{ route('reportespf') }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Reportes</a>
                         <span class="nav-indicator"></span>
