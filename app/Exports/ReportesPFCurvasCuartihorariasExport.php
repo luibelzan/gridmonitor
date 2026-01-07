@@ -13,9 +13,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log; // Para logging dentro del exportador
 use App\Models\ExportProgress; // Para actualizar el modelo de progreso
 use Maatwebsite\Excel\Events\AfterBatch;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
 
 
-class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue, WithCustomChunkSize, WithEvents // ¡Añadimos WithEvents!
+class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue, WithCustomChunkSize, WithEvents, WithColumnFormatting // ¡Añadimos WithEvents!
 {
     protected $id_cnts;
     protected $fecha_inicio;
@@ -48,8 +51,7 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
         ->selectRaw("
             t_meter_params_iec870.id_cups AS cups,
             t_dat_iec870_load_profile_2.id_cnt,
-            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'DD/MM/YYYY') AS fecha,
-            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'HH24:MI:SS') AS hora,
+            t_dat_iec870_load_profile_2.fh AS fecha_hora,
             t_dat_iec870_load_profile_2.ai AS energia_activa_importada_a,
             t_dat_iec870_load_profile_2.ai_bc AS bit_calidad_activa_a,
             t_dat_iec870_load_profile_2.ae AS energia_activa_exportada_a,
@@ -71,8 +73,7 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
         return [
             $row->cups ?? '',
             $row->id_cnt ?? '',
-            $row->fecha ?? '',
-            $row->hora ?? '',
+            Date::dateTimeToExcel($row->fecha_hora), // 👈 clave
             strval($row->energia_activa_importada_a ?? '0'),
             strval($row->bit_calidad_activa_a ?? '0'),
             strval($row->energia_activa_exportada_a ?? '0'),
@@ -149,4 +150,12 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
             },
         ];
     }
+
+    public function columnFormats(): array
+{
+    return [
+        'C' => NumberFormat::FORMAT_DATE_DATETIME, // Fecha y hora
+    ];
+}
+
 }
