@@ -227,8 +227,15 @@
 
             // Selecciona color según valor
             function getColor(value) {
-                return value <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107, 0.9)";
+                if (value > 63.5) {
+                    return "rgb(218, 19, 19)"; // rojo
+                } else if (value < 57) {
+                    return "rgb(255, 206, 0)"; // amarillo
+                } else {
+                    return "rgb(0, 200, 0)"; // verde
+                }
             }
+
 
             var color = getColor(data.data);
             var textColor = color;
@@ -313,7 +320,13 @@
 
             // Selecciona color según valor
             function getColor(value) {
-                return value <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107, 0.9)";
+                if (value > 63.5) {
+                    return "rgb(218, 19, 19)"; // rojo
+                } else if (value < 57) {
+                    return "rgb(255, 206, 0)"; // amarillo
+                } else {
+                    return "rgb(0, 200, 0)"; // verde
+                }
             }
 
             var color = getColor(data.data);
@@ -399,7 +412,13 @@
 
             // Selecciona color según valor
             function getColor(value) {
-                return value <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107, 0.9)";
+                if (value > 63.5) {
+                    return "rgb(218, 19, 19)"; // rojo
+                } else if (value < 57) {
+                    return "rgb(255, 206, 0)"; // amarillo
+                } else {
+                    return "rgb(0, 200, 0)"; // verde
+                }
             }
 
             var color = getColor(data.data);
@@ -485,7 +504,7 @@
 
             // Selecciona color según valor
             function getColor(value) {
-                return value <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107, 0.9)";
+                return "rgb(2, 170, 182)";
             }
 
             var color = getColor(data.data);
@@ -571,7 +590,7 @@
 
             // Selecciona color según valor
             function getColor(value) {
-                return value <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107, 0.9)";
+                return "rgb(2, 170, 182)";
             }
 
             var color = getColor(data.data);
@@ -657,7 +676,7 @@
 
             // Selecciona color según valor
             function getColor(value) {
-                return value <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107, 0.9)";
+                return "rgb(2, 170, 182)";
             }
 
             var color = getColor(data.data);
@@ -728,7 +747,7 @@
 
 
 
-    <title>Eventos PF</title>
+    <title>Valores Instantaneos PF</title>
 </head>
 
 
