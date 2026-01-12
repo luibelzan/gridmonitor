@@ -42,17 +42,15 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
 
     public function query()
 {
-    return DB::connection($this->dbConnectionName)
+    $query = DB::connection($this->dbConnectionName)
         ->table('t_dat_iec870_load_profile_2')
         ->join('t_meter_params_iec870', 't_dat_iec870_load_profile_2.id_cnt', '=', 't_meter_params_iec870.id_cnt')
         ->whereIn('t_dat_iec870_load_profile_2.id_cnt', $this->id_cnts)
-        ->when($this->fecha_inicio && $this->fecha_fin, function ($q) {
-            $q->whereBetween('t_dat_iec870_load_profile_2.fh', [$this->fecha_inicio, $this->fecha_fin]);
-        })
         ->selectRaw("
             t_meter_params_iec870.id_cups AS cups,
             t_dat_iec870_load_profile_2.id_cnt,
-            t_dat_iec870_load_profile_2.fh AS fecha_hora,
+            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'DD/MM/YYYY') AS fecha,
+            TO_CHAR(t_dat_iec870_load_profile_2.fh, 'HH24:MI:SS') AS hora,
             t_dat_iec870_load_profile_2.ai AS energia_activa_importada_a,
             t_dat_iec870_load_profile_2.ai_bc AS bit_calidad_activa_a,
             t_dat_iec870_load_profile_2.ae AS energia_activa_exportada_a,
@@ -66,7 +64,23 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
             t_dat_iec870_load_profile_2.r4 AS energia_reactiva_capacitiva_exportada_rc,
             t_dat_iec870_load_profile_2.r4_bc AS bit_calidad_reactiva_exp_rc
         ");
+
+    if ($this->fecha_inicio && $this->fecha_fin) {
+        // Rango seleccionado
+        $query->where('t_dat_iec870_load_profile_2.fh', '>=', $this->fecha_inicio)
+              ->where('t_dat_iec870_load_profile_2.fh', '<=', $this->fecha_fin)
+              ->orderByDesc('t_meter_params_iec870.id_cups')
+              ->orderByDesc('t_dat_iec870_load_profile_2.fh');
+    } else {
+        // Últimos 168 registros
+        $query->orderByDesc('t_meter_params_iec870.id_cups')
+              ->orderByDesc('t_dat_iec870_load_profile_2.fh')
+              ->limit(168);
+    }
+
+    return $query;
 }
+
 
 
     public function map($row): array
