@@ -296,6 +296,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             active-color="rgb(88, 226, 194">Eventos</a>
                         <a href="{{ route('reportespf') }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Reportes</a>
+                        <a href="{{ route('valoresinstantaneospf', ['id_cnt' => $id_cnt]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Valores Instantaneos</a>
                         <span class="nav-indicator"></span>
                     </nav>
                     {{-- Obtener el id_cnt almacenado en la sesión --}}
