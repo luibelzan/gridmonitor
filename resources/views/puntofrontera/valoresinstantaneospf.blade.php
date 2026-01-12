@@ -851,7 +851,18 @@
                                 </div>
                             </div>
                         @else
-                            <h1 class="text-center text-3xl w-full" style="color: white;">VALORES INSTANTANEOS</h1>
+                            @php
+                                $fechaInicio = request('fecha_inicio');
+                                $fechaFin    = request('fecha_fin');
+                            @endphp
+
+                            <h1 class="text-center text-3xl w-full text-white">
+                                @if ($fechaInicio && $fechaFin)
+                                    VALORES INSTANTÁNEOS ({{ $fechaInicio }} a {{ $fechaFin }})
+                                @else
+                                    VALORES INSTANTÁNEOS (Últimos 7 días)
+                                @endif
+                            </h1>
                             <div
                                 style="border-bottom: 3px solid transparent;
                                     border-image: linear-gradient(to right, transparent, rgb(27,32,38), transparent) 1;">
