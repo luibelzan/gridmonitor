@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Events\AfterBatch;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Carbon\Carbon;
 
 
 class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, WithMapping, ShouldQueue, WithCustomChunkSize, WithEvents, WithColumnFormatting // ¡Añadimos WithEvents!
@@ -73,7 +74,9 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
         return [
             $row->cups ?? '',
             $row->id_cnt ?? '',
-            Date::dateTimeToExcel($row->fecha_hora), // 👈 clave
+            Date::dateTimeToExcel(
+                Carbon::parse($row->fecha_hora)->timezone('Europe/Madrid')
+            ),
             strval($row->energia_activa_importada_a ?? '0'),
             strval($row->bit_calidad_activa_a ?? '0'),
             strval($row->energia_activa_exportada_a ?? '0'),
@@ -94,8 +97,7 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
         return [
             'CUPS',
             'ID CNT',
-            'Fecha',
-            'Hora',
+            'Fecha y Hora',
             'Energía Activa Importada A',
             'Bit Calidad Activa A',
             'Energía Activa Exportada A',
@@ -154,7 +156,7 @@ class ReportesPFCurvasCuartihorariasExport implements FromQuery, WithHeadings, W
     public function columnFormats(): array
 {
     return [
-        'C' => NumberFormat::FORMAT_DATE_DATETIME, // Fecha y hora
+        'C' => 'dd/mm/yyyy hh:mm',
     ];
 }
 

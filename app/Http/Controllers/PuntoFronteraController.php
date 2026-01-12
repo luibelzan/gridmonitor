@@ -427,6 +427,52 @@ class PuntoFronteraController extends Controller
         ]);
     }
 
+    public function valoresinstantaneospf(Request $request) {
+        // Verificar si el usuario está autenticado
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('message', 'Tu sesión ha expirado por inactividad.');
+        }
+
+        $id_cnt = $request->input('id_cnt');
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        // Guardar el nombre de la vista actual en la sesión
+        Session::put('vista_actual', 'valoresinstantaneospf');
+
+        // Obtener la conexión dinámica con la base de datos MYSQL
+        $connectionpf = User::conexionPuntoFrontera();
+
+        $user = Auth::user(); //obtenemos los datos del usuario autenticado
+
+
+        $cod_id_group = $user->cod_id_group; //metemos el codigo del grupo del usuario autentiado en la variable
+
+        // llamadas a las funciones
+        $parametros = $this->parametros($connectionpf);
+        $resultadosQ1pf = $this->consultaUnopf($id_cnt, $connectionpf);
+        $factorPotenciaPromedio = $this->getFactorPotenciaPromedio($request, $connectionpf, $id_cnt);
+        $tensionFase = $this->getTensionFase($request, $connectionpf, $id_cnt);
+        $tensionesPorfase = $this->getTensionesPorFase($request, $connectionpf, $id_cnt);
+        $intensidadFase = $this->getIntensidadFase($request, $connectionpf, $id_cnt);
+        $intensidadesPorFase = $this->getIntensidadesPorFase($request, $connectionpf, $id_cnt);
+        $detallesValoresInstantaneos = $this->getDetallesValoresInstantaneos($request, $connectionpf, $id_cnt);
+
+        return view('puntofrontera/valoresinstantaneospf', [
+            'user' => $user,
+            'parametros' => $parametros,
+            'id_cnt' => $id_cnt,
+            'cod_id_group' => $cod_id_group,
+            'resultadosQ1pf' => $resultadosQ1pf,
+            'factorPotenciaPromedio' => $factorPotenciaPromedio,
+            'tensionFase' => $tensionFase,
+            'tensionesPorFase' => $tensionesPorfase,
+            'intensidadFase' => $intensidadFase,
+            'intensidadesPorFase' => $intensidadesPorFase,
+            'detallesValoresInstantaneos' => $detallesValoresInstantaneos
+        ]);
+    }
+
 
 
 
@@ -509,6 +555,319 @@ class PuntoFronteraController extends Controller
 
 
 
+    //CONSULTAS VALORES INSTANTANEOS
+    public function getFactorPotenciaPromedio(Request $request, $connectionpf, $id_cnt)
+{
+    try {
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin    = $request->input('fecha_fin');
+
+        if (Schema::connection($connectionpf)->hasTable('t_dat_iec870_instant_values')) {
+
+            $query = "
+                SELECT
+                    id_cups,
+                    id_cnt,
+                    AVG(fp_total) AS fp_promedio
+                FROM public.t_dat_iec870_instant_values
+                WHERE id_cnt = :id_cnt
+            ";
+
+            // Parámetros base
+            $params = [
+                'id_cnt' => $id_cnt
+            ];
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND fh BETWEEN :fecha_inicio AND :fecha_fin
+                ";
+
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin']    = $fecha_fin;
+            } else {
+                $query .= "
+                    AND fh >= NOW() - INTERVAL '7 days'
+                ";
+            }
+
+            $query .= " GROUP BY id_cups, id_cnt";
+
+            return DB::connection($connectionpf)->select($query, $params);
+        }
+
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
+    }
+}
+
+
+    public function getTensionFase(Request $request, $connectionpf, $id_cnt) {
+        try {
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+
+            if(Schema::connection($connectionpf)->hasTable('t_dat_iec870_instant_values')) {
+                $query = "
+                SELECT
+                    id_cups,
+                    id_cnt,
+                    AVG(volt_phase_1) AS volt_fase_1_promedio,
+                    MAX(volt_phase_1) AS volt_fase_1_maximo,
+                    MIN(volt_phase_1) AS volt_fase_1_minimo,
+                    AVG(volt_phase_2) AS volt_fase_2_promedio,
+                    MAX(volt_phase_2) AS volt_fase_2_maximo,
+                    MIN(volt_phase_2) AS volt_fase_2_minimo,
+                    AVG(volt_phase_3) AS volt_fase_3_promedio,
+                    MAX(volt_phase_3) AS volt_fase_3_maximo,
+                    MIN(volt_phase_3) AS volt_fase_3_minimo
+                FROM public.t_dat_iec870_instant_values
+                ";
+
+                if($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                    WHERE fh BETWEEN :fecha_inicio AND :fecha_fin
+                    AND id_cnt = :id_cnt
+                    GROUP BY id_cups, id_cnt
+                    ";
+
+                    $params = [
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin'    => $fecha_fin,
+                    'id_cnt' => $id_cnt
+                    ];
+                } else {
+                    $query .= "
+                    WHERE fh >= NOW() - INTERVAL '7 days'
+                    AND id_cnt = :id_cnt
+                    GROUP BY id_cups, id_cnt
+                    ";
+
+                    $params = [
+                        'id_cnt' => $id_cnt
+                    ];
+                }
+                return DB::connection($connectionpf)->select($query, $params);
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    public function getTensionesPorFase(Request $request, $connectionpf, $id_cnt)
+{
+    try {
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if (Schema::connection($connectionpf)->hasTable('t_dat_iec870_instant_values')) {
+
+            $query = "
+                SELECT
+                    fh,
+                    volt_phase_1,
+                    volt_phase_2,
+                    volt_phase_3
+                FROM t_dat_iec870_instant_values
+                WHERE id_cnt = :id_cnt
+            ";
+
+            $params = [
+                'id_cnt' => $id_cnt
+            ];
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND fh BETWEEN :fecha_inicio AND :fecha_fin
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= "
+                    AND fh >= NOW() - INTERVAL '7 days'
+                ";
+            }
+
+            $query .= "
+                ORDER BY fh
+            ";
+
+            return DB::connection($connectionpf)->select($query, $params);
+        }
+
+        return [];
+
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
+    }
+}
+
+public function getIntensidadFase(Request $request, $connectionpf, $id_cnt) {
+        try {
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+
+            if(Schema::connection($connectionpf)->hasTable('t_dat_iec870_instant_values')) {
+                $query = "
+                SELECT
+                    id_cups,
+                    id_cnt,
+                    AVG(current_phase_1) AS current_fase_1_promedio,
+                    MAX(current_phase_1) AS current_fase_1_maximo,
+                    MIN(current_phase_1) AS current_fase_1_minimo,
+                    AVG(current_phase_2) AS current_fase_2_promedio,
+                    MAX(current_phase_2) AS current_fase_2_maximo,
+                    MIN(current_phase_2) AS current_fase_2_minimo,
+                    AVG(current_phase_3) AS current_fase_3_promedio,
+                    MAX(current_phase_3) AS current_fase_3_maximo,
+                    MIN(current_phase_3) AS current_fase_3_minimo
+                FROM public.t_dat_iec870_instant_values
+                ";
+
+                if($fecha_inicio && $fecha_fin) {
+                    $query .= "
+                    WHERE fh BETWEEN :fecha_inicio AND :fecha_fin
+                    AND id_cnt = :id_cnt
+                    GROUP BY id_cups, id_cnt
+                    ";
+
+                    $params = [
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin'    => $fecha_fin,
+                    'id_cnt' => $id_cnt
+                    ];
+                } else {
+                    $query .= "
+                    WHERE fh >= NOW() - INTERVAL '7 days'
+                    AND id_cnt = :id_cnt
+                    GROUP BY id_cups, id_cnt
+                    ";
+
+                    $params = [
+                        'id_cnt' => $id_cnt
+                    ];
+                }
+                return DB::connection($connectionpf)->select($query, $params);
+            }
+        } catch(\Exception $e) {
+            return ['message' => 'Error: ' . $e->getMessage()];
+        }
+    }
+
+    public function getIntensidadesPorFase(Request $request, $connectionpf, $id_cnt)
+{
+    try {
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if (Schema::connection($connectionpf)->hasTable('t_dat_iec870_instant_values')) {
+
+            $query = "
+                SELECT
+                    fh,
+                    current_phase_1,
+                    current_phase_2,
+                    current_phase_3
+                FROM t_dat_iec870_instant_values
+                WHERE id_cnt = :id_cnt
+            ";
+
+            $params = [
+                'id_cnt' => $id_cnt
+            ];
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND fh BETWEEN :fecha_inicio AND :fecha_fin
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= "
+                    AND fh >= NOW() - INTERVAL '7 days'
+                ";
+            }
+
+            $query .= "
+                ORDER BY fh
+            ";
+
+            return DB::connection($connectionpf)->select($query, $params);
+        }
+
+        return [];
+
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
+    }
+}
+
+public function getDetallesValoresInstantaneos(Request $request, $connectionpf, $id_cnt) {
+    try {
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+
+        if (Schema::connection($connectionpf)->hasTable('t_dat_iec870_instant_values')) {
+            $query = "
+            SELECT
+                fh                           AS fecha,
+                fp_total                     AS factor_potencia_total,
+                volt_phase_1                 AS voltaje_fase_1,
+                volt_phase_2                 AS voltaje_fase_2,
+                volt_phase_3                 AS voltaje_fase_3,
+                current_phase_1              AS intensidad_fase_1,
+                current_phase_2              AS intensidad_fase_2,
+                current_phase_3              AS intensidad_fase_3,
+                pot_act_total                AS potencia_activa,
+                pot_react_total              AS potencia_reactiva
+            FROM public.t_dat_iec870_instant_values
+            WHERE id_cnt = :id_cnt
+            ";
+            $params = [
+                'id_cnt' => $id_cnt
+            ];
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND fh BETWEEN :fecha_inicio AND :fecha_fin
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } else {
+                $query .= "
+                    AND fh >= NOW() - INTERVAL '7 days'
+                ";
+            }
+
+            $query .= "
+                ORDER BY fh
+            ";
+            $detallesValoresInstantaneos =  DB::connection($connectionpf)->select($query, $params);
+
+            $collection = new Collection($detallesValoresInstantaneos);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 100;
+
+            $currentItems = $collection
+                ->slice(($currentPage - 1) * $perPage, $perPage)
+                ->values()
+                ->all();
+
+            return new LengthAwarePaginator(
+                $currentItems,
+                $collection->count(),
+                $perPage,
+                $currentPage,
+                [
+                    'path' => request()->url(),
+                    'query' => request()->query()
+                ]
+            );
+        }
+    } catch(\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
+    }
+}
 
 
 

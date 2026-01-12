@@ -120,6 +120,9 @@ Route::get('/curvascuartihorariaspf', [PuntoFronteraController::class, 'curvascu
 //REPORTES PF ----------------------------
 Route::get('/reportespf', [PuntoFronteraController::class, 'reportespf'])->name('reportespf');
 
+//VALORES INSTANTANEOS PF ----------------------------
+Route::get('/valoresinstantaneospf', [PuntoFronteraController::class, 'valoresinstantaneospf'])->name('valoresinstantaneospf');
+
 
 //************************
 //***********CUPS*********
