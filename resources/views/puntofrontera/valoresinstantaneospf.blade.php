@@ -276,7 +276,7 @@
                 paper_bgcolor: "transparent",
                 font: { color: "white", family: "Didact Gothic", weight: 'normal' },
                 annotations: [{
-                    text: data.data + ' %',
+                    text: data.data + ' V',
                     x: 0.5,
                     y: 0.4,
                     showarrow: false,
@@ -362,7 +362,7 @@
                 paper_bgcolor: "transparent",
                 font: { color: "white", family: "Didact Gothic", weight: 'normal' },
                 annotations: [{
-                    text: data.data + ' %',
+                    text: data.data + ' V',
                     x: 0.5,
                     y: 0.4,
                     showarrow: false,
@@ -448,7 +448,7 @@
                 paper_bgcolor: "transparent",
                 font: { color: "white", family: "Didact Gothic", weight: 'normal' },
                 annotations: [{
-                    text: data.data + ' %',
+                    text: data.data + ' V',
                     x: 0.5,
                     y: 0.4,
                     showarrow: false,
@@ -534,7 +534,7 @@
                 paper_bgcolor: "transparent",
                 font: { color: "white", family: "Didact Gothic", weight: 'normal' },
                 annotations: [{
-                    text: data.data + ' %',
+                    text: data.data + ' A',
                     x: 0.5,
                     y: 0.4,
                     showarrow: false,
@@ -620,7 +620,7 @@
                 paper_bgcolor: "transparent",
                 font: { color: "white", family: "Didact Gothic", weight: 'normal' },
                 annotations: [{
-                    text: data.data + ' %',
+                    text: data.data + ' A',
                     x: 0.5,
                     y: 0.4,
                     showarrow: false,
@@ -706,7 +706,7 @@
                 paper_bgcolor: "transparent",
                 font: { color: "white", family: "Didact Gothic", weight: 'normal' },
                 annotations: [{
-                    text: data.data + ' %',
+                    text: data.data + ' A',
                     x: 0.5,
                     y: 0.4,
                     showarrow: false,
@@ -769,30 +769,71 @@
                         <span class="nav-indicator"></span>
                     </nav>
                     
-                    {{-- Desplegable para seleccionar el CNT --}}
-                    <div class="container">
+                    {{-- Selector CNT + fechas + botón --}}
+                    <form
+                        action="{{ route('valoresinstantaneospf', ['id_cnt' => $id_cnt]) }}"
+                        method="GET"
+                        class="container flex items-end gap-6 flex-wrap"
+                        style="color:white;">
+
+                        {{-- Selector CNT --}}
                         <div class="dropdown" style="margin-left: 6px">
-                            <form style="color: white; background-color: transparent;"
-                                action="{{ route('valoresinstantaneospf', ['id_cnt' => $id_cnt]) }}" method="GET">
+                            <input list="cntList" name="id_cnt"
+                                class="form-control mt-2"
+                                style="color: white;
+                                    background-color: rgb(27, 32, 38);
+                                    font-size: 14px;
+                                    width: 250px;"
+                                placeholder="Buscar o seleccionar un Punto..."
+                                value="{{ $id_cnt ?? '' }}">
 
-                                <input list="cntList" name="id_cnt"
-                                    class="form-control mt-2"
-                                    onchange="this.form.submit()"
-                                    style="color: white; background-color: rgb(27, 32, 38); font-size: 14px; text-align: left; width: 250px;"
-                                    placeholder="Buscar o seleccionar un Punto..."
-                                    value="{{ $id_cnt ? $id_cnt : '' }}">
-
-                                <datalist id="cntList">
-                                    @foreach ($parametros as $cnt)
-                                        @if ($cnt->lp_2 == true)
-                                            <option value="{{ $cnt->id_cnt }}">{{ $cnt->id_cups }}</option>
-                                        @endif
-                                    @endforeach
-                                </datalist>
-
-                            </form>
+                            <datalist id="cntList">
+                                @foreach ($parametros as $cnt)
+                                    @if ($cnt->lp_2)
+                                        <option value="{{ $cnt->id_cnt }}">{{ $cnt->id_cups }}</option>
+                                    @endif
+                                @endforeach
+                            </datalist>
                         </div>
-                    </div>
+
+                        {{-- Fecha inicio --}}
+                        <div>
+                            <label for="fecha_inicio" class="text-white block mb-1">
+                                Fecha inicio
+                            </label>
+                            <input type="date" id="fecha_inicio" name="fecha_inicio"
+                                class="border border-gray-400 p-2 rounded-lg text-white"
+                                value="{{ request('fecha_inicio') }}"
+                                max="{{ date('Y-m-d') }}"
+                                style="background-color: transparent;">
+                        </div>
+
+                        {{-- Fecha fin --}}
+                        <div>
+                            <label for="fecha_fin" class="text-white block mb-1">
+                                Fecha fin
+                            </label>
+                            <input type="date" id="fecha_fin" name="fecha_fin"
+                                class="border border-gray-400 p-2 rounded-lg text-white"
+                                value="{{ request('fecha_fin') }}"
+                                max="{{ date('Y-m-d') }}"
+                                style="background-color: transparent;">
+                        </div>
+
+                        {{-- Botón --}}
+                        <div>
+                            <button type="submit"
+                                class="btn btn-outline-info mt-6 text-white"
+                                style="background-color: transparent; border-color: rgb(255,255,255);"
+                                onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                onmouseout="this.style.borderColor='rgb(255,255,255)'">
+                                Filtrar
+                            </button>
+                        </div>
+
+                    </form>
+
+
 
                     {{-- INICIO BODY DE LA VISTA --}}
                     @if($id_cnt)
