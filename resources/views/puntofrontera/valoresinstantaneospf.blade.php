@@ -792,21 +792,24 @@
                     
                     {{-- Selector CNT + fechas + botón --}}
                     <form
-                        action="{{ route('valoresinstantaneospf', ['id_cnt' => $id_cnt]) }}"
+                        action="{{ route('valoresinstantaneospf') }}"
                         method="GET"
                         class="container flex items-end gap-6 flex-wrap"
                         style="color:white;">
 
                         {{-- Selector CNT --}}
                         <div class="dropdown" style="margin-left: 6px">
-                            <input list="cntList" name="id_cnt"
+                            <input
+                                list="cntList"
+                                name="id_cnt"
                                 class="form-control mt-2"
+                                onchange="this.form.submit()"
                                 style="color: white;
                                     background-color: rgb(27, 32, 38);
                                     font-size: 14px;
                                     width: 250px;"
                                 placeholder="Buscar o seleccionar un Punto..."
-                                value="{{ $id_cnt ?? '' }}">
+                                value="{{ request('id_cnt') ?? '' }}">
 
                             <datalist id="cntList">
                                 @foreach ($parametros as $cnt)
@@ -817,42 +820,52 @@
                             </datalist>
                         </div>
 
-                        {{-- Fecha inicio --}}
-                        <div>
-                            <label for="fecha_inicio" class="text-white block mb-1">
-                                Fecha inicio
-                            </label>
-                            <input type="date" id="fecha_inicio" name="fecha_inicio"
-                                class="border border-gray-400 p-2 rounded-lg text-white"
-                                value="{{ request('fecha_inicio') }}"
-                                max="{{ date('Y-m-d') }}"
-                                style="background-color: transparent;">
-                        </div>
+                        {{-- SOLO mostrar fechas si hay id_cnt --}}
+                        @if (request()->filled('id_cnt'))
 
-                        {{-- Fecha fin --}}
-                        <div>
-                            <label for="fecha_fin" class="text-white block mb-1">
-                                Fecha fin
-                            </label>
-                            <input type="date" id="fecha_fin" name="fecha_fin"
-                                class="border border-gray-400 p-2 rounded-lg text-white"
-                                value="{{ request('fecha_fin') }}"
-                                max="{{ date('Y-m-d') }}"
-                                style="background-color: transparent;">
-                        </div>
+                            {{-- Fecha inicio --}}
+                            <div>
+                                <label for="fecha_inicio" class="text-white block mb-1">
+                                    Fecha inicio
+                                </label>
+                                <input type="date"
+                                    id="fecha_inicio"
+                                    name="fecha_inicio"
+                                    class="border border-gray-400 p-2 rounded-lg text-white"
+                                    value="{{ request('fecha_inicio') }}"
+                                    max="{{ date('Y-m-d') }}"
+                                    style="background-color: transparent;">
+                            </div>
 
-                        {{-- Botón --}}
-                        <div>
-                            <button type="submit"
-                                class="btn btn-outline-info mt-6 text-white"
-                                style="background-color: transparent; border-color: rgb(255,255,255);"
-                                onmouseover="this.style.borderColor='rgb(88,226,194)'"
-                                onmouseout="this.style.borderColor='rgb(255,255,255)'">
-                                Filtrar
-                            </button>
-                        </div>
+                            {{-- Fecha fin --}}
+                            <div>
+                                <label for="fecha_fin" class="text-white block mb-1">
+                                    Fecha fin
+                                </label>
+                                <input type="date"
+                                    id="fecha_fin"
+                                    name="fecha_fin"
+                                    class="border border-gray-400 p-2 rounded-lg text-white"
+                                    value="{{ request('fecha_fin') }}"
+                                    max="{{ date('Y-m-d') }}"
+                                    style="background-color: transparent;">
+                            </div>
+
+                            {{-- Botón filtrar --}}
+                            <div>
+                                <button type="submit"
+                                    class="btn btn-outline-info mt-6 text-white"
+                                    style="background-color: transparent; border-color: rgb(255,255,255);"
+                                    onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                    onmouseout="this.style.borderColor='rgb(255,255,255)'">
+                                    Filtrar
+                                </button>
+                            </div>
+
+                        @endif
 
                     </form>
+
 
 
 

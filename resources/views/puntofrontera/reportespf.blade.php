@@ -1006,6 +1006,8 @@
                             active-color="rgb(88, 226, 194">Eventos</a>
                         <a href="{{ route('reportespf') }}" class="nav-item is-active"
                             active-color="rgb(88, 226, 194">Reportes</a>
+                        <a href="{{ route('valoresinstantaneospf') }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Valores Instantaneos</a>
                         <span class="nav-indicator"></span>
                     </nav>
                     <h1 class="text-center text-3xl w-full " style="color: white;">REPORTES</h1>
