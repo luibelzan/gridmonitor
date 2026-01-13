@@ -519,6 +519,26 @@ return [
             ]) : [],
         ],
 
+        'mysql_molares' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MYSQL_MOLARES_HOST', '127.0.0.1'),
+            'port' => env('DB_MYSQL_MOLARES_PORT', '3306'),
+            'database' => env('DB_MYSQL_MOLARES_DATABASE', 'laravel'),
+            'username' => env('DB_MYSQL_MOLARES_USERNAME', 'root'),
+            'password' => env('DB_MYSQL_MOLARES_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mysql_algimia' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
@@ -674,7 +694,6 @@ return [
             'sslmode' => 'prefer',
         ],
 
-
         //conexion para Reader
         'pgsql-reader' => [
             'driver' => 'pgsql',
@@ -706,8 +725,23 @@ return [
             'search_path' => 'public', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
             'sslmode' => 'prefer',
         ],
-        
-        
+
+        //conexion para hidrobesora
+        'pgsql-hidrobesora' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HIDROBESORA_HOST', '127.0.0.1'),
+            'port' => env('DB_HIDROBESORA_PORT', '5432'),
+            'database' => env('DB_HIDROBESORA_DATABASE', 'Hidrobesora'),
+            'username' => env('DB_HIDROBESORA_USERNAME', 'postgres'),
+            'password' => env('DB_HIDROBESORA_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
         //conexion para cela
         'pgsql-cela' => [
             'driver' => 'pgsql',
@@ -813,6 +847,38 @@ return [
             'database' => env('DB_VILALLER_DATABASE', 'Vilaller'),
             'username' => env('DB_VILALLER_USERNAME', 'postgres'),
             'password' => env('DB_VILALLER_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Leira
+        'pgsql-leira' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_LEIRA_HOST', '127.0.0.1'),
+            'port' => env('DB_LEIRA_PORT', '5432'),
+            'database' => env('DB_LEIRA_DATABASE', 'Vilaller'),
+            'username' => env('DB_LEIRA_USERNAME', 'postgres'),
+            'password' => env('DB_LEIRA_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Vinalesa
+        'pgsql-vinalesa' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_VINALESA_HOST', '127.0.0.1'),
+            'port' => env('DB_VINALESA_PORT', '5432'),
+            'database' => env('DB_VINALESA_DATABASE', 'Vilaller'),
+            'username' => env('DB_VINALESA_USERNAME', 'postgres'),
+            'password' => env('DB_VINALESA_PASSWORD', 'Vosnos2013*'),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
@@ -1116,6 +1182,22 @@ return [
             'database' => env('DB_FEREZ_DATABASE', 'Ferez'),
             'username' => env('DB_FEREZ_USERNAME', 'postgres'),
             'password' => env('DB_FEREZ_PASSWORD', 'Vosnos2013*'),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'core', //AÑADIMOS AQUÍ EL ESQUEMA CORE, POR DEFECTO COGE EL PUBLIC
+            'sslmode' => 'prefer',
+        ],
+
+        //conexion para Molares
+        'pgsql-molares' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_MOLARES_HOST', '127.0.0.1'),
+            'port' => env('DB_MOLARES_PORT', '5432'),
+            'database' => env('DB_MOLARES_DATABASE', 'Molares'),
+            'username' => env('DB_MOLARES_USERNAME', 'postgres'),
+            'password' => env('DB_MOLARES_PASSWORD', 'Vosnos2013*'),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,

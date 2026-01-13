@@ -153,6 +153,16 @@ class User extends Authenticatable
                 return 'pgsql-ferez';
 			case 'Sierramagina':
                 return 'pgsql-sierramagina';
+            case 'Molares':
+                return 'pgsql-molares';
+            case 'Leira':
+                return 'pgsql-leira';
+            case 'Vinalesa':
+                return 'pgsql-vinalesa';
+            case 'Hidrobesora':
+                return 'pgsql-hidrobesora';
+            case 'Museros':
+                return 'pgsql-museros';
             case 'Algimia':
                 return 'pgsql-algimia';
             case 'Almenara':

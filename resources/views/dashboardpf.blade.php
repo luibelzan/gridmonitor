@@ -406,14 +406,14 @@
                                                             {{ !empty($resultado->cups) ? $resultado->cups : 'No hay datos' }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ (!empty($resultado->trafos_tension1) && !empty($resultado->trafos_tension2)) 
-                                                                ? $resultado->trafos_tension1 . '/' . $resultado->trafos_tension2 
+                                                            {{ (!empty($resultado->trafos_intensidad1) && !empty($resultado->trafos_intensidad2)) 
+                                                                ? intval($resultado->trafos_intensidad1) . '/' . intval($resultado->trafos_intensidad2) 
                                                                 : 'No hay datos' 
                                                             }}
                                                         </td>
                                                         <td class="py-2">
-                                                            {{ (!empty($resultado->trafos_intensidad1) && !empty($resultado->trafos_intensidad2)) 
-                                                                ? $resultado->trafos_intensidad1 . '/' . $resultado->trafos_intensidad2 
+                                                            {{ (!empty($resultado->trafos_tension1) && !empty($resultado->trafos_tension2)) 
+                                                                ? intval($resultado->trafos_tension1) . '/' . intval($resultado->trafos_tension2) 
                                                                 : 'No hay datos' 
                                                             }}
                                                         </td>

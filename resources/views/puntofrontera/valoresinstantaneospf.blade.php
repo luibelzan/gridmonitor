@@ -210,543 +210,6 @@
         }
     </style>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Datos iniciales
-        var avg_pct_deseq_voltaje = {
-            @if (count($tensionFase) > 0 && !empty($tensionFase[0]->volt_fase_1_promedio))
-                data: {{ number_format($tensionFase[0]->volt_fase_1_promedio, 2, '.', '') }},
-            @else
-                data: 0,
-            @endif
-        };
-
-        // Función para actualizar el gráfico de desequilibrio de voltaje
-        function updateChartDesequilibrioVoltaje1(data) {
-
-            // Selecciona color según valor
-            function getColor(value) {
-                if (value > 63.5) {
-                    return "rgb(218, 19, 19)"; // rojo
-                } else if (value < 57) {
-                    return "rgb(255, 206, 0)"; // amarillo
-                } else {
-                    return "rgb(0, 200, 0)"; // verde
-                }
-            }
-
-
-            var color = getColor(data.data);
-            var textColor = color;
-
-            var max_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_1_maximo ?? 100);
-            var min_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_1_minimo ?? 0);
-
-            var newData = [{
-                type: "indicator",
-                mode: "gauge",
-                value: data.data,
-                title: {
-                    font: {
-                        size: 20,
-                        color: 'white'
-                    }
-                },
-                gauge: {
-                    axis: {
-                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
-                        tickwidth: 1,
-                        tickcolor: color,
-                        linecolor: color
-                    },
-                    bar: {
-                        color: color,
-                        thickness: 0.8
-                    },
-                    bgcolor: "transparent",
-                    borderwidth: 2,
-                    bordercolor: "transparent",
-                    steps: [
-                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
-                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
-                    ],
-                    startangle: 270
-                },
-                hoverinfo: 'none'
-            }];
-
-            var layout = {
-                responsive: true,
-                maintainAspectRatio: false,
-                margin: { t: 35, r: 35, l: 35, b: 35 },
-                paper_bgcolor: "transparent",
-                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
-                annotations: [{
-                    text: data.data + ' V',
-                    x: 0.5,
-                    y: 0.4,
-                    showarrow: false,
-                    font: { size: 20, color: textColor }
-                }]
-            };
-
-            // Renderiza el gráfico con Plotly
-            Plotly.react('graficoTensionFase1', newData, layout, {
-                displaylogo: false,
-                displayModeBar: false
-            });
-        }
-
-        // Inicializa el gráfico al cargar la página
-        updateChartDesequilibrioVoltaje1(avg_pct_deseq_voltaje);
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Datos iniciales
-        var avg_pct_deseq_voltaje = {
-            @if (count($tensionFase) > 0 && !empty($tensionFase[0]->volt_fase_2_promedio))
-                data: {{ number_format($tensionFase[0]->volt_fase_2_promedio, 2, '.', '') }},
-            @else
-                data: 0,
-            @endif
-        };
-
-        // Función para actualizar el gráfico de desequilibrio de voltaje
-        function updateChartDesequilibrioVoltaje2(data) {
-
-            // Selecciona color según valor
-            function getColor(value) {
-                if (value > 63.5) {
-                    return "rgb(218, 19, 19)"; // rojo
-                } else if (value < 57) {
-                    return "rgb(255, 206, 0)"; // amarillo
-                } else {
-                    return "rgb(0, 200, 0)"; // verde
-                }
-            }
-
-            var color = getColor(data.data);
-            var textColor = color;
-
-            var max_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_2_maximo ?? 100);
-            var min_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_2_minimo ?? 0);
-
-            var newData = [{
-                type: "indicator",
-                mode: "gauge",
-                value: data.data,
-                title: {
-                    font: {
-                        size: 20,
-                        color: 'white'
-                    }
-                },
-                gauge: {
-                    axis: {
-                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
-                        tickwidth: 1,
-                        tickcolor: color,
-                        linecolor: color
-                    },
-                    bar: {
-                        color: color,
-                        thickness: 0.8
-                    },
-                    bgcolor: "transparent",
-                    borderwidth: 2,
-                    bordercolor: "transparent",
-                    steps: [
-                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
-                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
-                    ],
-                    startangle: 270
-                },
-                hoverinfo: 'none'
-            }];
-
-            var layout = {
-                responsive: true,
-                maintainAspectRatio: false,
-                margin: { t: 35, r: 35, l: 35, b: 35 },
-                paper_bgcolor: "transparent",
-                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
-                annotations: [{
-                    text: data.data + ' V',
-                    x: 0.5,
-                    y: 0.4,
-                    showarrow: false,
-                    font: { size: 20, color: textColor }
-                }]
-            };
-
-            // Renderiza el gráfico con Plotly
-            Plotly.react('graficoTensionFase2', newData, layout, {
-                displaylogo: false,
-                displayModeBar: false
-            });
-        }
-
-        // Inicializa el gráfico al cargar la página
-        updateChartDesequilibrioVoltaje2(avg_pct_deseq_voltaje);
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Datos iniciales
-        var avg_pct_deseq_voltaje = {
-            @if (count($tensionFase) > 0 && !empty($tensionFase[0]->volt_fase_3_promedio))
-                data: {{ number_format($tensionFase[0]->volt_fase_3_promedio, 2, '.', '') }},
-            @else
-                data: 0,
-            @endif
-        };
-
-        // Función para actualizar el gráfico de desequilibrio de voltaje
-        function updateChartDesequilibrioVoltaje3(data) {
-
-            // Selecciona color según valor
-            function getColor(value) {
-                if (value > 63.5) {
-                    return "rgb(218, 19, 19)"; // rojo
-                } else if (value < 57) {
-                    return "rgb(255, 206, 0)"; // amarillo
-                } else {
-                    return "rgb(0, 200, 0)"; // verde
-                }
-            }
-
-            var color = getColor(data.data);
-            var textColor = color;
-
-            var max_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_3_maximo ?? 100);
-            var min_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_3_minimo ?? 0);
-
-            var newData = [{
-                type: "indicator",
-                mode: "gauge",
-                value: data.data,
-                title: {
-                    font: {
-                        size: 20,
-                        color: 'white'
-                    }
-                },
-                gauge: {
-                    axis: {
-                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
-                        tickwidth: 1,
-                        tickcolor: color,
-                        linecolor: color
-                    },
-                    bar: {
-                        color: color,
-                        thickness: 0.8
-                    },
-                    bgcolor: "transparent",
-                    borderwidth: 2,
-                    bordercolor: "transparent",
-                    steps: [
-                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
-                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
-                    ],
-                    startangle: 270
-                },
-                hoverinfo: 'none'
-            }];
-
-            var layout = {
-                responsive: true,
-                maintainAspectRatio: false,
-                margin: { t: 35, r: 35, l: 35, b: 35 },
-                paper_bgcolor: "transparent",
-                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
-                annotations: [{
-                    text: data.data + ' V',
-                    x: 0.5,
-                    y: 0.4,
-                    showarrow: false,
-                    font: { size: 20, color: textColor }
-                }]
-            };
-
-            // Renderiza el gráfico con Plotly
-            Plotly.react('graficoTensionFase3', newData, layout, {
-                displaylogo: false,
-                displayModeBar: false
-            });
-        }
-
-        // Inicializa el gráfico al cargar la página
-        updateChartDesequilibrioVoltaje3(avg_pct_deseq_voltaje);
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Datos iniciales
-        var avg_pct_deseq_voltaje = {
-            @if (count($intensidadFase) > 0 && !empty($intensidadFase[0]->current_fase_1_promedio))
-                data: {{ number_format($intensidadFase[0]->current_fase_1_promedio, 2, '.', '') }},
-            @else
-                data: 0,
-            @endif
-        };
-
-        // Función para actualizar el gráfico de desequilibrio de voltaje
-        function updateChartDesequilibrioIntensidad1(data) {
-
-            // Selecciona color según valor
-            function getColor(value) {
-                return "rgb(2, 170, 182)";
-            }
-
-            var color = getColor(data.data);
-            var textColor = color;
-
-            var max_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_1_maximo ?? 100);
-            var min_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_1_minimo ?? 0);
-
-            var newData = [{
-                type: "indicator",
-                mode: "gauge",
-                value: data.data,
-                title: {
-                    font: {
-                        size: 20,
-                        color: 'white'
-                    }
-                },
-                gauge: {
-                    axis: {
-                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
-                        tickwidth: 1,
-                        tickcolor: color,
-                        linecolor: color
-                    },
-                    bar: {
-                        color: color,
-                        thickness: 0.8
-                    },
-                    bgcolor: "transparent",
-                    borderwidth: 2,
-                    bordercolor: "transparent",
-                    steps: [
-                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
-                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
-                    ],
-                    startangle: 270
-                },
-                hoverinfo: 'none'
-            }];
-
-            var layout = {
-                responsive: true,
-                maintainAspectRatio: false,
-                margin: { t: 35, r: 35, l: 35, b: 35 },
-                paper_bgcolor: "transparent",
-                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
-                annotations: [{
-                    text: data.data + ' A',
-                    x: 0.5,
-                    y: 0.4,
-                    showarrow: false,
-                    font: { size: 20, color: textColor }
-                }]
-            };
-
-            // Renderiza el gráfico con Plotly
-            Plotly.react('graficoIntensidadFase1', newData, layout, {
-                displaylogo: false,
-                displayModeBar: false
-            });
-        }
-
-        // Inicializa el gráfico al cargar la página
-        updateChartDesequilibrioIntensidad1(avg_pct_deseq_voltaje);
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Datos iniciales
-        var avg_pct_deseq_voltaje = {
-            @if (count($intensidadFase) > 0 && !empty($intensidadFase[0]->current_fase_2_promedio))
-                data: {{ number_format($intensidadFase[0]->current_fase_2_promedio, 2, '.', '') }},
-            @else
-                data: 0,
-            @endif
-        };
-
-        // Función para actualizar el gráfico de desequilibrio de voltaje
-        function updateChartDesequilibrioIntensidad2(data) {
-
-            // Selecciona color según valor
-            function getColor(value) {
-                return "rgb(2, 170, 182)";
-            }
-
-            var color = getColor(data.data);
-            var textColor = color;
-
-            var max_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_2_maximo ?? 100);
-            var min_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_2_minimo ?? 0);
-
-            var newData = [{
-                type: "indicator",
-                mode: "gauge",
-                value: data.data,
-                title: {
-                    font: {
-                        size: 20,
-                        color: 'white'
-                    }
-                },
-                gauge: {
-                    axis: {
-                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
-                        tickwidth: 1,
-                        tickcolor: color,
-                        linecolor: color
-                    },
-                    bar: {
-                        color: color,
-                        thickness: 0.8
-                    },
-                    bgcolor: "transparent",
-                    borderwidth: 2,
-                    bordercolor: "transparent",
-                    steps: [
-                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
-                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
-                    ],
-                    startangle: 270
-                },
-                hoverinfo: 'none'
-            }];
-
-            var layout = {
-                responsive: true,
-                maintainAspectRatio: false,
-                margin: { t: 35, r: 35, l: 35, b: 35 },
-                paper_bgcolor: "transparent",
-                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
-                annotations: [{
-                    text: data.data + ' A',
-                    x: 0.5,
-                    y: 0.4,
-                    showarrow: false,
-                    font: { size: 20, color: textColor }
-                }]
-            };
-
-            // Renderiza el gráfico con Plotly
-            Plotly.react('graficoIntensidadFase2', newData, layout, {
-                displaylogo: false,
-                displayModeBar: false
-            });
-        }
-
-        // Inicializa el gráfico al cargar la página
-        updateChartDesequilibrioIntensidad2(avg_pct_deseq_voltaje);
-    });
-    </script>
-
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-
-        // Datos iniciales
-        var avg_pct_deseq_voltaje = {
-            @if (count($intensidadFase) > 0 && !empty($intensidadFase[0]->current_fase_3_promedio))
-                data: {{ number_format($intensidadFase[0]->current_fase_3_promedio, 2, '.', '') }},
-            @else
-                data: 0,
-            @endif
-        };
-
-        // Función para actualizar el gráfico de desequilibrio de voltaje
-        function updateChartDesequilibrioIntensidad3(data) {
-
-            // Selecciona color según valor
-            function getColor(value) {
-                return "rgb(2, 170, 182)";
-            }
-
-            var color = getColor(data.data);
-            var textColor = color;
-
-            var max_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_3_maximo ?? 100);
-            var min_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_3_minimo ?? 0);
-
-            var newData = [{
-                type: "indicator",
-                mode: "gauge",
-                value: data.data,
-                title: {
-                    font: {
-                        size: 20,
-                        color: 'white'
-                    }
-                },
-                gauge: {
-                    axis: {
-                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
-                        tickwidth: 1,
-                        tickcolor: color,
-                        linecolor: color
-                    },
-                    bar: {
-                        color: color,
-                        thickness: 0.8
-                    },
-                    bgcolor: "transparent",
-                    borderwidth: 2,
-                    bordercolor: "transparent",
-                    steps: [
-                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
-                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
-                    ],
-                    startangle: 270
-                },
-                hoverinfo: 'none'
-            }];
-
-            var layout = {
-                responsive: true,
-                maintainAspectRatio: false,
-                margin: { t: 35, r: 35, l: 35, b: 35 },
-                paper_bgcolor: "transparent",
-                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
-                annotations: [{
-                    text: data.data + ' A',
-                    x: 0.5,
-                    y: 0.4,
-                    showarrow: false,
-                    font: { size: 20, color: textColor }
-                }]
-            };
-
-            // Renderiza el gráfico con Plotly
-            Plotly.react('graficoIntensidadFase3', newData, layout, {
-                displaylogo: false,
-                displayModeBar: false
-            });
-        }
-
-        // Inicializa el gráfico al cargar la página
-        updateChartDesequilibrioIntensidad3(avg_pct_deseq_voltaje);
-    });
-    </script>
-
-
-
     <title>Valores Instantaneos PF</title>
 </head>
 
@@ -902,7 +365,7 @@
                                     border-image: linear-gradient(to right, transparent, rgb(27,32,38), transparent) 1;">
                             </div>
                            
-                                @if ($cnt->id_cnt == $id_cnt)
+                                @if ($id_cnt)
                                     {{-- CONTENEDOR CUERPO --}}
                                     <div class="container ">
                                         {{-- PRIMERA FILA --}}
@@ -954,6 +417,100 @@
                                                         </div>
                                                     </div>
                                                 </div>
+
+                                                <script>
+                                                    document.addEventListener('DOMContentLoaded', function() {
+
+                                                        // Datos iniciales
+                                                        var avg_pct_deseq_voltaje = {
+                                                            @if (count($tensionFase) > 0 && !empty($tensionFase[0]->volt_fase_1_promedio))
+                                                                data: {{ number_format($tensionFase[0]->volt_fase_1_promedio, 2, '.', '') }},
+                                                            @else
+                                                                data: 0,
+                                                            @endif
+                                                        };
+
+                                                        // Función para actualizar el gráfico de desequilibrio de voltaje
+                                                        function updateChartDesequilibrioVoltaje1(data) {
+
+                                                            // Selecciona color según valor
+                                                            function getColor(value) {
+                                                                if (value > 63.5) {
+                                                                    return "rgb(218, 19, 19)"; // rojo
+                                                                } else if (value < 57) {
+                                                                    return "rgb(255, 206, 0)"; // amarillo
+                                                                } else {
+                                                                    return "rgb(0, 200, 0)"; // verde
+                                                                }
+                                                            }
+
+
+                                                            var color = getColor(data.data);
+                                                            var textColor = color;
+
+                                                            var max_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_1_maximo ?? 100);
+                                                            var min_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_1_minimo ?? 0);
+
+                                                            var newData = [{
+                                                                type: "indicator",
+                                                                mode: "gauge",
+                                                                value: data.data,
+                                                                title: {
+                                                                    font: {
+                                                                        size: 20,
+                                                                        color: 'white'
+                                                                    }
+                                                                },
+                                                                gauge: {
+                                                                    axis: {
+                                                                        range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
+                                                                        tickwidth: 1,
+                                                                        tickcolor: color,
+                                                                        linecolor: color
+                                                                    },
+                                                                    bar: {
+                                                                        color: color,
+                                                                        thickness: 0.8
+                                                                    },
+                                                                    bgcolor: "transparent",
+                                                                    borderwidth: 2,
+                                                                    bordercolor: "transparent",
+                                                                    steps: [
+                                                                        { range: [0, min_pct_deseq_voltaje], color: "transparent" },
+                                                                        { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
+                                                                    ],
+                                                                    startangle: 270
+                                                                },
+                                                                hoverinfo: 'none'
+                                                            }];
+
+                                                            var layout = {
+                                                                responsive: true,
+                                                                maintainAspectRatio: false,
+                                                                margin: { t: 35, r: 35, l: 35, b: 35 },
+                                                                paper_bgcolor: "transparent",
+                                                                font: { color: "white", family: "Didact Gothic", weight: 'normal' },
+                                                                annotations: [{
+                                                                    text: data.data + ' V',
+                                                                    x: 0.5,
+                                                                    y: 0.4,
+                                                                    showarrow: false,
+                                                                    font: { size: 20, color: textColor }
+                                                                }]
+                                                            };
+
+                                                            // Renderiza el gráfico con Plotly
+                                                            Plotly.react('graficoTensionFase1', newData, layout, {
+                                                                displaylogo: false,
+                                                                displayModeBar: false
+                                                            });
+                                                        }
+
+                                                        // Inicializa el gráfico al cargar la página
+                                                        updateChartDesequilibrioVoltaje1(avg_pct_deseq_voltaje);
+                                                    });
+                                                </script>
+
                                             </div>
 
                                             {{-- TENSION FASE 2 --}}
@@ -984,6 +541,97 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+
+                                                    // Datos iniciales
+                                                    var avg_pct_deseq_voltaje = {
+                                                        @if (count($tensionFase) > 0 && !empty($tensionFase[0]->volt_fase_2_promedio))
+                                                            data: {{ number_format($tensionFase[0]->volt_fase_2_promedio, 2, '.', '') }},
+                                                        @else
+                                                            data: 0,
+                                                        @endif
+                                                    };
+
+                                                    // Función para actualizar el gráfico de desequilibrio de voltaje
+                                                    function updateChartDesequilibrioVoltaje2(data) {
+
+                                                        // Selecciona color según valor
+                                                        function getColor(value) {
+                                                            if (value > 63.5) {
+                                                                return "rgb(218, 19, 19)"; // rojo
+                                                            } else if (value < 57) {
+                                                                return "rgb(255, 206, 0)"; // amarillo
+                                                            } else {
+                                                                return "rgb(0, 200, 0)"; // verde
+                                                            }
+                                                        }
+
+                                                        var color = getColor(data.data);
+                                                        var textColor = color;
+
+                                                        var max_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_2_maximo ?? 100);
+                                                        var min_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_2_minimo ?? 0);
+
+                                                        var newData = [{
+                                                            type: "indicator",
+                                                            mode: "gauge",
+                                                            value: data.data,
+                                                            title: {
+                                                                font: {
+                                                                    size: 20,
+                                                                    color: 'white'
+                                                                }
+                                                            },
+                                                            gauge: {
+                                                                axis: {
+                                                                    range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
+                                                                    tickwidth: 1,
+                                                                    tickcolor: color,
+                                                                    linecolor: color
+                                                                },
+                                                                bar: {
+                                                                    color: color,
+                                                                    thickness: 0.8
+                                                                },
+                                                                bgcolor: "transparent",
+                                                                borderwidth: 2,
+                                                                bordercolor: "transparent",
+                                                                steps: [
+                                                                    { range: [0, min_pct_deseq_voltaje], color: "transparent" },
+                                                                    { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
+                                                                ],
+                                                                startangle: 270
+                                                            },
+                                                            hoverinfo: 'none'
+                                                        }];
+
+                                                        var layout = {
+                                                            responsive: true,
+                                                            maintainAspectRatio: false,
+                                                            margin: { t: 35, r: 35, l: 35, b: 35 },
+                                                            paper_bgcolor: "transparent",
+                                                            font: { color: "white", family: "Didact Gothic", weight: 'normal' },
+                                                            annotations: [{
+                                                                text: data.data + ' V',
+                                                                x: 0.5,
+                                                                y: 0.4,
+                                                                showarrow: false,
+                                                                font: { size: 20, color: textColor }
+                                                            }]
+                                                        };
+
+                                                        // Renderiza el gráfico con Plotly
+                                                        Plotly.react('graficoTensionFase2', newData, layout, {
+                                                            displaylogo: false,
+                                                            displayModeBar: false
+                                                        });
+                                                    }
+
+                                                    // Inicializa el gráfico al cargar la página
+                                                    updateChartDesequilibrioVoltaje2(avg_pct_deseq_voltaje);
+                                                });
+                                                </script>
                                             </div>
 
 
@@ -1015,6 +663,97 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+
+                                                    // Datos iniciales
+                                                    var avg_pct_deseq_voltaje = {
+                                                        @if (count($tensionFase) > 0 && !empty($tensionFase[0]->volt_fase_3_promedio))
+                                                            data: {{ number_format($tensionFase[0]->volt_fase_3_promedio, 2, '.', '') }},
+                                                        @else
+                                                            data: 0,
+                                                        @endif
+                                                    };
+
+                                                    // Función para actualizar el gráfico de desequilibrio de voltaje
+                                                    function updateChartDesequilibrioVoltaje3(data) {
+
+                                                        // Selecciona color según valor
+                                                        function getColor(value) {
+                                                            if (value > 63.5) {
+                                                                return "rgb(218, 19, 19)"; // rojo
+                                                            } else if (value < 57) {
+                                                                return "rgb(255, 206, 0)"; // amarillo
+                                                            } else {
+                                                                return "rgb(0, 200, 0)"; // verde
+                                                            }
+                                                        }
+
+                                                        var color = getColor(data.data);
+                                                        var textColor = color;
+
+                                                        var max_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_3_maximo ?? 100);
+                                                        var min_pct_deseq_voltaje = @json($tensionFase[0]->volt_fase_3_minimo ?? 0);
+
+                                                        var newData = [{
+                                                            type: "indicator",
+                                                            mode: "gauge",
+                                                            value: data.data,
+                                                            title: {
+                                                                font: {
+                                                                    size: 20,
+                                                                    color: 'white'
+                                                                }
+                                                            },
+                                                            gauge: {
+                                                                axis: {
+                                                                    range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
+                                                                    tickwidth: 1,
+                                                                    tickcolor: color,
+                                                                    linecolor: color
+                                                                },
+                                                                bar: {
+                                                                    color: color,
+                                                                    thickness: 0.8
+                                                                },
+                                                                bgcolor: "transparent",
+                                                                borderwidth: 2,
+                                                                bordercolor: "transparent",
+                                                                steps: [
+                                                                    { range: [0, min_pct_deseq_voltaje], color: "transparent" },
+                                                                    { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
+                                                                ],
+                                                                startangle: 270
+                                                            },
+                                                            hoverinfo: 'none'
+                                                        }];
+
+                                                        var layout = {
+                                                            responsive: true,
+                                                            maintainAspectRatio: false,
+                                                            margin: { t: 35, r: 35, l: 35, b: 35 },
+                                                            paper_bgcolor: "transparent",
+                                                            font: { color: "white", family: "Didact Gothic", weight: 'normal' },
+                                                            annotations: [{
+                                                                text: data.data + ' V',
+                                                                x: 0.5,
+                                                                y: 0.4,
+                                                                showarrow: false,
+                                                                font: { size: 20, color: textColor }
+                                                            }]
+                                                        };
+
+                                                        // Renderiza el gráfico con Plotly
+                                                        Plotly.react('graficoTensionFase3', newData, layout, {
+                                                            displaylogo: false,
+                                                            displayModeBar: false
+                                                        });
+                                                    }
+
+                                                    // Inicializa el gráfico al cargar la página
+                                                    updateChartDesequilibrioVoltaje3(avg_pct_deseq_voltaje);
+                                                });
+                                                </script>
                                             </div>
 
                                         </div>
@@ -1207,6 +946,91 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+
+                                                    // Datos iniciales
+                                                    var avg_pct_deseq_voltaje = {
+                                                        @if (count($intensidadFase) > 0 && !empty($intensidadFase[0]->current_fase_1_promedio))
+                                                            data: {{ number_format($intensidadFase[0]->current_fase_1_promedio, 2, '.', '') }},
+                                                        @else
+                                                            data: 0,
+                                                        @endif
+                                                    };
+
+                                                    // Función para actualizar el gráfico de desequilibrio de voltaje
+                                                    function updateChartDesequilibrioIntensidad1(data) {
+
+                                                        // Selecciona color según valor
+                                                        function getColor(value) {
+                                                            return "rgb(2, 170, 182)";
+                                                        }
+
+                                                        var color = getColor(data.data);
+                                                        var textColor = color;
+
+                                                        var max_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_1_maximo ?? 100);
+                                                        var min_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_1_minimo ?? 0);
+
+                                                        var newData = [{
+                                                            type: "indicator",
+                                                            mode: "gauge",
+                                                            value: data.data,
+                                                            title: {
+                                                                font: {
+                                                                    size: 20,
+                                                                    color: 'white'
+                                                                }
+                                                            },
+                                                            gauge: {
+                                                                axis: {
+                                                                    range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
+                                                                    tickwidth: 1,
+                                                                    tickcolor: color,
+                                                                    linecolor: color
+                                                                },
+                                                                bar: {
+                                                                    color: color,
+                                                                    thickness: 0.8
+                                                                },
+                                                                bgcolor: "transparent",
+                                                                borderwidth: 2,
+                                                                bordercolor: "transparent",
+                                                                steps: [
+                                                                    { range: [0, min_pct_deseq_voltaje], color: "transparent" },
+                                                                    { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
+                                                                ],
+                                                                startangle: 270
+                                                            },
+                                                            hoverinfo: 'none'
+                                                        }];
+
+                                                        var layout = {
+                                                            responsive: true,
+                                                            maintainAspectRatio: false,
+                                                            margin: { t: 35, r: 35, l: 35, b: 35 },
+                                                            paper_bgcolor: "transparent",
+                                                            font: { color: "white", family: "Didact Gothic", weight: 'normal' },
+                                                            annotations: [{
+                                                                text: data.data + ' A',
+                                                                x: 0.5,
+                                                                y: 0.4,
+                                                                showarrow: false,
+                                                                font: { size: 20, color: textColor }
+                                                            }]
+                                                        };
+
+                                                        // Renderiza el gráfico con Plotly
+                                                        Plotly.react('graficoIntensidadFase1', newData, layout, {
+                                                            displaylogo: false,
+                                                            displayModeBar: false
+                                                        });
+                                                    }
+
+                                                    // Inicializa el gráfico al cargar la página
+                                                    updateChartDesequilibrioIntensidad1(avg_pct_deseq_voltaje);
+                                                });
+                                                </script>
                                             </div>
 
                                             {{-- INTENSIDAD FASE 2 --}}
@@ -1237,6 +1061,91 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+
+                                                    // Datos iniciales
+                                                    var avg_pct_deseq_voltaje = {
+                                                        @if (count($intensidadFase) > 0 && !empty($intensidadFase[0]->current_fase_2_promedio))
+                                                            data: {{ number_format($intensidadFase[0]->current_fase_2_promedio, 2, '.', '') }},
+                                                        @else
+                                                            data: 0,
+                                                        @endif
+                                                    };
+
+                                                    // Función para actualizar el gráfico de desequilibrio de voltaje
+                                                    function updateChartDesequilibrioIntensidad2(data) {
+
+                                                        // Selecciona color según valor
+                                                        function getColor(value) {
+                                                            return "rgb(2, 170, 182)";
+                                                        }
+
+                                                        var color = getColor(data.data);
+                                                        var textColor = color;
+
+                                                        var max_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_2_maximo ?? 100);
+                                                        var min_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_2_minimo ?? 0);
+
+                                                        var newData = [{
+                                                            type: "indicator",
+                                                            mode: "gauge",
+                                                            value: data.data,
+                                                            title: {
+                                                                font: {
+                                                                    size: 20,
+                                                                    color: 'white'
+                                                                }
+                                                            },
+                                                            gauge: {
+                                                                axis: {
+                                                                    range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
+                                                                    tickwidth: 1,
+                                                                    tickcolor: color,
+                                                                    linecolor: color
+                                                                },
+                                                                bar: {
+                                                                    color: color,
+                                                                    thickness: 0.8
+                                                                },
+                                                                bgcolor: "transparent",
+                                                                borderwidth: 2,
+                                                                bordercolor: "transparent",
+                                                                steps: [
+                                                                    { range: [0, min_pct_deseq_voltaje], color: "transparent" },
+                                                                    { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
+                                                                ],
+                                                                startangle: 270
+                                                            },
+                                                            hoverinfo: 'none'
+                                                        }];
+
+                                                        var layout = {
+                                                            responsive: true,
+                                                            maintainAspectRatio: false,
+                                                            margin: { t: 35, r: 35, l: 35, b: 35 },
+                                                            paper_bgcolor: "transparent",
+                                                            font: { color: "white", family: "Didact Gothic", weight: 'normal' },
+                                                            annotations: [{
+                                                                text: data.data + ' A',
+                                                                x: 0.5,
+                                                                y: 0.4,
+                                                                showarrow: false,
+                                                                font: { size: 20, color: textColor }
+                                                            }]
+                                                        };
+
+                                                        // Renderiza el gráfico con Plotly
+                                                        Plotly.react('graficoIntensidadFase2', newData, layout, {
+                                                            displaylogo: false,
+                                                            displayModeBar: false
+                                                        });
+                                                    }
+
+                                                    // Inicializa el gráfico al cargar la página
+                                                    updateChartDesequilibrioIntensidad2(avg_pct_deseq_voltaje);
+                                                });
+                                                </script>
                                             </div>
 
 
@@ -1268,6 +1177,91 @@
                                                         </div>
                                                     </div>
                                                 </div>
+                                                <script>
+                                                document.addEventListener('DOMContentLoaded', function() {
+
+                                                    // Datos iniciales
+                                                    var avg_pct_deseq_voltaje = {
+                                                        @if (count($intensidadFase) > 0 && !empty($intensidadFase[0]->current_fase_3_promedio))
+                                                            data: {{ number_format($intensidadFase[0]->current_fase_3_promedio, 2, '.', '') }},
+                                                        @else
+                                                            data: 0,
+                                                        @endif
+                                                    };
+
+                                                    // Función para actualizar el gráfico de desequilibrio de voltaje
+                                                    function updateChartDesequilibrioIntensidad3(data) {
+
+                                                        // Selecciona color según valor
+                                                        function getColor(value) {
+                                                            return "rgb(2, 170, 182)";
+                                                        }
+
+                                                        var color = getColor(data.data);
+                                                        var textColor = color;
+
+                                                        var max_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_3_maximo ?? 100);
+                                                        var min_pct_deseq_voltaje = @json($intensidadFase[0]->current_fase_3_minimo ?? 0);
+
+                                                        var newData = [{
+                                                            type: "indicator",
+                                                            mode: "gauge",
+                                                            value: data.data,
+                                                            title: {
+                                                                font: {
+                                                                    size: 20,
+                                                                    color: 'white'
+                                                                }
+                                                            },
+                                                            gauge: {
+                                                                axis: {
+                                                                    range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje],
+                                                                    tickwidth: 1,
+                                                                    tickcolor: color,
+                                                                    linecolor: color
+                                                                },
+                                                                bar: {
+                                                                    color: color,
+                                                                    thickness: 0.8
+                                                                },
+                                                                bgcolor: "transparent",
+                                                                borderwidth: 2,
+                                                                bordercolor: "transparent",
+                                                                steps: [
+                                                                    { range: [0, min_pct_deseq_voltaje], color: "transparent" },
+                                                                    { range: [min_pct_deseq_voltaje, max_pct_deseq_voltaje], color: "transparent" }
+                                                                ],
+                                                                startangle: 270
+                                                            },
+                                                            hoverinfo: 'none'
+                                                        }];
+
+                                                        var layout = {
+                                                            responsive: true,
+                                                            maintainAspectRatio: false,
+                                                            margin: { t: 35, r: 35, l: 35, b: 35 },
+                                                            paper_bgcolor: "transparent",
+                                                            font: { color: "white", family: "Didact Gothic", weight: 'normal' },
+                                                            annotations: [{
+                                                                text: data.data + ' A',
+                                                                x: 0.5,
+                                                                y: 0.4,
+                                                                showarrow: false,
+                                                                font: { size: 20, color: textColor }
+                                                            }]
+                                                        };
+
+                                                        // Renderiza el gráfico con Plotly
+                                                        Plotly.react('graficoIntensidadFase3', newData, layout, {
+                                                            displaylogo: false,
+                                                            displayModeBar: false
+                                                        });
+                                                    }
+
+                                                    // Inicializa el gráfico al cargar la página
+                                                    updateChartDesequilibrioIntensidad3(avg_pct_deseq_voltaje);
+                                                });
+                                                </script>
                                             </div>
                                         </div>
 

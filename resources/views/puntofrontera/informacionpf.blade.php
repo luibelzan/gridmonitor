@@ -471,9 +471,14 @@
                                                                 <h2 class="text-sm text-center font-normal">Trafos
                                                                     Tensión
                                                                 </h2>
-                                                                <p class="mt-2 text-sm  text-center"
-                                                                    style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->voltage_primary) && !empty($resultadosQ1pf[0]->voltage_secondary) ? $resultadosQ1pf[0]->voltage_primary . '/' . $resultadosQ1pf[0]->voltage_secondary : 'No hay datos' }}
+                                                                <p class="mt-2 text-sm text-center" style="color:rgb(88,226,194);">
+                                                                    {{
+                                                                        count($resultadosQ1pf) > 0 &&
+                                                                        !empty($resultadosQ1pf[0]->voltage_primary) &&
+                                                                        !empty($resultadosQ1pf[0]->voltage_secondary)
+                                                                        ? (int)$resultadosQ1pf[0]->voltage_primary . '/' . (int)$resultadosQ1pf[0]->voltage_secondary
+                                                                        : 'No hay datos'
+                                                                    }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -488,9 +493,14 @@
                                                             <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
                                                                 <h2 class="text-sm text-center font-normal">Trafos
                                                                     Intensidad</h2>
-                                                                <p class="mt-2 text-sm  text-center"
-                                                                    style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->current_primary) && !empty($resultadosQ1pf[0]->current_secondary) ? $resultadosQ1pf[0]->current_primary . '/' . $resultadosQ1pf[0]->current_secondary : 'No hay datos' }}
+                                                                <p class="mt-2 text-sm text-center" style="color:rgb(88,226,194);">
+                                                                    {{
+                                                                        count($resultadosQ1pf) > 0 &&
+                                                                        !empty($resultadosQ1pf[0]->current_primary) &&
+                                                                        !empty($resultadosQ1pf[0]->current_secondary)
+                                                                        ? (int)$resultadosQ1pf[0]->current_primary . '/' . (int)$resultadosQ1pf[0]->current_secondary
+                                                                        : 'No hay datos'
+                                                                    }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
