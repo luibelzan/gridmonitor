@@ -1380,7 +1380,7 @@
                                                                 tooltip: {
                                                                     callbacks: {
                                                                         label: function(context) {
-                                                                            return context.dataset.label + ': ' + context.parsed.y + ' V';
+                                                                            return context.dataset.label + ': ' + context.parsed.y + ' A';
                                                                         }
                                                                     }
                                                                 }
@@ -1397,7 +1397,7 @@
                                                                     ticks: {
                                                                         color: '#FFFFFF',
                                                                         stepSize: 50,
-                                                                        callback: v => v + ' V'
+                                                                        callback: v => v + ' A'
                                                                     }
                                                                 }
                                                             }
