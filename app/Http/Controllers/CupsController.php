@@ -168,7 +168,7 @@ class CupsController extends Controller
 
 
             // Si hay un valor de búsqueda, realizar la consulta por ID de CUPS
-            if ($id_cups || $id_cnt || $nom_cups) {
+            if ($id_cups || $id_cnt || $nom_cups || $dir_cups) {
                 $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $dir_cups, $connection, $request);
                 $resultadosQ2cups = $this->consultaDosCups($id_cups, $connection, $request);
                 $resultadosQ3cups = $this->consultaTresCups($id_cups, $connection, $request);
@@ -196,6 +196,7 @@ class CupsController extends Controller
                 'id_cups' => $id_cups,
                 'id_cnt' => $id_cnt,  // Pasar el id_cnt a la vista
                 'nom_cups' => $nom_cups,
+                'dir_cups' => $dir_cups,
                 'resultadosQ1cups' => $resultadosQ1cups,
                 'resultadosQ2cups' => $resultadosQ2cups,
                 'resultadosQ3cups' => $resultadosQ3cups,
@@ -1026,6 +1027,7 @@ class CupsController extends Controller
         $id_cups = strtoupper($request->input('id_cups'));
         $id_cnt = strtoupper($request->input('id_cnt')); // Obtener el id_cnt
         $nom_cups = strtoupper($request->input('nom_cups'));
+        $dir_cups = strtoupper($request->input('dir_cups'));
 
 
 
@@ -1034,7 +1036,7 @@ class CupsController extends Controller
 
             if ($id_cups) {
                 // Obtener el id_cnt de la primera consulta
-                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $connection, $request);
+                $resultadosQ1cups = $this->consultaUnoCups($id_cups, $id_cnt, $nom_cups, $dir_cups, $connection, $request);
 
 
 
