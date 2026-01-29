@@ -145,48 +145,50 @@ class ctController extends Controller
 
 
     private function getCupsInfo(Request $request, $id_ct, $connection)
-    {
-        try {
-            if ($id_ct && Schema::connection($connection)->hasTable('t_cups')) {
-                // Obtener las fechas de inicio y fin del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
+{
+    try {
+        if ($id_ct && Schema::connection($connection)->hasTable('t_cups')) {
 
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin    = $request->input('fecha_fin');
 
+            $cups_info = Cups::on($connection)
+                ->where('core.t_cups.id_ct', $id_ct)
 
+                // 👉 CONDICIÓN cups_estado != 'B'
+                ->where(function ($q) {
+                    $q->where('core.t_cups.cups_estado', '!=', 'B')
+                      ->orWhereNull('core.t_cups.cups_estado');
+                })
 
-                // Construir la consulta principal
-                $cups_info = Cups::on($connection)
-                    ->where('id_ct', $id_ct)
-                    ->with([
-                        'estadisticasContadores' => function ($query) use ($fecha_inicio, $fecha_fin) {
-                            // Filtrar estadísticas de contadores por fechas si están presentes
-                            if ($fecha_inicio && $fecha_fin) {
-                                $query->whereBetween('fec_fin', [$fecha_inicio, $fecha_fin]);
-                            }
-                            $query->select('id_cups', 'id_cnt', 'fec_fin', 'por_minutos_contador');
+                ->with([
+                    'estadisticasContadores' => function ($query) use ($fecha_inicio, $fecha_fin) {
+                        if ($fecha_inicio && $fecha_fin) {
+                            $query->whereBetween('fec_fin', [$fecha_inicio, $fecha_fin]);
                         }
-                    ])
-                    ->join('core.t_contadores', 'core.t_cups.id_cnt', '=', 'core.t_contadores.id_cnt')
-                    ->join('core.t_modelos_contadores', 'core.t_contadores.mod_cnt', '=', 'core.t_modelos_contadores.mod_cnt')
-                    ->where(function ($query) {
-                        $query->where('t_modelos_contadores.num_fases', '1F')
-                            ->orWhere('t_modelos_contadores.num_fases', '3F');
-                    }) // Condición para el número de fases
-                    ->get();
+                        $query->select(
+                            'id_cups',
+                            'id_cnt',
+                            'fec_fin',
+                            'por_minutos_contador'
+                        );
+                    }
+                ])
+                ->join('core.t_contadores', 'core.t_cups.id_cnt', '=', 'core.t_contadores.id_cnt')
+                ->join('core.t_modelos_contadores', 'core.t_contadores.mod_cnt', '=', 'core.t_modelos_contadores.mod_cnt')
+                ->whereIn('t_modelos_contadores.num_fases', ['1F', '3F'])
+                ->get();
 
+            return $cups_info;
 
-
-
-                return $cups_info;
-            } else {
-                return collect(); // Retornar una colección vacía si no hay ID de CT válido
-            }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return collect(); // Retornar una colección vacía en caso de excepción
+        } else {
+            return collect();
         }
+    } catch (\Exception $e) {
+        return collect();
     }
+}
+
 
 
 
@@ -813,37 +815,36 @@ class ctController extends Controller
                 $resultadosQ1 = DB::connection($connection)
                     ->select('
                     SELECT
-                        count(t_trafos.id_trafo) as nro_trafos,
+                        COUNT(DISTINCT t_trafos.id_trafo) AS nro_trafos,
                         t_ct.id_ct,
                         t_ct.nom_ct,
-                        t_ct.lat_ct,  
-						t_ct.lon_ct,
+                        t_ct.lat_ct,
+                        t_ct.lon_ct,
                         t_concentradores.id_cnc,
                         t_concentradores.cod_mod,
                         t_concentradores.des_cnc_af,
                         t_concentradores.des_vdlms,
-                        t_supervisores.id_svr,
-                        t_supervisores.id_trafo,
-                        t_trafos.nom_trafo,
-                        sum(t_trafos.val_kva) as kva_ct
-                    FROM
-                        core.t_ct,
-                        core.t_concentradores,
-                        core.t_supervisores,
-                        core.t_trafos
-                    WHERE
-                        t_concentradores.id_ct = t_ct.id_ct AND
-                        t_supervisores.id_trafo = t_trafos.id_trafo AND
-                        t_trafos.id_cnc = t_concentradores.id_cnc AND
-                        t_ct.id_ct = :id_ct
+                        SUM(t_trafos.val_kva) AS kva_ct
+                    FROM core.t_ct
+                    JOIN core.t_concentradores 
+                        ON t_concentradores.id_ct = t_ct.id_ct
+                    JOIN core.t_trafos
+                        ON t_trafos.id_cnc = t_concentradores.id_cnc
+                    JOIN core.t_supervisores
+                        ON t_supervisores.id_trafo = t_trafos.id_trafo
+                    WHERE t_ct.id_ct = :id_ct
                     GROUP BY
-                        t_ct.id_ct, t_ct.nom_ct, t_concentradores.id_cnc,
-                        t_concentradores.cod_mod, t_concentradores.des_cnc_af,
-                        t_concentradores.des_vdlms,
-                        t_supervisores.id_svr, t_supervisores.id_trafo,
-                        t_trafos.nom_trafo
+                        t_ct.id_ct,
+                        t_ct.nom_ct,
+                        t_ct.lat_ct,
+                        t_ct.lon_ct,
+                        t_concentradores.id_cnc,
+                        t_concentradores.cod_mod,
+                        t_concentradores.des_cnc_af,
+                        t_concentradores.des_vdlms
                     ORDER BY
-                        t_ct.id_ct ASC, t_ct.nom_ct ASC;
+                        t_ct.id_ct,
+                        t_ct.nom_ct;
                 ', ['id_ct' => $id_ct]);
 
 
@@ -869,11 +870,12 @@ class ctController extends Controller
         try {
             if (Schema::connection($connection)->hasTable('t_cups')) {
                 $resultadosQ2 = DB::connection($connection)
-                    ->select('
+                    ->select("
                     SELECT count(*) as nro_cups
                     FROM core.t_cups
-                    WHERE t_cups.id_ct = :id_ct;
-                ', ['id_ct' => $id_ct]);
+                    WHERE t_cups.id_ct = :id_ct
+                    AND cups_estado != 'B';
+                ", ['id_ct' => $id_ct]);
 
 
 
@@ -2274,6 +2276,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
             // Añadir condiciones de fecha si están presentes
@@ -2375,6 +2378,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN sub_voltajes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
 
@@ -2477,6 +2481,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN apagones_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                  AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
 
@@ -2579,6 +2584,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN micro_cortes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
 
@@ -2657,6 +2663,7 @@ class ctController extends Controller
             JOIN core.t_ct ON t_cups.id_ct = t_ct.id_ct
             JOIN MaxFechaPorCups ON t_indices_lectura.id_cups = MaxFechaPorCups.id_cups 
                 WHERE t_ct.id_ct = :id_ct
+                AND (t_cups.cups_estado != 'B' OR t_cups.cups_estado IS NULL)
                 ";
 
 
@@ -4259,6 +4266,7 @@ class ctController extends Controller
                 INNER JOIN core.t_cups
                     ON core.t_valores_instantaneos.id_cups = core.t_cups.id_cups
                 WHERE core.t_cups.id_ct = :id_ct
+                  AND (core.t_cups.cups_estado != 'B' OR core.t_cups.cups_estado IS NULL)
                 ";
 
                 // Añadir condiciones de fecha si están presentes
