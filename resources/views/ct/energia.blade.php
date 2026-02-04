@@ -428,7 +428,7 @@
                         $id_ct = session()->get('id_ct');
                     @endphp
                     {{-- Desplegable para seleccionar el CT --}}
-                    <div class="container">
+                    <div class="container flex flex-row items-center">
                         <div class="dropdown" style="margin-left: 6px">
                             <form style="color: white; background-color: transparent;"
                                 action="{{ route('energia', ['id_ct' => $id_ct]) }}" method="GET">
@@ -443,6 +443,29 @@
                                 <datalist id="ctList">
                                     @foreach ($ct_info as $ct_item)
                                         <option value="{{ $ct_item->id_ct }}">{{ $ct_item->nom_ct }}</option>
+                                    @endforeach
+                                </datalist>
+
+                            </form>
+                        </div>
+
+                        <div class="dropdown" style="margin-left: 6px">
+                            <form style="color: white; background-color: transparent;"
+                                action="{{ route('energia') }}" method="GET">
+
+                                {{-- mantener el CT seleccionado --}}
+                                <input type="hidden" name="id_ct" value="{{ $id_ct }}">
+
+                                <input list="trafoList" name="id_trafo"
+                                    class="form-control mt-2"
+                                    onchange="this.form.submit()"
+                                    style="color: white; background-color: rgb(27, 32, 38); font-size: 14px; text-align: left; width: 250px;"
+                                    placeholder="Buscar o seleccionar un CT..."
+                                    value="{{ $id_trafo ? $id_trafo : '' }}">
+
+                                <datalist id="trafoList">
+                                    @foreach ($trafos as $trafo)
+                                        <option value="{{ $trafo->id_trafo }}">{{ $trafo->nom_trafo }}</option>
                                     @endforeach
                                 </datalist>
 
@@ -588,46 +611,52 @@
                                                         <h1 class="text-center text-2xl" style="color: white;">
                                                             CAPACIDAD DEL TRAFO
                                                         </h1>
-                                                        <h2 class="text-center text-1xl" style="color: white;">
-                                                            Últimas 48 horas
-                                                        </h2>
-                                                        <div
-                                                            style="border-bottom: 3px solid transparent;
-                                                                    border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                                                        </div>
+                                                        @if (!$id_trafo)
+                                                            <div class="p-4 !text-orange-500 rounded-lg shadow-xl text-center">
+                                                                <p class="text-sm">
+                                                                    👆 Elige un trafo en el selector superior para ver esta información.
+                                                                </p>
+                                                            </div>
+                                                        @else
+                                                            <h2 class="text-center text-1xl" style="color: white;">
+                                                                Últimas 48 horas
+                                                            </h2>
+                                                            <div
+                                                                style="border-bottom: 3px solid transparent;
+                                                                        border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                            </div>
+
+
+                                                            <!-- Cuadrado para Porcentaje de Uso de Capacidad del Trafo Mes Actual -->
+                                                            <div class="p-0 #205E86 text-white rounded-lg shadow-xl">
+                                                                @if (count($resultadosQ18) > 0)
+                                                                    {!! !empty($resultadosQ18[0]->val_kva)
+                                                                        ? '<p class="mt-10 text-5xl text-center" style="color:rgb(88,226,194)">' . $resultadosQ18[0]->val_kva . ' kVA</p>'
+                                                                        : '<p class="mt-20 text-1xl text-center" style="color:rgb(255,155,0)">No hay datos de kVA</p>' !!}
 
 
 
 
-                                                        <!-- Cuadrado para Porcentaje de Uso de Capacidad del Trafo Mes Actual -->
-                                                        <div class="p-0 #205E86 text-white rounded-lg shadow-xl">
-                                                            @if (count($resultadosQ18) > 0)
-                                                                {!! !empty($resultadosQ18[0]->val_kva)
-                                                                    ? '<p class="mt-10 text-5xl text-center" style="color:rgb(88,226,194)">' . $resultadosQ18[0]->val_kva . ' kVA</p>'
-                                                                    : '<p class="mt-20 text-1xl text-center" style="color:rgb(255,155,0)">No hay datos de kVA</p>' !!}
+                                                                    {!! !empty($resultadosQ18[0]->cap_instalada)
+                                                                        ? '<p class="mt-10 text-5xl text-center" style="color:rgb(88,226,194)">' .
+                                                                            number_format($resultadosQ18[0]->cap_instalada, 2) .
+                                                                            '%</p>'
+                                                                        : '<p class="mt-20 text-1xl text-center" style="color:rgb(255,155,0)">No hay datos de %</p>' !!}
 
 
 
 
-                                                                {!! !empty($resultadosQ18[0]->cap_instalada)
-                                                                    ? '<p class="mt-10 text-5xl text-center" style="color:rgb(88,226,194)">' .
-                                                                        number_format($resultadosQ18[0]->cap_instalada, 2) .
-                                                                        '%</p>'
-                                                                    : '<p class="mt-20 text-1xl text-center" style="color:rgb(255,155,0)">No hay datos de %</p>' !!}
-
-
-
-
-                                                                {!! !empty($resultadosQ18[0]->mes)
-                                                                    ? '<p class="mt-10 text-2xl text-center" style="color:rgb(88,226,194)">' .
-                                                                        date('d/m/y', strtotime(substr($resultadosQ18[0]->mes, 0, 10))) .
-                                                                        '</p>'
-                                                                    : '<p class="mt-8 text-1xl text-center" style="color:rgb(255,155,0)">No hay datos de fecha</p>' !!}
-                                                            @else
-                                                                <p class="mt-0 text-1xl text-center"
-                                                                    style="color:rgb(255,155,0)">No hay datos</p>
-                                                            @endif
-                                                        </div>
+                                                                    {!! !empty($resultadosQ18[0]->mes)
+                                                                        ? '<p class="mt-10 text-2xl text-center" style="color:rgb(88,226,194)">' .
+                                                                            date('d/m/y', strtotime(substr($resultadosQ18[0]->mes, 0, 10))) .
+                                                                            '</p>'
+                                                                        : '<p class="mt-8 text-1xl text-center" style="color:rgb(255,155,0)">No hay datos de fecha</p>' !!}
+                                                                @else
+                                                                    <p class="mt-0 text-1xl text-center"
+                                                                        style="color:rgb(255,155,0)">No hay datos</p>
+                                                                @endif
+                                                            </div>
+                                                        @endif
 
 
 
@@ -970,6 +999,7 @@
                                     <form action="{{ route('energia', ['id_ct' => $id_ct]) }}" method="GET"
                                         class="flex flex-col sm:flex-row items-center justify-start space-y-4 sm:space-y-0 space-x-0 sm:space-x-4 mb-4 mt-4 mr-2">
                                         <input type="hidden" name="id_ct" value="{{ $id_ct }}">
+                                        <input type="hidden" name="id_trafo" value="{{ $id_trafo }}">
                                         <div class="form-group">
                                             <label for="fecha_inicio" class="text-white">Fecha de
                                                 inicio:</label>

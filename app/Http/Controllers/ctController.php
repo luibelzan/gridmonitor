@@ -321,8 +321,12 @@ class ctController extends Controller
         } else {
             // Obtener los datos de todos los CTs
             $ct_info = Ct::on($connection)->select('id_ct', 'nom_ct', 'ind_balance')->get(); //se necesita siempre ind_balance para la condicion
+            $id_trafo = $request->input('id_trafo');
+            $trafos = collect();                     // lista de trafos
 
-
+            if ($id_ct) {
+                $trafos = $this->getTrafosByCt($id_ct, $connection);
+            }
 
 
             $resultadosQ6 = $this->consultaSeis($id_ct, $connection);
@@ -333,15 +337,9 @@ class ctController extends Controller
             $resultadosQ12 = $this->consultaDoce($id_ct, $connection);
             $resultadosQ15 = $this->consultaQuince($id_ct, $connection, $request);
             $resultadosQ16 = $this->consultaDieciseis($id_ct, $connection, $request);
-            $resultadosQ18 = $this->consultaDieciocho($id_ct, $connection);
+            $resultadosQ18 = $this->consultaDieciocho($id_ct, $id_trafo, $connection);
             $resultadosQ19 = $this->consultaDiecinueve($id_ct, $connection);
             $resultadosQ47 = $this->consultaCuarentaySiete($id_ct, $connection, $request);
-
-
-
-
-
-
 
 
             // Pasar los datos de los CTs a la vista
@@ -360,6 +358,8 @@ class ctController extends Controller
                 'resultadosQ47' => $resultadosQ47,
                 'selected_ct' => $id_ct,
                 'id_ct' => $id_ct,
+                'id_trafo' => $id_trafo,
+                'trafos' => $trafos
             ]);
         }
     }
@@ -803,6 +803,30 @@ class ctController extends Controller
 
 
     //CONSULTAS -------------------------------------------
+
+    public function getTrafosByCt($id_ct, $connection) {
+    try {
+        if (Schema::connection($connection)->hasTable('t_trafos')) {
+            $trafos = DB::connection($connection)
+                ->table('core.t_trafos as t')
+                ->join('core.t_cups as c', 'c.id_trafo', '=', 't.id_trafo')
+                ->where('c.id_ct', $id_ct)
+                ->select('t.id_trafo', 't.nom_trafo')
+                ->groupBy('t.id_trafo', 't.nom_trafo') // <- esto asegura que todos los trafos se devuelvan
+                ->orderBy('t.nom_trafo')
+                ->get();
+
+            return $trafos;
+        } else {
+            return ['message' => 'No hay datos'];
+        }
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
+    }
+}
+
+
+
     public function consultaUno($id_ct, $connection)
     {
         try {
@@ -1575,7 +1599,7 @@ class ctController extends Controller
 
 
 
-    public function consultaDieciocho($id_ct, $connection) //Q15 en el documento
+    public function consultaDieciocho($id_ct, $id_trafo, $connection) //Q15 en el documento
     {
         try {
             if (
@@ -1589,26 +1613,25 @@ class ctController extends Controller
                     ->select("
                         SELECT
                             date_trunc('month', fec_registro) AS mes,
-                            AVG((t_supervisores_voltajes.val_kva_t / 1000) * 100) / AVG(t_trafos.val_kva) AS cap_instalada,
-                            t_ct.id_ct,
-                            val_kva
-                        FROM
-                            core.t_supervisores_voltajes
-                        JOIN
-                            core.t_trafos ON t_supervisores_voltajes.id_svr = t_trafos.id_svr
-                        JOIN
-                            core.t_concentradores ON t_concentradores.id_cnc = t_trafos.id_cnc
-                        JOIN
-                            core.t_ct ON t_ct.id_ct = t_concentradores.id_ct
+                            AVG((sv.val_kva_t / 1000) * 100) / AVG(t.val_kva) AS cap_instalada,
+                            ct.id_ct,
+                            t.val_kva,
+                            t.id_trafo
+                        FROM core.t_supervisores_voltajes sv
+                        JOIN core.t_trafos t ON sv.id_svr = t.id_svr
+                        JOIN core.t_concentradores c ON c.id_cnc = t.id_cnc
+                        JOIN core.t_ct ct ON ct.id_ct = c.id_ct
                         WHERE
-                            t_ct.id_ct = :id_ct
+                            ct.id_ct = :id_ct
                             AND fec_registro >= NOW() - INTERVAL '48 hours'
+                            AND t.id_trafo = :id_trafo
                         GROUP BY
-                            1, t_ct.id_ct, val_kva
+                            1, ct.id_ct, t.val_kva, t.id_trafo
                         ORDER BY
                             1 DESC
                         LIMIT 1;
-                    ", ['id_ct' => $id_ct]);
+                    ", ['id_ct' => $id_ct,
+                    'id_trafo' => $id_trafo]);
 
                 return $resultadosQ18 ?: ['message' => 'No hay datos'];
             } else {
