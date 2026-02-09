@@ -377,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <div class="p-0 #205E86 text-white rounded-lg shadow-xl flex items-center justify-center"
                                                         style="height: 100%;">
                                                         <p class="text-5xl text-center" style="color:rgb(248,73,90);">
-                                                            {{ !empty($resultadosQ9pf[0]->numero) ? $resultadosQ9pf[0]->numero : '0' }}
+                                                            {{ !empty($resultadosQ9pf->total_apagones) ? $resultadosQ9pf->total_apagones : '0' }}
 
 
                                                         </p>
@@ -388,18 +388,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
-
-
-
-
-
-
-
-
-
                                             {{-- PL8 --}}
-                                            {{--
                                             <div class="col-span-3 md:col-span-1 lg:col-span-3">
                                                 <div class="card text-white mb-3 h-full"
                                                     style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
@@ -414,7 +403,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                     border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                                             </div>
                                                             <div class="container">
-                                                                @if (count($resultadosQ10pf) > 0)
+                                                                @if (isset($resultadosQ10pf))
                                                                     <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                                                         style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
                                                                         <table id="testTableEstadisticasCortes"
@@ -453,25 +442,19 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                         <td class="py-2">
                                                                                             {{ $loop->iteration }}</td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->CUPS) ? $resultado->CUPS : 'No hay datos' }}
+                                                                                            {{ !empty($resultado->id_cups) ? $resultado->id_cups : 'No hay datos' }}
                                                                                         </td>
                                                                                         <td class="py-2">
                                                                                             {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->Fecha_Corte) ? $resultado->Fecha_Corte : 'No hay datos' }}
+                                                                                            {{ !empty($resultado->fhi) ? $resultado->fhi : 'No hay datos' }}
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            {{ !empty($resultado->duracion_segundos) ? $resultado->duracion_segundos : 'No hay datos' }}
+                                                                                            {{ !empty($resultado->fhf) ? $resultado->fhf : 'No hay datos' }}
                                                                                         </td>
                                                                                         <td class="py-2">
-                                                                                            @if (!empty($resultado->Fecha_Corte) && !empty($resultado->duracion_segundos))
-                                                                                                {{ \Carbon\Carbon::createFromFormat('d/m/Y H:i:s', $resultado->Fecha_Corte)
-                                                                                                    ->addSeconds($resultado->duracion_segundos)
-                                                                                                    ->format('d/m/Y H:i:s') }}
-                                                                                            @else
-                                                                                                No hay datos
-                                                                                            @endif
+                                                                                            {{ !empty($resultado->last) ? $resultado->last : 'No hay datos' }}
                                                                                         </td>
                                                                                     </tr>
                                                                                 @endforeach
@@ -491,7 +474,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     </div>
                                                 </div>
                                             </div>
-                                            --}}
+                                
 
 
 
