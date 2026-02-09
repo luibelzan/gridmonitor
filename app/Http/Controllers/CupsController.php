@@ -1837,9 +1837,9 @@ class CupsController extends Controller
             if ($id_cups) {
                 $query = "
             SELECT id_cups, id_cnt,
-            TO_CHAR(fec_inicio, 'DD/MM/YYYY') as fec_inicio,
+            TO_CHAR(fec_inicio, 'DD/MM/YYYY') as fec_inicio_fmt,
             hor_inicio,
-            TO_CHAR(fec_fin, 'DD/MM/YYYY') as fec_fin,
+            TO_CHAR(fec_fin, 'DD/MM/YYYY') as fec_fin_fmt,
             hor_fin, val_ai_h, val_ae_h, val_r1_h, val_r2_h, val_r3_h, val_r4_h
             FROM core.t_consumos_horarios
             where id_cups = :id_cups
@@ -1850,7 +1850,7 @@ class CupsController extends Controller
                     $query .= "
                 AND fec_inicio >= :fecha_inicio
                 AND fec_fin <= :fecha_fin
-                order by 1,3,4;";
+                order by id_cups, fec_inicio, hor_inicio;";
                     $params = [
                         'id_cups' => $id_cups,
                         'fecha_inicio' => $fecha_inicio,
@@ -1859,7 +1859,7 @@ class CupsController extends Controller
                 } else {
                     $query .= "
                 and fec_inicio >= (current_date - INTERVAL '30 days')
-                order by 1,3,4;";
+                order by id_cups, fec_inicio, hor_inicio;";
 
 
                     $params = ['id_cups' => $id_cups];
