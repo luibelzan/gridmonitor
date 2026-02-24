@@ -661,7 +661,7 @@
                                                             class="h-full">
                                                             <!-- Cuadrado para Porcentaje de Uso de
                                                                  Capacidad del Trafo Último Año -->
-                                                            @if (count($resultadosQ19) > 0 && !empty($resultadosQ19[0]->cap_instalada))
+                                                            @if (isset($resultadosQ19))
                                                                 <div class="grafico-wrapper"
                                                                     style="position: relative; height: 40vh; width: 80vw; overflow: hidden;">
                                                                     {{-- GRAFICO DE BARRAS CAPACIDAD Último Año --}}

@@ -3461,7 +3461,11 @@ class ctController extends Controller
 
 
             // Añadir el GROUP BY
-            $query .= " GROUP BY fec_evento;";
+            $query .= "
+                GROUP BY m.fec_evento::date
+                ORDER BY m.fec_evento::date ASC
+            ";
+
 
 
 
