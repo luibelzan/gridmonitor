@@ -1077,177 +1077,154 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 <div class="overflow-x-auto flex flex-wrap  "
                                                     style="display: flex; flex-wrap: nowrap; justify-content: space-around;">
                                                     @foreach ($resultadosQ26 as $resultado)
-                                                        <div
-                                                            class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
-                                                            <div style="text-align: center; color: white;">
-                                                                <div
-                                                                    style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
-                                                                    ENERGÍA
-                                                                    GENERADA</div>
-                                                                <div
-                                                                    style="display: inline-block; position: relative;">
-                                                                    <div
-                                                                        style="border-radius: 50%; border: 2px solid #296fd1; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                                            width="50" height="50"
-                                                                            viewBox="0 0 24 24"
-                                                                            style="fill: white; margin: auto; transform: translateY(30px);">
-                                                                            <path
-                                                                                d="m8.28 5.45l-1.78-.9L7.76 2h8.47l1.27 2.55l-1.78.89L15 4H9zM18.62 8h-4.53l-.79-3h-2.6l-.79 3H5.38L4.1 10.55l1.79.89l.73-1.44h10.76l.72 1.45l1.79-.89zm-.85 14H15.7l-.24-.9L12 15.9l-3.47 5.2l-.23.9H6.23l2.89-11h2.07l-.36 1.35L12 14.1l1.16-1.75l-.35-1.35h2.07zm-6.37-7l-.9-1.35l-1.18 4.48zm3.28 3.12l-1.18-4.48l-.9 1.36z" />
-                                                                        </svg>
-                                                                        <span
-                                                                            style="margin-top: 15px; font-size:16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                                                            {{ !empty($resultado->energia_red) ? $resultado->energia_red : '0' }}
-                                                                            kWh
-                                                                        </span>
-                                                                    </div>
+                                                        <div class="flex items-center justify-center gap-6 mb-6 text-white">
+
+                                                            <!-- BLOQUE IZQUIERDO -->
+                                                            <div class="text-center">
+
+                                                                <div style="font-size:18px; margin-bottom:10px;">
+                                                                    ENERGÍA GENERADA
                                                                 </div>
+
                                                                 <div
-                                                                    style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px; left:40px">
-                                                                    +
+                                                                    style="
+                                                                        border-radius: 50%;
+                                                                        border: 2px solid #296fd1;
+                                                                        width: 150px;
+                                                                        height: 150px;
+                                                                        display: flex;
+                                                                        flex-direction: column;
+                                                                        justify-content: center;
+                                                                        align-items: center;
+                                                                        text-align: center;
+                                                                    ">
+
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        width="40" height="40"
+                                                                        viewBox="0 0 24 24"
+                                                                        style="fill: white; margin-bottom: 5px;">
+                                                                        <path d="m8.28 5.45l-1.78-.9L7.76 2h8.47l1.27 2.55l-1.78.89L15 4H9zM18.62 8h-4.53l-.79-3h-2.6l-.79 3H5.38L4.1 10.55l1.79.89l.73-1.44h10.76l.72 1.45l1.79-.89zm-.85 14H15.7l-.24-.9L12 15.9l-3.47 5.2l-.23.9H6.23l2.89-11h2.07l-.36 1.35L12 14.1l1.16-1.75l-.35-1.35h2.07zm-6.37-7l-.9-1.35l-1.18 4.48zm3.28 3.12l-1.18-4.48l-.9 1.36z" />
+                                                                    </svg>
+
+                                                                    <div style="font-size:16px;">
+                                                                        {{ $resultado->energia_red ?? '0' }} kWh
+                                                                    </div>
+
+                                                                    @if(!empty($resultado->exceso) && $resultado->exceso > 0)
+                                                                        <div style="font-size:15px; color:#4ade80; margin-top:4px;">
+                                                                            Exceso: {{ $resultado->exceso }} kWh
+                                                                        </div>
+                                                                    @endif
+
                                                                 </div>
                                                             </div>
+
+                                                            <!-- SIGNO + (ahora sí es hermano directo del bloque) -->
+                                                            <div style="font-size:50px;">
+                                                                +
+                                                            </div>
+
                                                         </div>
-                                                        <div
-                                                            class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                        <div class="flex items-center justify-center gap-6 mb-6 text-white">
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                            <div style="text-align: center; color: white;">
-                                                                <div
-                                                                    style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
+                                                            <div class="text-center">
+                                                                <div class="text-lg mb-3">
                                                                     AUTOCONSUMOS
                                                                 </div>
-                                                                <div
-                                                                    style="display: inline-block; position: relative;">
-                                                                    <div
-                                                                        style="border-radius: 50%; border: 2px solid #ffdd33; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                                            width="50" height="50"
-                                                                            viewBox="0 0 256 256"
-                                                                            style="fill: white; margin: auto; transform: translateY(30px);">
-                                                                            <g fill="#ffffff">
+
+                                                                <div class="w-[150px] h-[150px] flex-shrink-0 rounded-full border-2 border-yellow-400 flex flex-col items-center justify-center text-center"
+                                                                style="border-radius: 50%; border: 2px solid #ffdd33; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+
+                                                                    <!-- SVG -->
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        width="40" height="40"
+                                                                        viewBox="0 0 256 256"
+                                                                        class="mb-2 fill-white">
+                                                                        <!-- svg path igual -->
+                                                                         <g fill="#ffffff">
                                                                                 <path d="M232 216H24l40.7-72h126.6Z"
                                                                                     opacity=".2" />
                                                                                 <path
                                                                                     d="M32 104a8 8 0 0 1 8-8h16a8 8 0 0 1 0 16H40a8 8 0 0 1-8-8m39.43-45.25a8 8 0 0 0 11.32-11.32L71.43 36.12a8 8 0 0 0-11.31 11.31ZM128 40a8 8 0 0 0 8-8V16a8 8 0 0 0-16 0v16a8 8 0 0 0 8 8m50.91 21.09a8 8 0 0 0 5.66-2.34l11.31-11.32a8 8 0 0 0-11.31-11.31l-11.32 11.31a8 8 0 0 0 5.66 13.66M192 104a8 8 0 0 0 8 8h16a8 8 0 0 0 0-16h-16a8 8 0 0 0-8 8m-104 8a8 8 0 0 0 8-8a32 32 0 0 1 64 0a8 8 0 0 0 16 0a48 48 0 0 0-96 0a8 8 0 0 0 8 8m150.91 108a8 8 0 0 1-6.91 4H24a8 8 0 0 1-7-11.94l40.69-72a8 8 0 0 1 7-4.06H191.3a8 8 0 0 1 7 4.06l40.69 72a8 8 0 0 1-.08 7.94m-52.27-68h-24.37l3.48 16h29.93Zm-37.26 16l-3.48-16h-35.8l-3.48 16Zm-46.24 16l-5.21 24h60.14l-5.21-24Zm-42.82-16h29.93l3.48-16H69.36Zm-22.61 40h43.84l5.22-24H51.28Zm180.58 0l-13.57-24h-35.49l5.22 24Z" />
                                                                             </g>
-                                                                        </svg>
-                                                                        <span
-                                                                            style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                                                            {{ !empty($resultado->energia_autoconsumos) ? $resultado->energia_autoconsumos : '0' }}
-                                                                            kWh</span>
+                                                                    </svg>
+
+                                                                    <div class="text-base">
+                                                                        {{ $resultado->energia_autoconsumos ?? '0' }} kWh
                                                                     </div>
-                                                                </div>
-                                                                <div
-                                                                    style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
-                                                                    =
+
                                                                 </div>
                                                             </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                                            <div class="text-5xl">
+                                                                =
+                                                            </div>
 
                                                         </div>
-                                                        <div
-                                                            class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
+                                                        <div class="flex items-center justify-center gap-6 mb-6 text-white">
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                            <div style="text-align: center; color: white;">
-                                                                <div
-                                                                    style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
-                                                                    TOTAL
-                                                                    GENERACIÓN</div>
-                                                                <div
-                                                                    style="display: inline-block; position: relative;">
-                                                                    <div
-                                                                        style="border-radius: 50%; border: 2px solid #FF33FF; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                                            width="50" height="50"
-                                                                            viewBox="0 0 24 24"
-                                                                            style="fill: white; margin: auto; transform: translateY(30px);">
-                                                                            <path fill="#ffffff"
-                                                                                d="M11 9.47V11h3.76L13 14.53V13H9.24zM13 1L6 15h5v8l7-14h-5z" />
-                                                                        </svg>
-                                                                        <span
-                                                                            style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                                                            {{ !empty($resultado->generacion) ? $resultado->generacion : '0' }}
-                                                                            kWh</span>
-                                                                    </div>
+                                                            <div class="text-center">
+                                                                <div class="text-lg mb-3">
+                                                                    TOTAL GENERACIÓN
                                                                 </div>
-                                                                <div
-                                                                    style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
-                                                                    -</div>
+
+                                                                <div class="w-[150px] h-[150px] rounded-full border-2 border-fuchsia-500 flex flex-col items-center justify-center text-center"
+                                                                    style="border-radius: 50%; border: 2px solid #FF33FF; width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        width="40" height="40"
+                                                                        viewBox="0 0 24 24"
+                                                                        class="mb-2 fill-white">
+                                                                        <path fill="#ffffff" d="M11 9.47V11h3.76L13 14.53V13H9.24zM13 1L6 15h5v8l7-14h-5z" />
+                                                                    </svg>
+
+                                                                    <div class="text-base">
+                                                                        {{ $resultado->generacion ?? '0' }} kWh
+                                                                    </div>
+
+                                                                    @if(!empty($resultado->exceso) && $resultado->exceso > 0)
+                                                                        <div class="text-sm text-red-400 mt-1">
+                                                                            - {{ $resultado->exceso }} kWh
+                                                                        </div>
+                                                                    @endif
+
+                                                                </div>
                                                             </div>
+
+                                                            <div class="text-5xl">
+                                                                -
+                                                            </div>
+
                                                         </div>
-                                                        <div
-                                                            class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">
-                                                            <div style="text-align: center; color: white;">
-                                                                <div
-                                                                    style="font-size: 18px; margin-bottom: 10px; margin-right: 30px">
-                                                                    ENERGÍA
-                                                                    CONSUMIDA</div>
-                                                                <div
-                                                                    style="display: inline-block; position: relative;">
-                                                                    <div
-                                                                        style="border-radius: 50%; border: 2px solid rgb(88,226,194); width: 150px; height: 150px; margin: 10px; line-height: 150px;">
-                                                                        <svg xmlns="http://www.w3.org/2000/svg"
-                                                                            width="50" height="50"
-                                                                            viewBox="0 0 24 24"
-                                                                            style="fill: white; margin: auto; transform: translateY(30px);">
-                                                                            <path fill="#ffffff"
-                                                                                d="M12 3L2 12h3v8h14v-8h3zm-.5 15v-4H9l3.5-7v4H15z" />
-                                                                        </svg>
-                                                                        <span
-                                                                            style="margin-top: 15px; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                                                            {{ !empty($resultado->energia_consumida) ? $resultado->energia_consumida : '0' }}
-                                                                            kWh</span>
-                                                                    </div>
+
+                                                        <div class="flex items-center justify-center gap-6 mb-6 text-white">
+
+                                                            <div class="text-center">
+                                                                <div class="text-lg mb-3">
+                                                                    ENERGÍA CONSUMIDA
                                                                 </div>
-                                                                <div
-                                                                    style="color: white; font-size: 50px; margin: 10px; display: inline-block; position: relative; top: -70px;  left:40px">
-                                                                    =
+
+                                                                <div class="w-[150px] h-[150px] rounded-full border-2 border-teal-400 flex flex-col items-center justify-center text-center"
+                                                                style="border-radius: 50%; border: 2px solid rgb(88,226,194); width: 150px; height: 150px; margin: 10px; line-height: 150px;">
+
+                                                                    <svg xmlns="http://www.w3.org/2000/svg"
+                                                                        width="40" height="40"
+                                                                        viewBox="0 0 24 24"
+                                                                        class="mb-2 fill-white">
+                                                                        <path fill="#ffffff" d="M12 3L2 12h3v8h14v-8h3zm-.5 15v-4H9l3.5-7v4H15z"/>
+                                                                    </svg>
+
+                                                                    <div class="text-base">
+                                                                        {{ $resultado->energia_consumida ?? '0' }} kWh
+                                                                    </div>
+
                                                                 </div>
                                                             </div>
+
+                                                            <div class="text-5xl">
+                                                                =
+                                                            </div>
+
                                                         </div>
                                                         <div
                                                             class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-6 mb-6 justify-center">

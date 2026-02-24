@@ -2074,19 +2074,25 @@ class ctController extends Controller
                 if ($fecha_inicio && $fecha_fin) {
                     // Consulta con fechas (suma y agregaciones)
                     $query = "
-                    SELECT id_ct, 
-                        SUM(val_ai_d_sum_cnt) as energia_consumida, 
-                        SUM(val_ae_d_sum_cnt) as energia_autoconsumos, 
-                        SUM(val_ai_d_sum_svr) as energia_red,
-                        AVG(num_contadores_d) as nro_contadores,
-                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt) as generacion, 
-                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) as perdida, 
-                        Round((100 - SUM(val_ai_d_sum_cnt) * 100 / SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt)),1) as porcentaje_perdida 
+                        SELECT 
+                        id_ct, 
+                        SUM(val_ai_d_sum_cnt) AS energia_consumida, 
+                        SUM(val_ae_d_sum_cnt) AS energia_autoconsumos, 
+                        SUM(val_ai_d_sum_svr) AS energia_red,
+                        AVG(num_contadores_d) AS nro_contadores,
+                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt) AS generacion, 
+                        SUM(val_ae_d_sum_svr) AS exceso, 
+                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) AS perdida,
+                        ROUND(
+                            (
+                                SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) * 100.0
+                            ) 
+                            / NULLIF(SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt), 0),
+                        1) AS porcentaje_perdida
                     FROM core.t_balances_diarios
                     WHERE tip_calculo = '1' 
                         AND val_ai_d_sum_svr > 0
-                        AND fec_inicio >= :fecha_inicio
-                        AND fec_inicio <= :fecha_fin
+                        AND fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
                         AND id_ct = :id_ct
                     GROUP BY id_ct
                     ORDER BY id_ct DESC;
@@ -2101,9 +2107,12 @@ class ctController extends Controller
                         val_ae_d_sum_cnt as energia_autoconsumos, 
                         val_ai_d_sum_svr as energia_red,
                         num_contadores_d as nro_contadores,
-                        (val_ai_d_sum_svr + val_ae_d_sum_cnt) as generacion, 
-                        (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) as perdida, 
-                        Round((100 - (val_ai_d_sum_cnt * 100) / (val_ai_d_sum_svr + val_ae_d_sum_cnt)),1) as porcentaje_perdida 
+                        (val_ai_d_sum_svr + val_ae_d_sum_cnt) as generacion,
+                        val_ae_d_sum_svr AS exceso, 
+                        (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt-val_ae_d_sum_svr) as perdida, 
+                        ROUND(
+			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
+			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida 
                     FROM core.t_balances_diarios
                     WHERE tip_calculo = '1' 
                         AND val_ai_d_sum_svr > 0
