@@ -1646,7 +1646,7 @@
                                                             $id_ct = $resultado; // si $resultado ya es el id
                                                         }
                                                     @endphp
-                                                    <tr class="highlight-row">
+                                                    <tr>
                                                         <td class="py-2">
                                                             <span class="inline-block">
                                                                 <a href="{{ route('informacionct', ['id_ct' => $id_ct]) }}" 

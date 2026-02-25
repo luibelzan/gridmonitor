@@ -1289,6 +1289,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 ENERGÍA GENERADA</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
+                                                                                EXCESO</th>
+                                                                            <th class="mt-0 text-xl font-bold text-center"
+                                                                                style="color:rgb(88,226,194); padding: 10px">
                                                                                 ENERGÍA AUTOCONSUMOS</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
@@ -1321,6 +1324,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 </td>
                                                                                 <td class="py-2">
                                                                                     {{ !empty($resultado->energia_red) ? $resultado->energia_red : '0' }}
+                                                                                </td>
+                                                                                <td class="py-2">
+                                                                                    {{ !empty($resultado->exceso) ? $resultado->exceso : '0' }}
                                                                                 </td>
                                                                                 <td class="py-2">
                                                                                     {{ !empty($resultado->energia_autoconsumos) ? $resultado->energia_autoconsumos : '0' }}

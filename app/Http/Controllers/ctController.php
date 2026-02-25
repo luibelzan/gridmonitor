@@ -2022,8 +2022,11 @@ class ctController extends Controller
                     val_ai_d_sum_svr as energia_red,
                     num_contadores_d as nro_contadores,
                     (val_ai_d_sum_svr+val_ae_d_sum_cnt) as generacion, 
-                    ((val_ai_d_sum_svr+val_ae_d_sum_cnt) - (val_ai_d_sum_cnt)) as perdida, 
-                    (100 -((val_ai_d_sum_cnt)*100)/(val_ai_d_sum_svr+val_ae_d_sum_cnt)) as porcentaje_perdida 
+                    val_ae_d_sum_svr AS exceso,
+                    (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt-val_ae_d_sum_svr) as perdida,
+                    ROUND(
+			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
+			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida
                 FROM core.t_balances_diarios
                 WHERE tip_calculo = '1' and val_ai_d_sum_svr > 0 ";
 
@@ -5474,7 +5477,7 @@ class ctController extends Controller
 
     public function getDashboardInfo(Request $request, $connection) {
         try {
-            if(Schema::connection($connection)->hasTable('t_ct')) {
+            if(Schema::connection($connection)->hasTable('core.t_ct')) {
                 $query = "
                     WITH trafos_por_ct AS (
                         SELECT 
@@ -5509,8 +5512,10 @@ class ctController extends Controller
                     balance_ct AS (
                         SELECT
                             id_ct,
-                            (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) AS perdida,
-                            ROUND((100 - (val_ai_d_sum_cnt * 100.0) / (val_ai_d_sum_svr + val_ae_d_sum_cnt)), 1) AS porcentaje_perdida
+                            (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) AS perdida,
+                            ROUND(
+			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
+			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida 
                         FROM core.t_balances_diarios
                         WHERE tip_calculo = 1
                         AND val_ai_d_sum_svr > 0
