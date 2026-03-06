@@ -22,9 +22,9 @@ class CurvasHorariasCupsExport implements FromCollection, WithHeadings
             return [
                 'id_cups' => $item->id_cups ?? '',
                 'id_cnt' => $item->id_cnt ?? '',
-                'fec_inicio' => $item->fec_inicio ?? '',
+                'fec_inicio' => $item->fec_inicio_fmt ?? '',
                 'hor_inicio' => $item->hor_inicio ?? 0,
-                'fec_fin' => $item->fec_fin ?? 0,
+                'fec_fin' => $item->fec_fin_fmt ?? 0,
                 'hor_fin' => $item->hor_fin ?? 0,
                 'val_ai_h' => strval($item->val_ai_h ?? '0'),
                 'val_ae_h' => strval($item->val_ae_h ?? '0'),

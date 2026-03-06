@@ -26,7 +26,7 @@ class FinalizeExportJob implements ShouldQueue
 
     public function handle()
     {
-        $exportProgressModel = ExportProgress::on('mysql_exports');
+        $exportProgressModel = ExportProgress::on('pgsql-exports');
         $disk = Storage::disk('public');
 
         // Opcional: Re-verificación final del archivo (aunque Maatwebsite debería haberlo hecho)

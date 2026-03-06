@@ -350,10 +350,12 @@
                             active-color="rgb(88, 226, 194">Información</a>
                         <a href="{{ route('curvascuartihorariaspf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
                             active-color="rgb(88, 226, 194">Curvas Cuartihorarias</a>
-                        <a href="{{ route('eventospf', ['id_cnt' => $id_cnt]) }}" class="nav-item "
+                        <a href="{{ route('eventospf', ['id_cnt' => $id_cnt]) }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Eventos</a>
                         <a href="{{ route('reportespf') }}" class="nav-item"
                             active-color="rgb(88, 226, 194">Reportes</a>
+                        <a href="{{ route('valoresinstantaneospf', ['id_cnt' => $id_cnt]) }}" class="nav-item"
+                            active-color="rgb(88, 226, 194">Valores Instantaneos</a>
                         <span class="nav-indicator"></span>
                     </nav>
                     {{-- Obtener el id_cnt almacenado en la sesión --}}
@@ -375,8 +377,8 @@
 
                                 <datalist id="cntList">
                                     @foreach ($parametros as $cnt)
-                                        @if ($cnt->curva_1 == 1)
-                                            <option value="{{ $cnt->id_cnt }}">{{ $cnt->cups }}</option>
+                                        @if ($cnt->lp_2 == true)
+                                            <option value="{{ $cnt->id_cnt }}">{{ $cnt->id_cups }}</option>
                                         @endif
                                     @endforeach
                                 </datalist>
@@ -469,9 +471,14 @@
                                                                 <h2 class="text-sm text-center font-normal">Trafos
                                                                     Tensión
                                                                 </h2>
-                                                                <p class="mt-2 text-sm  text-center"
-                                                                    style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->rel_trafos_tension) ? $resultadosQ1pf[0]->rel_trafos_tension : 'No hay datos' }}
+                                                                <p class="mt-2 text-sm text-center" style="color:rgb(88,226,194);">
+                                                                    {{
+                                                                        count($resultadosQ1pf) > 0 &&
+                                                                        !empty($resultadosQ1pf[0]->voltage_primary) &&
+                                                                        !empty($resultadosQ1pf[0]->voltage_secondary)
+                                                                        ? (int)$resultadosQ1pf[0]->voltage_primary . '/' . (int)$resultadosQ1pf[0]->voltage_secondary
+                                                                        : 'No hay datos'
+                                                                    }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -486,9 +493,14 @@
                                                             <div class="p-2 #205E86 text-white rounded-lg shadow-xl">
                                                                 <h2 class="text-sm text-center font-normal">Trafos
                                                                     Intensidad</h2>
-                                                                <p class="mt-2 text-sm  text-center"
-                                                                    style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->rel_trafos_intensidad) ? $resultadosQ1pf[0]->rel_trafos_intensidad : 'No hay datos' }}
+                                                                <p class="mt-2 text-sm text-center" style="color:rgb(88,226,194);">
+                                                                    {{
+                                                                        count($resultadosQ1pf) > 0 &&
+                                                                        !empty($resultadosQ1pf[0]->current_primary) &&
+                                                                        !empty($resultadosQ1pf[0]->current_secondary)
+                                                                        ? (int)$resultadosQ1pf[0]->current_primary . '/' . (int)$resultadosQ1pf[0]->current_secondary
+                                                                        : 'No hay datos'
+                                                                    }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -519,7 +531,7 @@
                                                                 </h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->direnlace) ? $resultadosQ1pf[0]->direnlace : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cnt_enlace) ? $resultadosQ1pf[0]->cnt_enlace : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -534,7 +546,7 @@
                                                                 </h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->pm) ? $resultadosQ1pf[0]->pm : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cnt_pm) ? $resultadosQ1pf[0]->cnt_pm : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -551,7 +563,7 @@
                                                                 </h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->password) ? $resultadosQ1pf[0]->password : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cnt_password) ? $resultadosQ1pf[0]->cnt_password : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -566,7 +578,7 @@
                                                                     Conexión</h2>
                                                                 <p class="mt-4 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_name) ? $resultadosQ1pf[0]->conx_name : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_info) ? $resultadosQ1pf[0]->conx_info : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -584,7 +596,7 @@
                                                             </h2>
                                                             <p class="mt-4 text-sm  text-center"
                                                                 style="color:rgb(88,226,194);">
-                                                                {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_info) ? $resultadosQ1pf[0]->conx_info : 'No hay datos' }}
+                                                                {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->conx_params) ? $resultadosQ1pf[0]->conx_params : 'No hay datos' }}
                                                             </p>
                                                             <div
                                                                 style="border-bottom: 3px solid transparent;
@@ -614,7 +626,7 @@
                                                                     de Medida</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->tip_punto_medida) ? $resultadosQ1pf[0]->tip_punto_medida : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->tip_cups) ? $resultadosQ1pf[0]->tip_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -630,7 +642,7 @@
                                                                 </h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->id_punto_medida) ? $resultadosQ1pf[0]->id_punto_medida : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->id_cups) ? $resultadosQ1pf[0]->id_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -646,7 +658,7 @@
                                                                 <h2 class="text-sm text-center font-normal">Cups</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->cups) ? $resultadosQ1pf[0]->cups : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->id_cups) ? $resultadosQ1pf[0]->id_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -678,7 +690,7 @@
                                                                     Física</h2>
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
-                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->dir_punto_medida) ? $resultadosQ1pf[0]->dir_punto_medida : 'No hay datos' }}
+                                                                    {{ count($resultadosQ1pf) > 0 && !empty($resultadosQ1pf[0]->dir_cups) ? $resultadosQ1pf[0]->dir_cups : 'No hay datos' }}
                                                                 </p>
                                                                 <div
                                                                     style="border-bottom: 3px solid transparent;
@@ -694,9 +706,9 @@
                                                                 <p class="mt-2 text-sm  text-center"
                                                                     style="color:rgb(88,226,194);">
                                                                     {{ count($resultadosQ1pf) > 0 &&
-                                                                    !empty($resultadosQ1pf[0]->lon_punto_medida) &&
-                                                                    !empty($resultadosQ1pf[0]->lat_punto_medida)
-                                                                        ? $resultadosQ1pf[0]->lon_punto_medida . '/' . $resultadosQ1pf[0]->lat_punto_medida
+                                                                    !empty($resultadosQ1pf[0]->lon_cups) &&
+                                                                    !empty($resultadosQ1pf[0]->lat_cups)
+                                                                        ? $resultadosQ1pf[0]->lon_cups . '/' . $resultadosQ1pf[0]->lat_cups
                                                                         : 'No hay datos' }}
                                                                 </p>
                                                                 <div
@@ -820,7 +832,7 @@
     var values_contratos = {}; // Objeto para agrupar datos por fecha y contrato
 
     @foreach ($resultadosQ26pf as $resultado)
-        var fecha = '{{ $resultado->Fecha_Inicio }}';
+        var fecha = '{{ $resultado->fecha_inicio }}';
 
         // Si la fecha no está en labels_fecha, agregarla
         if (!labels_fecha.includes(fecha)) {
@@ -830,7 +842,7 @@
         }
 
         // Asignar el valor de energía al contrato correspondiente
-        values_contratos[fecha][{{ $resultado->Contrato }}] = {{ $resultado->Energia_Activa_Incremental }};
+        values_contratos[fecha][{{ $resultado->contrato }}] = {{ $resultado->energia_activa_incremental }};
     @endforeach
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -979,9 +991,9 @@
                                                         var values_val_maximetro = [];
                                                         @foreach ($resultadosQ27pf as $resultado)
                                                             // Agregar la fecha en formato dd-mm-yy
-                                                            labels_fecha_max.push('{{ $resultado->Fecha }} ');
+                                                            labels_fecha_max.push('{{ $resultado->fecha }} ');
                                                             // Agregar el valor de energía formateado en kWh
-                                                            values_val_maximetro.push({{ $resultado->Maximetros }});
+                                                            values_val_maximetro.push({{ $resultado->maximetros }});
                                                         @endforeach
 
 
@@ -1131,44 +1143,44 @@
 
                                                         // Calcular totales por contrato
                                                         @foreach ($resultadosQ28pf as $resultado)
-                                                            if ({{ $resultado->Contrato }} == 1) {
-                                                                totalContrato1 += {{ $resultado->Energia_Activa_Incremental }};
-                                                            } else if ({{ $resultado->Contrato }} == 2) {
-                                                                totalContrato2 += {{ $resultado->Energia_Activa_Incremental }};
-                                                            } else if ({{ $resultado->Contrato }} == 3) {
-                                                                totalContrato3 += {{ $resultado->Energia_Activa_Incremental }};
+                                                            if ({{ $resultado->contrato }} == 1) {
+                                                                totalContrato1 += {{ $resultado->energia_activa_incremental }};
+                                                            } else if ({{ $resultado->contrato }} == 2) {
+                                                                totalContrato2 += {{ $resultado->energia_activa_incremental }};
+                                                            } else if ({{ $resultado->contrato }} == 3) {
+                                                                totalContrato3 += {{ $resultado->energia_activa_incremental }};
                                                             }
                                                         @endforeach
 
                                                         // Llenar datos por contrato
                                                         @foreach ($resultadosQ28pf as $resultado)
                                                             var porcentaje = 0;
-                                                            if ({{ $resultado->Contrato }} == 1 && {{ $resultado->Energia_Activa_Incremental }} != 0) {
-                                                                porcentaje = ({{ $resultado->Energia_Activa_Incremental }} / totalContrato1) * 100;
+                                                            if ({{ $resultado->contrato }} == 1 && {{ $resultado->energia_activa_incremental }} != 0) {
+                                                                porcentaje = ({{ $resultado->energia_activa_incremental }} / totalContrato1) * 100;
                                                                 dataContrato1.push({
-                                                                    label: 'Periodo {{ $resultado->Periodo_Tarifario }}: {{ $resultado->Energia_Activa_Incremental }} kWh',
-                                                                    value: {{ $resultado->Energia_Activa_Incremental }},
+                                                                    label: 'Periodo {{ $resultado->periodo_tarifario }}: {{ $resultado->energia_activa_incremental }} kWh',
+                                                                    value: {{ $resultado->energia_activa_incremental }},
                                                                     percentage: porcentaje.toFixed(2)
                                                                 });
-                                                            } else if ({{ $resultado->Contrato }} == 2 && {{ $resultado->Energia_Activa_Incremental }} != 0) {
-                                                                porcentaje = ({{ $resultado->Energia_Activa_Incremental }} / totalContrato2) * 100;
+                                                            } else if ({{ $resultado->contrato }} == 2 && {{ $resultado->energia_activa_incremental }} != 0) {
+                                                                porcentaje = ({{ $resultado->energia_activa_incremental }} / totalContrato2) * 100;
                                                                 dataContrato2.push({
-                                                                    label: 'Periodo {{ $resultado->Periodo_Tarifario }}: {{ $resultado->Energia_Activa_Incremental }} kWh',
-                                                                    value: {{ $resultado->Energia_Activa_Incremental }},
+                                                                    label: 'Periodo {{ $resultado->periodo_tarifario }}: {{ $resultado->energia_activa_incremental }} kWh',
+                                                                    value: {{ $resultado->energia_activa_incremental }},
                                                                     percentage: porcentaje.toFixed(2)
                                                                 });
-                                                            } else if ({{ $resultado->Contrato }} == 3 && {{ $resultado->Energia_Activa_Incremental }} != 0) {
-                                                                porcentaje = ({{ $resultado->Energia_Activa_Incremental }} / totalContrato3) * 100;
+                                                            } else if ({{ $resultado->contrato }} == 3 && {{ $resultado->energia_activa_incremental }} != 0) {
+                                                                porcentaje = ({{ $resultado->energia_activa_incremental }} / totalContrato3) * 100;
                                                                 dataContrato3.push({
-                                                                    label: 'Periodo {{ $resultado->Periodo_Tarifario }}: {{ $resultado->Energia_Activa_Incremental }} kWh',
-                                                                    value: {{ $resultado->Energia_Activa_Incremental }},
+                                                                    label: 'Periodo {{ $resultado->periodo_tarifario }}: {{ $resultado->energia_activa_incremental }} kWh',
+                                                                    value: {{ $resultado->energia_activa_incremental }},
                                                                     percentage: porcentaje.toFixed(2)
                                                                 });
                                                             }
 
                                                             // Evitar duplicar los periodos tarifarios en las etiquetas
-                                                            if (!labelsPeriodo.includes('{{ $resultado->Periodo_Tarifario }}')) {
-                                                                labelsPeriodo.push('{{ $resultado->Periodo_Tarifario }}');
+                                                            if (!labelsPeriodo.includes('{{ $resultado->periodo_tarifario }}')) {
+                                                                labelsPeriodo.push('{{ $resultado->periodo_tarifario }}');
                                                             }
                                                         @endforeach
 
@@ -1459,69 +1471,69 @@
                                                                             @foreach ($resultadosQ6pf as $resultado)
                                                                                 <tr class="highlight-row ">
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->CUPS) ? $resultado->CUPS : 'No hay datos' }}
+                                                                                        {{ !empty($resultado->cups) ? $resultado->cups : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
                                                                                         {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Contrato) ? $resultado->Contrato : 'No hay datos' }}
+                                                                                        {{ !empty($resultado->contrato) ? $resultado->contrato : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Periodo_Tarifario) ? $resultado->Periodo_Tarifario : '0' }}
+                                                                                        {{ !empty($resultado->periodo_tarifario) ? $resultado->periodo_tarifario : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Fecha_Inicio) ? $resultado->Fecha_Inicio : 'No hay datos' }}
+                                                                                        {{ !empty($resultado->fecha_inicio) ? $resultado->fecha_inicio : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Fecha_Fin) ? $resultado->Fecha_Fin : 'No hay datos' }}
+                                                                                        {{ !empty($resultado->fecha_fin) ? $resultado->fecha_fin : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Energia_Activa_Absoluta) ? $resultado->Energia_Activa_Absoluta : '0' }}
+                                                                                        {{ !empty($resultado->energia_activa_absoluta) ? $resultado->energia_activa_absoluta : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Energia_Activa_Incremental) ? $resultado->Energia_Activa_Incremental : '0' }}
+                                                                                        {{ !empty($resultado->energia_activa_incremental) ? $resultado->energia_activa_incremental : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Activa) ? $resultado->Bit_Calidad_Activa : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_activa) ? $resultado->bit_calidad_activa : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Inductiva_Absoluta) ? $resultado->Energia_Reactiva_Inductiva_Absoluta : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_inductiva_absoluta) ? $resultado->energia_reactiva_inductiva_absoluta : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Inductiva_Incremental) ? $resultado->Energia_Reactiva_Inductiva_Incremental : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_inductiva_incremental) ? $resultado->energia_reactiva_inductiva_incremental : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Reactiva_Inductiva) ? $resultado->Bit_Calidad_Reactiva_Inductiva : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_reactiva_inductiva) ? $resultado->bit_calidad_reactiva_inductiva : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Capacitiva_Absoluta) ? $resultado->Energia_Reactiva_Capacitiva_Absoluta : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_capacitiva_absoluta) ? $resultado->energia_reactiva_capacitiva_absoluta : '0' }}
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Energia_Reactiva_Capacitiva_Incremental) ? $resultado->Energia_Reactiva_Capacitiva_Incremental : '0' }}
-                                                                                    </td>
-                                                                                    </td>
-                                                                                    <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Reactiva_Capacitiva) ? $resultado->Bit_Calidad_Reactiva_Capacitiva : '0' }}
+                                                                                        {{ !empty($resultado->energia_reactiva_capacitiva_incremental) ? $resultado->energia_reactiva_capacitiva_incremental : '0' }}
                                                                                     </td>
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Excesos_de_Potencias) ? $resultado->Excesos_de_Potencias : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_reactiva_capacitiva) ? $resultado->bit_calidad_reactiva_capacitiva : '0' }}
                                                                                     </td>
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Excesos) ? $resultado->Bit_Calidad_Excesos : '0' }}
+                                                                                        {{ !empty($resultado->excesos_de_potencias) ? $resultado->excesos_de_potencias : '0' }}
                                                                                     </td>
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Maximetros) ? $resultado->Maximetros : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_excesos) ? $resultado->bit_calidad_excesos : '0' }}
                                                                                     </td>
                                                                                     </td>
                                                                                     <td class="py-6 small">
-                                                                                        {{ !empty($resultado->Fecha_Maximetros) ? $resultado->Fecha_Maximetros : 'No hay datos' }}
+                                                                                        {{ !empty($resultado->maximetros) ? $resultado->maximetros : '0' }}
+                                                                                    </td>
+                                                                                    </td>
+                                                                                    <td class="py-6 small">
+                                                                                        {{ !empty($resultado->fecha_maximetros) ? $resultado->fecha_maximetros : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-2">
-                                                                                        {{ !empty($resultado->Bit_Calidad_Maximetros) ? $resultado->Bit_Calidad_Maximetros : '0' }}
+                                                                                        {{ !empty($resultado->bit_calidad_maximetros) ? $resultado->bit_calidad_maximetros : '0' }}
                                                                                     </td>
                                                                                     </td>
                                                                                 </tr>
@@ -1548,73 +1560,6 @@
                                                 </div>
 
 
-                                            </div>
-                                        </div>
-                                        {{-- LOG DE COMUNICACIONES --}}
-                                        <div
-                                            class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6 mb-6">
-                                            <div class="card text-white  mb-2"
-                                                style="
-                                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                                <h1 class="text-center text-2xl" style="color: white;">
-                                                    LOG DE COMUNICACIONES </h1>
-                                                <div
-                                                    style="border-bottom: 3px solid transparent;
-                                                                                         border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                                                </div>
-
-
-                                                <!-- Contenido de PL2 -->
-                                                <div class="table-responsive"
-                                                    style="display: flex; justify-content: center;">
-                                                    <div class="overflow-x-auto">
-                                                        <div class="container">
-                                                            @if (count($resultadosQ5pf) > 0)
-                                                                <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
-                                                                    style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
-                                                                    <table id="testTableBajaDisponibilidad"
-                                                                        class="w-full text-white text-center">
-                                                                        <thead
-                                                                            style="border-bottom: 1px solid #ffffff;">
-                                                                            <tr>
-                                                                                <th class="mr-0  pl-4 text-xl text-center"
-                                                                                    style="color:rgb(88,226,194)">
-                                                                                    Contador</th>
-                                                                                <th class="mt-0   pl-4 text-xl text-center"
-                                                                                    style="color:rgb(88,226,194)">
-                                                                                    Ts</th>
-                                                                                <th class="mt-0  pl-4 text-xl text-center"
-                                                                                    style="color:rgb(88,226,194)">
-                                                                                    Logs</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach ($resultadosQ5pf as $resultado)
-                                                                                <tr class="highlight-row ">
-                                                                                    <td class="py-2 pl-4">
-                                                                                        {{ !empty($resultado->id_cnt) ? $resultado->id_cnt : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2 pl-4">
-                                                                                        {{ !empty($resultado->ts) ? $resultado->ts : 'No hay datos' }}
-                                                                                    </td>
-                                                                                    <td class="py-2 pl-6">
-                                                                                        {{ !empty($resultado->log) ? $resultado->log : 'No hay datos' }}
-                                                                                    </td>
-                                                                                </tr>
-                                                                            @endforeach
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            @else
-                                                                <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
-                                                                    <p class="mt-0 text-xl  text-center"
-                                                                        style="color:rgb(88,226,194)">No hay datos
-                                                                    </p>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </div>
                                     @endif

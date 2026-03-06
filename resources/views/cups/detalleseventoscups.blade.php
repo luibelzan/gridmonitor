@@ -753,7 +753,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         </div>
                     </div>
                     @if (isset($id_cups) || isset($id_cnt))
-                        @if (count($resultadosQ1cups) === 0)
+                        @if (count($resultadosQ6cups) === 0)
                             <div class="flex justify-center">
                                 <div class="alert alert-danger text-center max-w-max flex items-center space-x-2"
                                     role="alert">
@@ -772,13 +772,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                 style="border-bottom: 3px solid transparent;
             border-image: linear-gradient(to right, transparent, rgb(27,32,38), transparent) 1;">
                             </div>
-
-
-
-
-
-
-
 
                             {{-- PRIMERA FILA --}}
                             <div class="container ">
@@ -855,18 +848,19 @@ document.addEventListener("DOMContentLoaded", function () {
                                                         </div>
                                                     </div>
 
-
-
-
-
-
-
-
                                                 </div>
                                                 <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
                                                     <div class="card text-white  mb-2"
                                                         style="
                                                       background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                                        <!-- Leyenda elegante centrada solo en primera página -->
+                                                        @if(!request()->has('page') || request()->input('page') == 1)
+                                                            <div class="flex justify-center mb-4">
+                                                                <span class="bg-gradient-to-r from-cyan-500 to-teal-500 text-white font-semibold px-4 py-2 rounded-lg shadow-lg text-center">
+                                                                    Últimos 100 eventos
+                                                                </span>
+                                                            </div>
+                                                        @endif  
                                                         <div class="container">
                                                             @if (count($resultadosQ6cups) > 0)
                                                                 <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
@@ -885,6 +879,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     HORA</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    Fase</th>
+                                                                                <th class="mt-0 text-xl font-bold text-center"
+                                                                                    style="color:rgb(88,226,194)">
+                                                                                    Linea</th>
                                                                                 <th class="mt-0 text-xl font-bold text-center"
                                                                                     style="color:rgb(88,226,194)">
                                                                                     DESCRIPCIÓN EVENTO</th>
@@ -907,6 +907,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->hor_evento) ? $resultado->hor_evento : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->cod_fase) ? $resultado->cod_fase : 'No hay datos' }}
+                                                                                    </td>
+                                                                                    <td class="py-2">
+                                                                                        {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}
                                                                                     </td>
                                                                                     <td class="py-2">
                                                                                         {{ !empty($resultado->des_evento_contador) ? $resultado->des_evento_contador : 'No hay datos' }}

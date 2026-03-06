@@ -533,6 +533,33 @@ document.addEventListener("DOMContentLoaded", function () {
                                             border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                         </div>
 
+                                        {{-- Recuadro centrado con pérdida general --}}
+                                        <div class="flex justify-center mt-4">
+                                            @php
+                                                $porcentajeGeneral = $balancesGeneralSABT[0]->porcentaje_perdida ?? 0;
+                                                $colorGeneral = $porcentajeGeneral > 6 ? 'red' : 'green';
+
+                                                $perdidaGeneral = $balancesGeneralSABT[0]->perdida_energia ?? 0;
+                                            @endphp
+
+                                            <div style="
+                                                border: 2px solid {{ $colorGeneral }};
+                                                border-radius: 12px;
+                                                padding: 10px 20px;
+                                                color: white;
+                                                font-size: 20px;
+                                                font-weight: bold;
+                                                text-align: center;
+                                                min-width: 220px;
+                                                background: rgba(255, 255, 255, 0.05);
+                                                backdrop-filter: blur(4px);
+                                            ">
+                                                <div>Pérdida General: {{ number_format($perdidaGeneral / 1000, 0, '', '') }} kWh</div>
+                                                <div>% Pérdida: {{ $porcentajeGeneral }}%</div>
+                                            </div>
+                                        </div>
+
+
                                         <div class="overflow-x-auto flex flex-wrap  "
                                             style="display: flex; flex-wrap: nowrap; justify-content: space-around;">
                                             @foreach ($balancesSABT as $resultado)
@@ -560,7 +587,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         d="M17.943 14.537a.8.8 0 0 1-.161.242l-.002.001l-.001.002a.75.75 0 0 1-.529.218h-5.5a.75.75 0 0 1 0-1.5h3.69L10.5 8.56l-1.97 1.97a.75.75 0 0 1-1.06 0L2.22 5.28a.75.75 0 0 1 1.06-1.06L8 8.94l1.97-1.97a.75.75 0 0 1 1.06 0l5.47 5.47V8.75a.75.75 0 0 1 1.5 0v5.5q0 .154-.057.287" />
                                                                 </svg>
                                                                 <span
-                                                                    style="margin-top: 15px; font-size:16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                                    style="margin-top: -0.4rem; font-size:16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                                                    {{ !empty($resultado->perdida_energia) ? number_format($resultado->perdida_energia / 1000, 0, '', '') : '0' }} kWh
+                                                                </span>
+                                                                <span
+                                                                    style="margin-top: 0.93rem; font-size:16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                                                                     {{ !empty($resultado->porcentaje_perdida) ? $resultado->porcentaje_perdida : '0' }}
                                                                     %
                                                                 </span>

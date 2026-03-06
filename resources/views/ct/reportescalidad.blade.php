@@ -1472,9 +1472,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 style="color:rgb(88,226,194); padding: 0 8px;">
                                                                 Dirección CUPS</th>
                                                             <th class="mt-0 text-xl font-bold text-center"
-                                                                style="color:rgb(88,226,194); padding: 0 8px;">Fecha
-                                                            </th>
-                                                            <th class="mt-0 text-xl font-bold text-center"
                                                                 style="color:rgb(88,226,194); padding: 0 8px;">Cortes
                                                             </th>
                                                             <th class="mt-0 text-xl font-bold text-center"
@@ -1503,9 +1500,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->dir_cups) ? $resultado->dir_cups : 'No hay datos' }}
-                                                                </td>
-                                                                <td class="py-2">
-                                                                    {{ !empty($resultado->fecha) ? $resultado->fecha : 'No hay datos' }}
                                                                 </td>
                                                                 <td class="py-2">
                                                                     {{ !empty($resultado->apagones) ? $resultado->apagones : '0' }}

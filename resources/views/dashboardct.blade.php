@@ -345,6 +345,21 @@
 
 
         }
+
+        .sort-arrow {
+            margin-left: 6px;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .sort-arrow.asc::before {
+            content: "▲"; /* Flecha ascendente */
+        }
+
+        .sort-arrow.desc::before {
+            content: "▼"; /* Flecha descendente */
+        }
+
     </style>
     <script>
         function tableToExcel(tableID, worksheetName) {
@@ -405,14 +420,844 @@
             return (sa);
         }
     </script>
+    <script>
+        function tableToExcel2(tableID, worksheetName) {
+            var table = document.getElementById(tableID); // Crear una tabla con los datos de la tabla HTML
+            var data = "<table border='1'>";
+            for (var i = 0; i < table.rows.length; i++) {
+                var rowData = [];
+                for (var j = 0; j < table.rows[i].cells.length; j++) {
+                    rowData.push(table.rows[i].cells[j].innerText);
+                }
+                data += "<tr><td>" + rowData.join("</td><td>") + "</td></tr>";
+            }
+            data += "</table>"; // Convertir a formato Excel y descargar
+            var uri = 'data:application/vnd.ms-excel;base64,';
+            var template =
+                '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!-- ... --></head><body><table>{table}</table></body></html>';
+            var base64 = function(s) {
+                return window.btoa(unescape(encodeURIComponent(s)))
+            };
+            var format = function(s, c) {
+                return s.replace(/{(\w+)}/g, function(m, p) {
+                    return c[p];
+                })
+            };
+            var excelData = format(template, {
+                worksheet: worksheetName,
+                table: data
+            }); // Crear un enlace temporal y descargar el archivo Excel
+            var link = document.createElement("a");
+            link.href = uri + base64(excelData);
+            link.download = "info_dashboard_ct.xls";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+    <script>
+        function openModalEstadisticasCt() {
+            document.getElementById('modalEstadisticasCt').classList.remove('hidden');
+
+            // Contenedor donde irá el contenido
+            const container = document.getElementById('modalCtContent');
+            container.innerHTML = "<p class='text-center'>Cargando...</p>";
+
+            // Petición AJAX
+            fetch('/modal/stats-ct')
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    container.innerHTML = "<p class='text-red-500'>Error al cargar datos</p>";
+                });
+        }
+
+        function openModalRecuperacionLecturasCt() {
+            document.getElementById('modalRecuperacionLecturasCt').classList.remove('hidden');
+
+            // Contenedor donde irá el contenido
+            const container = document.getElementById('modalRecuperacionContent');
+            container.innerHTML = "<p class='text-center'>Cargando...</p>";
+
+            // Petición AJAX
+            fetch('/modal/recuperacion-lecturas')
+                .then(response => response.text())
+                .then(html => {
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    container.innerHTML = "<p class='text-red-500'>Error al cargar datos</p>";
+                });
+        }
+
+        function closeModalEstadisticasCt() {
+            document.getElementById('modalEstadisticasCt').classList.add('hidden');
+        }
+
+        function closeModalRecuperacionLecturasCt() {
+            document.getElementById('modalRecuperacionLecturasCt').classList.add('hidden');
+        }
+
+    </script>
+
+    <script>
+        function openModalDesequilibriosVoltaje(id_ct) {
+            document.getElementById("modalDesequilibriosVoltaje").classList.remove("hidden");
+
+            fetch('/modal/desequilibrios-voltaje/' + id_ct)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("modalDesequilibriosVoltajeContent").innerHTML = html;
+
+                    // Ejecutar gráfico después de insertar el HTML
+                    var grafico = document.getElementById('graficoDesequilibrioVoltaje');
+                    if (grafico) {
+                        var avg = parseFloat(grafico.dataset.avg);
+                        var min = parseFloat(grafico.dataset.min);
+                        var max = parseFloat(grafico.dataset.max);
+
+                        if (avg === 0 && min === 0 && max === 0) {
+                            grafico.innerHTML = "<p class='text-yellow-500 text-center'>No hay datos</p>";
+                            return;
+                        }
+
+                        var color = avg <= 3 ? "rgb(76,218,19)" : "rgba(232,80,107,0.9)";
+                        var data = [{
+                            type: "indicator",
+                            mode: "gauge",
+                            value: avg,
+                            gauge: { axis: { range: [min, max] }, bar: { color: color } }
+                        }];
+
+                        var layout = { 
+                            paper_bgcolor: "transparent", 
+                            font: { color: "white" }, 
+                            margin: { t: 20, b: 20, l: 20, r: 20 },
+                            annotations: [{
+                                x: 0.5,        // centrar horizontal
+                                y: 0.4,       // colocar debajo del gráfico (ajusta según altura)
+                                text: avg + " %",
+                                showarrow: false,
+                                font: { size: 20, color: color }
+                            }]
+                         };
+                        Plotly.react('graficoDesequilibrioVoltaje', data, layout);
+                    }
+                });
+        }
+
+        function openModalDesequilibriosCorriente(id_ct) {
+            // Mostrar modal
+            document.getElementById("modalDesequilibriosCorriente").classList.remove("hidden");
+
+            // Cargar contenido vía AJAX
+            fetch('/modal/desequilibrios-corriente/' + id_ct)
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById("modalDesequilibriosCorrienteContent").innerHTML = html;
+
+                    // Inicializar gráfico después de insertar el HTML
+                    var grafico = document.getElementById('graficoDesequilibrioCorriente');
+                    if (grafico) {
+                        var avg = parseFloat(grafico.dataset.avg) || 0;
+                        var min = parseFloat(grafico.dataset.min) || 0;
+                        var max = parseFloat(grafico.dataset.max) || 0;
+
+                        if(avg === 0 && min === 0 && max === 0){
+                            grafico.innerHTML = "<p class='text-yellow-500 text-center'>No hay datos</p>";
+                            return;
+                        }
+
+                        if(min === max) max = min + 1; // evitar rango cero
+
+                        var color = avg <= 30 ? "rgb(76,218,19)" : "rgba(232,80,107,0.9)";
+
+                        var data = [{
+                            type: "indicator",
+                            mode: "gauge",
+                            value: avg,
+                            gauge: { axis: { range: [min, max] }, bar: { color: color } }
+                        }];
+
+                        var layout = {
+                            paper_bgcolor: "transparent",
+                            font: { color: "white" },
+                            margin: { t: 20, b: 20, l: 20, r: 20 },
+                            annotations: [{
+                                x: 0.5,
+                                y: 0.4, // debajo del gráfico
+                                text: avg + " %",
+                                showarrow: false,
+                                font: { size: 20, color: color }
+                            }]
+                        };
+
+                        Plotly.react('graficoDesequilibrioCorriente', data, layout);
+                    }
+                });
+        }
+
+        function closeModalDesequilibriosVoltaje() {
+            document.getElementById('modalDesequilibriosVoltaje').classList.add('hidden');
+        }
+
+        function closeModalDesequilibriosCorriente() {
+            document.getElementById('modalDesequilibriosCorriente').classList.add('hidden');
+        }
+
+        </script>
+
+        <script>
+
+        function openModalPromedioFaseR(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalPromedioFaseR").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const content = document.getElementById("modalPromedioFaseRContent");
+        content.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Petición AJAX
+        fetch('/modal/promedio-fase-r/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar HTML cargado
+                content.innerHTML = html;
+
+                // Ejecutar scripts internos si existen
+                ejecutarScriptsDelContenido(content);
+
+                // ==========================================
+                //  RENDERIZAR GRAFICO PROMEDIO FASE R (ESTILO UNIFICADO)
+                // ==========================================
+
+                const graf = document.getElementById("graficoVoltajeProm1");
+                if (!graf) return;
+
+                // Leer valores desde el Blade
+                const avg = parseFloat(graf.dataset.avg);
+                const min = parseFloat(graf.dataset.min);
+                const max = parseFloat(graf.dataset.max);
+
+                if (avg === 0 && min === 0 && max === 0) {
+                    graf.innerHTML = "<p class='text-yellow-500 text-center mt-4'>No hay datos</p>";
+                    return;
+                }
+
+                // === MISMO SISTEMA DE COLORES QUE updateChartVoltajeProm1 ===
+                function getColor(value) {
+                    return value < 80 ? "rgba(232,80,107, 0.9)" : "rgba(39,47,58, 0.9)";
+                }
+
+                const color = getColor(avg);
+                const textColor = color === "rgba(232,80,107, 0.9)" 
+                    ? "rgba(232,80,107, 0.9)"
+                    : "rgb(238,145,4)";
+
+                // === DATA unificada ===
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge",
+                    value: avg,
+                    title: {
+                        font: {
+                            size: 20,
+                            color: 'white'
+                        }
+                    },
+                    gauge: {
+                        axis: {
+                            range: [min, max],
+                            tickwidth: 1,
+                            tickcolor: "rgb(238,145,4)",
+                            linecolor: "rgb(238,145,4)"
+                        },
+                        bar: {
+                            color: "rgb(238,145,4)",
+                            thickness: 0.8
+                        },
+                        bgcolor: "transparent",
+                        borderwidth: 2,
+                        bordercolor: "transparent",
+                        steps: [
+                            { range: [0, min], color: color },
+                            { range: [min, max], color: "rgba(27,32,38,0.5)" }
+                        ],
+                        startangle: 270
+                    }
+                }];
+
+                // === LAYOUT unificado ===
+                const layout = {
+                    paper_bgcolor: "transparent",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    margin: { t: 35, r: 35, l: 35, b: 35 },
+                    font: {
+                        color: "white",
+                        family: "Didact Gothic",
+                        weight: 'normal'
+                    },
+                    annotations: [{
+                        text: avg + " V",
+                        x: 0.5,
+                        y: 0.4,
+                        showarrow: false,
+                        font: {
+                            size: 20,
+                            color: textColor
+                        }
+                    }]
+                };
+
+                // Renderizar con los MISMO estilos
+                Plotly.react("graficoVoltajeProm1", data, layout, {
+                    displaylogo: false,
+                    displayModeBar: false
+                });
+            })
+            .catch(error => {
+                content.innerHTML = '<p class="text-center text-red-400">Error al cargar los datos</p>';
+                console.error(error);
+            });
+    }
+
+    function openModalPromedioFaseS(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalPromedioFaseS").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const content = document.getElementById("modalPromedioFaseSContent");
+        content.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Petición AJAX
+        fetch('/modal/promedio-fase-s/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar HTML cargado
+                content.innerHTML = html;
+
+                // Ejecutar scripts internos si existen
+                ejecutarScriptsDelContenido(content);
+
+                // ==========================================
+                //  RENDERIZAR GRAFICO PROMEDIO FASE S (ESTILO UNIFICADO)
+                // ==========================================
+
+                const graf = document.getElementById("graficoVoltajeProm2");
+                if (!graf) return;
+
+                // Leer valores desde el Blade
+                const avg = parseFloat(graf.dataset.avg);
+                const min = parseFloat(graf.dataset.min);
+                const max = parseFloat(graf.dataset.max);
+                console.log({avg, min, max}); // Esto te permitirá ver qué valores llegan realmente
+
+                if (avg === 0 && min === 0 && max === 0) {
+                    graf.innerHTML = "<p class='text-yellow-500 text-center mt-4'>No hay datos</p>";
+                    return;
+                }
+
+                // === MISMO SISTEMA DE COLORES QUE FASE R PERO CELSTE ===
+                function getColor(value) {
+                    return value < 80 ? "rgba(232,80,107, 0.9)" : "rgba(39,47,58, 0.9)";
+                }
+
+                const color = getColor(avg);
+                const textColor = color === "rgba(232,80,107, 0.9)" 
+                    ? "rgba(232,80,107, 0.9)"
+                    : "rgba(88,226,194,0.9)";
+
+                // === DATA ===
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge",
+                    value: avg,
+                    title: {
+                        font: {
+                            size: 20,
+                            color: 'white'
+                        }
+                    },
+                    gauge: {
+                        axis: {
+                            range: [min, max],
+                            tickwidth: 1,
+                            tickcolor: "rgb(88,226,194)",
+                            linecolor: "rgb(88,226,194)"
+                        },
+                        bar: {
+                            color: "rgba(88,226,194,0.9)",
+                            thickness: 0.8
+                        },
+                        bgcolor: "transparent",
+                        borderwidth: 2,
+                        bordercolor: "transparent",
+                        steps: [
+                            { range: [0, min], color: color },
+                            { range: [min, max], color: "rgba(27,32,38,0.5)" }
+                        ],
+                        startangle: 270
+                    }
+                }];
+
+                // === LAYOUT ===
+                const layout = {
+                    paper_bgcolor: "transparent",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    margin: { t: 35, r: 35, l: 35, b: 35 },
+                    font: {
+                        color: "white",
+                        family: "Didact Gothic",
+                        weight: 'normal'
+                    },
+                    annotations: [{
+                        text: avg + " V",
+                        x: 0.5,
+                        y: 0.4,
+                        showarrow: false,
+                        font: {
+                            size: 20,
+                            color: textColor
+                        }
+                    }]
+                };
+
+                // Renderizar
+                Plotly.react("graficoVoltajeProm2", data, layout, {
+                    displaylogo: false,
+                    displayModeBar: false
+                });
+
+            })
+            .catch(error => {
+                content.innerHTML = '<p class="text-center text-red-400">Error al cargar los datos</p>';
+                console.error(error);
+            });
+    }
+
+    function openModalPromedioFaseT(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalPromedioFaseT").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const content = document.getElementById("modalPromedioFaseTContent");
+        content.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Petición AJAX
+        fetch('/modal/promedio-fase-t/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar HTML cargado
+                content.innerHTML = html;
+
+                // Ejecutar scripts internos si existen
+                ejecutarScriptsDelContenido(content);
+
+                // ==========================================
+                //  RENDERIZAR GRAFICO PROMEDIO FASE T (ESTILO UNIFICADO)
+                // ==========================================
+
+                const graf = document.getElementById("graficoVoltajeProm3");
+                if (!graf) return;
+
+                // Leer valores desde el Blade
+                const avg = parseFloat(graf.dataset.avg);
+                const min = parseFloat(graf.dataset.min);
+                const max = parseFloat(graf.dataset.max);
+                console.log({avg, min, max}); // Ver qué valores llegan realmente
+
+                if (avg === 0 && min === 0 && max === 0) {
+                    graf.innerHTML = "<p class='text-yellow-500 text-center mt-4'>No hay datos</p>";
+                    return;
+                }
+
+                // === MISMO SISTEMA DE COLORES QUE FASE T (AZUL) ===
+                function getColor(value) {
+                    return value < 80 ? "rgba(232,80,107,0.9)" : "rgba(44,131,174,0.9)";
+                }
+
+                const color = getColor(avg);
+                const textColor = color === "rgba(232,80,107,0.9)" 
+                    ? "rgba(232,80,107,0.9)" 
+                    : "rgba(44,131,174,0.9)";
+
+                // === DATA ===
+                const data = [{
+                    type: "indicator",
+                    mode: "gauge",
+                    value: avg,
+                    title: {
+                        font: {
+                            size: 20,
+                            color: 'white'
+                        }
+                    },
+                    gauge: {
+                        axis: {
+                            range: [min, max],
+                            tickwidth: 1,
+                            tickcolor: "rgb(44,131,174)",
+                            linecolor: "rgb(44,131,174)"
+                        },
+                        bar: {
+                            color: "rgba(44,131,174,0.9)",
+                            thickness: 0.8
+                        },
+                        bgcolor: "transparent",
+                        borderwidth: 2,
+                        bordercolor: "transparent",
+                        steps: [
+                            { range: [0, min], color: color },
+                            { range: [min, max], color: "rgba(27,32,38,0.5)" }
+                        ],
+                        startangle: 270
+                    }
+                }];
+
+                // === LAYOUT ===
+                const layout = {
+                    paper_bgcolor: "transparent",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    margin: { t: 35, r: 35, l: 35, b: 35 },
+                    font: {
+                        color: "white",
+                        family: "Didact Gothic",
+                        weight: 'normal'
+                    },
+                    annotations: [{
+                        text: avg + " V",
+                        x: 0.5,
+                        y: 0.4,
+                        showarrow: false,
+                        font: {
+                            size: 20,
+                            color: textColor
+                        }
+                    }]
+                };
+
+                // Renderizar
+                Plotly.react("graficoVoltajeProm3", data, layout, {
+                    displaylogo: false,
+                    displayModeBar: false
+                });
+
+            })
+            .catch(error => {
+                content.innerHTML = '<p class="text-center text-red-400">Error al cargar los datos</p>';
+                console.error(error);
+            });
+    }
+
+    function openModalCapacidadUltimoAnio(id_ct) {
+
+        // Mostrar modal
+        document.getElementById("modalCapacidadUltimoAnio").classList.remove("hidden");
+
+        // Mostrar mensaje de carga
+        const cont = document.getElementById("modalCapacidadUltimoAnioContent");
+        cont.innerHTML = '<p class="text-center text-yellow-400">Cargando...</p>';
+
+        // Cargar contenido vía AJAX
+        fetch('/modal/capacidad-ultimo-anio/' + id_ct)
+            .then(response => response.text())
+            .then(html => {
+
+                // Insertar el HTML cargado
+                cont.innerHTML = html;
+
+                // EJECUTAR SCRIPTS DEL CONTENIDO AJAX (Chart.js)
+                ejecutarScriptsDelContenido(cont);
+
+            })
+            .catch(err => {
+                cont.innerHTML = '<p class="text-center text-red-400">Error al cargar datos</p>';
+                console.error(err);
+            });
+    }
+
+    function closeModalPromedioFaseR() {
+        document.getElementById("modalPromedioFaseR").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.myChartLineVoltaje1) {
+            myChartLineVoltaje1.destroy();
+            myChartLineVoltaje1 = null;
+        }
+    }
+
+    function closeModalPromedioFaseS() {
+        document.getElementById("modalPromedioFaseS").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.myChartLineVoltaje2) {
+            myChartLineVoltaje2.destroy();
+            myChartLineVoltaje2 = null;
+        }
+    }
+
+    function closeModalPromedioFaseT() {
+        document.getElementById("modalPromedioFaseT").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.myChartLineVoltaje3) {
+            myChartLineVoltaje3.destroy();
+            myChartLineVoltaje3 = null;
+        }
+    }
+
+    function closeModalCapacidadUltimoAnio() {
+        document.getElementById("modalCapacidadUltimoAnio").classList.add("hidden");
+
+        // 🔥 destruir gráfico si existe
+        if (window.graficoBarrasCapacidadAnio) {
+            graficoBarrasCapacidadAnio.destroy();
+            graficoBarrasCapacidadAnio = null;
+        }
+    }
+
+
+    // ---------------------------------------------------------
+    // 🔥 FUNCIÓN OBLIGATORIA PARA QUE SE EJECUTEN TUS GRÁFICOS
+    // ---------------------------------------------------------
+
+    function ejecutarScriptsDelContenido(elemento) {
+        const scripts = elemento.getElementsByTagName("script");
+
+        for (let i = 0; i < scripts.length; i++) {
+
+            const nuevoScript = document.createElement("script");
+
+            if (scripts[i].src) {
+                nuevoScript.src = scripts[i].src;
+            } else {
+                nuevoScript.textContent = scripts[i].innerHTML;
+            }
+
+            document.body.appendChild(nuevoScript);
+        }
+    }
+
+</script>
+
+
+
+    <script>
+    function sortTable(colIndex, thElement) {
+        const table = document.getElementById("testTableInfoDashboardCt");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.rows);
+
+        // Detectar dirección actual
+        let direction = thElement.getAttribute("data-sort") === "asc" ? "desc" : "asc";
+        thElement.setAttribute("data-sort", direction);
+        
+        // Resetear todas las flechas
+        document.querySelectorAll(".sort-arrow").forEach(arrow => {
+            arrow.classList.remove("asc", "desc");
+        });
+
+        // Activar flecha de esta columna
+        const arrow = thElement.querySelector(".sort-arrow");
+        arrow.classList.add(direction);
+
+        // Ordenar filas
+        rows.sort((a, b) => {
+            let valA = a.cells[colIndex].innerText.replace('%', '').trim();
+            let valB = b.cells[colIndex].innerText.replace('%', '').trim();
+
+            // Convertir a número si aplica
+            if (!isNaN(valA) && !isNaN(valB)) {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+
+            return direction === "asc" ? valA > valB ? 1 : -1 : valA < valB ? 1 : -1;
+        });
+
+        // Insertar filas ordenadas
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    function sortTableEstadisticas(colIndex, thElement) {
+
+    const table = thElement.closest("table"); // encuentra la tabla real
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+
+    // detectar dirección
+    let direction = thElement.getAttribute("data-sort") === "asc" ? "desc" : "asc";
+    thElement.setAttribute("data-sort", direction);
+
+    // resetear flechas solo en esta tabla
+    table.querySelectorAll(".sort-arrow2").forEach(arrow => {
+        arrow.classList.remove("asc", "desc");
+    });
+
+    thElement.querySelector(".sort-arrow2").classList.add(direction);
+
+    rows.sort((a, b) => {
+        let valA = a.cells[colIndex].innerText.replace('%','').trim();
+        let valB = b.cells[colIndex].innerText.replace('%','').trim();
+
+        if (!isNaN(valA) && !isNaN(valB)) {
+            valA = parseFloat(valA);
+            valB = parseFloat(valB);
+        }
+
+        return direction === "asc"
+            ? valA > valB ? 1 : -1
+            : valA < valB ? 1 : -1;
+    });
+
+    rows.forEach(row => tbody.appendChild(row));
+}
+    </script>
+
+
+
     <title>Inicio CT</title>
 </head>
 
 
+<!-- Modal -->
+<div id="modalEstadisticasCt" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
 
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalEstadisticasCt()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
 
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalCtContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
 
+    </div>
+</div>
 
+<!-- Modal -->
+<div id="modalRecuperacionLecturasCt" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalRecuperacionLecturasCt()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalRecuperacionContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalDesequilibriosVoltaje" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalDesequilibriosVoltaje()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalDesequilibriosVoltajeContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalDesequilibriosCorriente" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalDesequilibriosCorriente()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalDesequilibriosCorrienteContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalPromedioFaseR" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalPromedioFaseR()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalPromedioFaseRContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalPromedioFaseS" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalPromedioFaseS()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalPromedioFaseSContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalPromedioFaseT" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalPromedioFaseT()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalPromedioFaseTContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modalCapacidadUltimoAnio" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden z-50">
+    <div class="bg-gray-900 p-6 rounded-xl max-h-[90vh] overflow-y-auto w-11/12 md:w-3/4 lg:w-1/2 relative">
+
+        <!-- BOTÓN CERRAR -->
+        <button onclick="closeModalCapacidadUltimoAnio()"
+            class="absolute top-2 right-3 text-white text-xl font-bold">✕</button>
+
+        <!-- CONTENIDO CARGADO POR AJAX -->
+        <div id="modalCapacidadUltimoAnioContent" class="text-white">
+            <p class="text-center">Cargando...</p>
+        </div>
+
+    </div>
+</div>
 
 
 <body class="h-full sm:grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 justify-center "
@@ -644,288 +1489,286 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div class="flex justify-around items-center mx-0 m-2 text-white pt-2">
+                                                <!-- Botón 1 -->
+                                                <div class="flex flex-col items-center">
+                                                    <button onclick="openModalEstadisticasCt()" title="Estadísticas CT">
+                                                        <img src="/images/ctstats.png" alt="Estadísticas CT" class="w-12 h-12">
+                                                    </button>
+                                                    <span class="mt-1 text-sm text-white">Estadísticas CT</span>
+                                                </div>
+
+                                                <!-- Botón 2 -->
+                                                <div class="flex flex-col items-center">
+                                                    <button onclick="openModalRecuperacionLecturasCt()" title="Recuperación Lecturas">
+                                                        <img src="/images/recuperacion.png" alt="Recuperacion Lecturas" class="w-12 h-12">
+                                                    </button>
+                                                    <span class="mt-1 text-sm text-white">Recuperación Lecturas</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> {{-- SEGUNDA FILA --}}
-                        <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
-                            {{-- 1º cuadro --}}
-
-
-
-                            <div class="card text-white  mb-2"
-                                style="
-                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
-                                <h1 class="text-center text-2xl" style="color: white;">
-                                    ESTADÍSTICAS POR C.T
-                                </h1>
-                                <div
-                                    style="border-bottom: 3px solid transparent;
-                                                                      border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
-                                </div>
-                                <div class="container">
-                                    @if (count($resultadosQ9dashboard) > 0)
-                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
-                                            style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
-                                            <table id="testTableEstadisticasCt" class="w-full text-white text-center">
-                                                <thead style="border-bottom: 1px solid #ffffff;">
-                                                    <tr>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            NOMBRE CT</th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            FECHA LECTURA</th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            LECTURAS S02 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % S02 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            LECTURAS S05 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % S05 </th>
-                                                        <th class="mt-0 text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            LECTURAS S04 </th>
-                                                        <th class="mt-0  text-xl font-bold text-center"
-                                                            style="color:rgb(88,226,194); padding: 10px">
-                                                            % S04</th>
-                                                    </tr>
-                                                </thead>
-
-                                                <tbody>
-                                                    @foreach ($resultadosQ9dashboard as $resultado)
-                                                        <tr class="highlight-row ">
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->nom_ct) ? $resultado->nom_ct : 'No hay datos' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->fec_lectura) ? $resultado->fec_lectura : 'No hay datos' }}
-                                                            </td>
-                                                            <td class="py-2">                                                                
-                                                                {{ !empty($resultado->lec_s02_hoy) ? $resultado->lec_s02_hoy : '0' }}
-                                                                /
-                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->porcentaje_s02) ? $resultado->porcentaje_s02 : '0' }}
-                                                                %
-                                                            </td>
-                                                            <td class="py-2">                                                                
-                                                                {{ !empty($resultado->lec_s05_hoy) ? $resultado->lec_s05_hoy : '0' }}
-                                                                /
-                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->porcentaje_s05) ? $resultado->porcentaje_s05 : '0' }}
-                                                                %
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->lec_s04_hoy) ? $resultado->lec_s04_hoy : '0' }}
-                                                                /
-                                                                {{ !empty($resultado->total_cups_ct) ? $resultado->total_cups_ct : '0' }}
-                                                            </td>
-                                                            <td class="py-2">
-                                                                {{ !empty($resultado->porcentaje_s04) ? $resultado->porcentaje_s04 : '0' }}
-                                                                %
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
-                                            <p class="mt-0 text-xl  text-center" style="color:rgb(88,226,194)">No
-                                                hay
-                                                datos
-                                            </p>
-                                        </div>
-                                    @endif
-                                    <!-- Contenedor del botón de descarga -->
-                                    <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="tableToExcel('testTableEstadisticasCt', 'W3C Example Table')"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        {{-- TERCERA FILA --}}
+
+                        {{-- 1º cuadro --}}
                         <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-6">
-                            {{-- 1º cuadro --}}
                             <div class="card text-white  mb-2"
                                 style="
-                                        background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+                                background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
                                 <h1 class="text-center text-2xl" style="color: white;">
-                                    RECUPERACIÓN DE LECTURAS
+                                    ESTADÍSTICAS DE ENERGÍA POR C.T
                                 </h1>
                                 <div
                                     style="border-bottom: 3px solid transparent;
-                                                                      border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
+                                                    border-image: linear-gradient(to right, rgb(27,32,38), rgb(42,50,62),rgb(27,32,38)) 1;">
                                 </div>
                                 <div class="container">
+                                @if (count($dashboardInfo) > 0)
                                     <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl"
                                         style="max-height: 300px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #888 rgb(27,32,38);">
-                                        @php
-                                            // Combinar todas las fechas de ambas consultas
-                                            $fechas = array_unique(
-                                                array_merge(
-                                                    array_column($resultadosQ12dashboard, 'fec_lectura'),
-                                                    array_column($resultadosQ10dashboard, 'fec_lectura'),
-                                                ),
-                                            );
-                                            // Ordenar las fechas
-                                            sort($fechas);
-                                        @endphp @if (!empty($fechas))
-                                            <table id="testTableRecuperacionLecturas"
-                                                class="w-full text-white text-center">
-                                                <thead style="border-bottom: 1px solid #ffffff;">
-                                                    <!-- Fila de fechas -->
-                                                    <tr>
-                                                        <th></th>
-                                                        @foreach ($fechas as $fecha)
-                                                            <th colspan="2"
-                                                                class="mt-0 text-xl font-bold text-center border-r border-l"
-                                                                style="color:rgb(88,226,194); padding: 10px; text-align: center;">
-                                                                <div
-                                                                    style="display: inline-flex; align-items: center; justify-content: center;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg"
-                                                                        width="20" height="20"
-                                                                        viewBox="0 0 24 24"
-                                                                        style="margin-right: 5px; vertical-align: middle;">
-                                                                        <g fill="none">
-                                                                            <rect width="18" height="15" x="3"
-                                                                                y="6" stroke="#ffffff"
-                                                                                stroke-width="2" rx="2" />
-                                                                            <path fill="#ffffff"
-                                                                                d="M3 10c0-1.886 0-2.828.586-3.414C4.172 6 5.114 6 7 6h10c1.886 0 2.828 0 3.414.586C21 7.172 21 8.114 21 10z" />
-                                                                            <path stroke="#ffffff"
-                                                                                stroke-linecap="round"
-                                                                                stroke-width="2" d="M7 3v3m10-3v3" />
-                                                                            <rect width="4" height="2" x="7"
-                                                                                y="12" fill="#ffffff"
-                                                                                rx=".5" />
-                                                                            <rect width="4" height="2" x="7"
-                                                                                y="16" fill="#ffffff"
-                                                                                rx=".5" />
-                                                                            <rect width="4" height="2" x="13"
-                                                                                y="12" fill="#ffffff"
-                                                                                rx=".5" />
-                                                                            <rect width="4" height="2" x="13"
-                                                                                y="16" fill="#ffffff"
-                                                                                rx=".5" />
-                                                                        </g>
-                                                                    </svg>
-                                                                    <span>{{ !empty($fecha) ? date('d/m/Y', strtotime($fecha)) : 'No hay datos' }}</span>
-                                                                </div>
-                                                            </th>
-                                                        @endforeach
-                                                    </tr>
-                                                    <!-- Fila de subcolumnas S02 y S05 -->
-                                                    <tr>
-                                                        <th></th>
-                                                        @foreach ($fechas as $fecha)
-                                                            <th class="mt-0 text-xl font-bold text-center border-l"
-                                                                style="color:rgb(88,226,194); padding: 10px">S02</th>
-                                                            <th class="mt-0 text-xl font-bold text-center border-r"
-                                                                style="color:rgb(88,226,194); padding: 10px">S05</th>
-                                                        @endforeach
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
+
+                                        <table id="testTableInfoDashboardCt" class="w-full text-white text-center">
+                                            <thead style="border-bottom: 1px solid #ffffff;">
+                                                <tr>
+
+                                                    <th onclick="sortTable(0, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            NOMBRE CT
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(1, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Numero Trafos
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(2, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Capacidad (Kva)
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(3, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Numero Lineas
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(4, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            % Uso
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(5, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Perdida (Últimos 30 días)
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(6, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Porcentaje Perdida (Últimos 30 días)
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(7, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Desequilibrio Voltaje
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(8, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Desequilibrio Corriente
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(9, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Promedio Fase R
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(10, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Promedio Fase S
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                    <th onclick="sortTable(11, this)" class="mt-0 text-base font-bold text-center" 
+                                                        style="color:rgb(88,226,194); padding: 10px; cursor:pointer;">
+                                                        <div class="flex items-center justify-center gap-1">
+                                                            Promedio Fase T
+                                                            <span class="sort-arrow"></span>
+                                                        </div>
+                                                    </th>
+
+                                                </tr>
+                                            </thead>
+
+
+                                            <tbody>
+                                                @foreach ($dashboardInfo as $resultado)
                                                     @php
-                                                        // Inicializar arrays para almacenar los datos
-                                                        $tp_counts_s02 = [];
-                                                        $tp_counts_s05 = [];
-                                                        $stg_counts_s02 = [];
-                                                        $stg_counts_s05 = [];
-                                                        $totales_s02 = [];
-                                                        $totales_s05 = [];
-                                                        // Procesar datos de resultadosQ12dashboard (para S02)
-                                                        foreach ($resultadosQ12dashboard as $resultado) {
-                                                            if (is_object($resultado)) {
-                                                                $fecha = $resultado->fec_lectura;
-                                                                $tp_counts_s02[$fecha] = $resultado->tp_count;
-                                                                $stg_counts_s02[$fecha] = $resultado->stg_count;
-                                                                $totales_s02[$fecha] =
-                                                                    ($resultado->tp_count ?? 0) +
-                                                                    ($resultado->stg_count ?? 0);
-                                                            }
-                                                        }
-                                                        // Procesar datos de resultadosQ10dashboard (para S05)
-                                                        foreach ($resultadosQ10dashboard as $resultado) {
-                                                            if (is_object($resultado)) {
-                                                                $fecha = $resultado->fec_lectura;
-                                                                $tp_counts_s05[$fecha] = $resultado->tp_count;
-                                                                $stg_counts_s05[$fecha] = $resultado->stg_count;
-                                                                $totales_s05[$fecha] =
-                                                                    ($resultado->tp_count ?? 0) +
-                                                                    ($resultado->stg_count ?? 0);
-                                                            }
+                                                        // Obtener id_ct de forma segura
+                                                        $id_ct = null;
+                                                        if (is_object($resultado) && isset($resultado->id_ct)) {
+                                                            $id_ct = $resultado->id_ct;
+                                                        } elseif (is_array($resultado) && isset($resultado['id_ct'])) {
+                                                            $id_ct = $resultado['id_ct'];
+                                                        } elseif (is_string($resultado)) {
+                                                            $id_ct = $resultado; // si $resultado ya es el id
                                                         }
                                                     @endphp
-                                                    <!-- Primera fila: valores de TP -->
-                                                    <tr class="highlight-row ">
-                                                        <td class="border-r">Tareas Prog.</td>
-                                                        @foreach ($fechas as $fecha)
-                                                            <td class="py-2">
-                                                                {{ !empty($tp_counts_s02[$fecha]) ? $tp_counts_s02[$fecha] : '0' }}
-                                                            </td>
-                                                            <td class="py-2 border-r">
-                                                                {{ !empty($tp_counts_s05[$fecha]) ? $tp_counts_s05[$fecha] : '0' }}
-                                                            </td>
-                                                        @endforeach
+                                                    <tr>
+                                                        <td class="py-2">
+                                                            <span class="inline-block">
+                                                                <a href="{{ route('informacionct', ['id_ct' => $id_ct]) }}" 
+                                                                class="text-blue-500 underline inline">
+                                                                {{ $resultado->nombre_ct ?? 'No hay datos' }}
+                                                                </a>
+                                                            </span>
+                                                        </td>
+                                                        <td class="py-2">{{ $resultado->nro_trafos ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->capacidad_kva ?? '0' }}</td>
+                                                        <td class="py-2">{{ $resultado->nro_lineas ?? '0' }}</td>
+                                                        <td class="py-2 whitespace-nowrap"
+                                                            style="color: {{ (!empty($resultado->cap_instalada) ? $resultado->cap_instalada : 0) <= 80 ? 'rgb(76,218,19)' : 'red' }};">
+                                                            {{ !empty($resultado->cap_instalada) ? number_format($resultado->cap_instalada, 2) : '0' }} %
+
+                                                            <button 
+                                                                onclick="event.stopPropagation(); openModalCapacidadUltimoAnio('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles de capacidad">
+                                                                📊
+                                                            </button>
+                                                        </td>
+
+                                                        <td class="py-2">{{ $resultado->perdida ?? '0' }}</td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->porcentaje_perdida ?? 0) <= 6 ? 'rgb(76,218,19)' : 
+                                                                (($resultado->porcentaje_perdida ?? 0) <= 15 ? 'yellow' : 'red') }};">
+                                                            {{ $resultado->porcentaje_perdida ?? '0' }} %
+                                                        </td>
+
+                                                        <td class="py-2"
+                                                            style="color: {{ ($resultado->avg_pct_deseq_voltaje ?? 0) <= 3 ? 'rgb(76,218,19)' : 'red' }};">
+
+                                                            {{ $resultado->avg_pct_deseq_voltaje ?? '0' }} %
+
+                                                            <!-- Botón para abrir modal -->
+                                                            <button 
+                                                                onclick="event.stopPropagation(); openModalDesequilibriosVoltaje('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles de desequilibrio">
+                                                                📊
+                                                            </button>
+
+
+                                                        </td>
+
+                                                        <td class="py-2"
+                                                            style="color: {{ ($resultado->avg_pct_deseq_corriente ?? 0) <= 30 ? 'rgb(76,218,19)' : 'red' }};">
+
+                                                            {{ $resultado->avg_pct_deseq_corriente ?? '0' }} %
+
+                                                            <button 
+                                                                onclick="event.stopPropagation(); openModalDesequilibriosCorriente('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles de desequilibrio">
+                                                                📊
+                                                            </button>
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->prom_volt1 ?? 0) <= 218 ? 'yellow' : 
+                                                                (($resultado->prom_volt1 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
+                                                            {{ $resultado->prom_volt1 ?? '0' }}
+                                                            <button 
+                                                                onclick="event.stopPropagation(); openModalPromedioFaseR('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles Fase R">
+                                                                📊
+                                                            </button>
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->prom_volt2 ?? 0) <= 218 ? 'yellow' : 
+                                                                (($resultado->prom_volt2 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
+                                                            {{ $resultado->prom_volt2 ?? '0' }}
+                                                            <button 
+                                                                onclick="event.stopPropagation(); openModalPromedioFaseS('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles Fase S">
+                                                                📊
+                                                            </button>
+                                                        </td>
+                                                        <td class="py-2"
+                                                            style="color: 
+                                                                {{ ($resultado->prom_volt3 ?? 0) <= 218 ? 'yellow' : 
+                                                                (($resultado->prom_volt3 ?? 0) <= 243 ? 'rgb(76,218,19)' : 'red') }};">
+                                                            {{ $resultado->prom_volt3 ?? '0' }}
+                                                            <button 
+                                                                onclick="event.stopPropagation(); openModalPromedioFaseT('{{ $id_ct }}')"
+                                                                class="ml-2 px-2 py-1 rounded bg-gray-700 hover:bg-gray-600 transition"
+                                                                title="Ver detalles Fase T">
+                                                                📊
+                                                            </button>
+                                                        </td>
                                                     </tr>
-                                                    <!-- Segunda fila: sumas totales -->
-                                                    <tr class="highlight-row ">
-                                                        <td class="border-r">Total</td>
-                                                        @foreach ($fechas as $fecha)
-                                                            <td class="py-2">
-                                                                {{ !empty($totales_s02[$fecha]) ? $totales_s02[$fecha] : '0' }}
-                                                            </td>
-                                                            <td class="py-2 border-r">
-                                                                {{ !empty($totales_s05[$fecha]) ? $totales_s05[$fecha] : '0' }}
-                                                            </td>
-                                                        @endforeach
-                                                    </tr>
-                                                    <!-- Tercera fila: valores de STG -->
-                                                    <tr class="highlight-row ">
-                                                        <td class="border-r">Recuperadas</td>
-                                                        @foreach ($fechas as $fecha)
-                                                            <td class="py-2">
-                                                                {{ !empty($stg_counts_s02[$fecha]) ? $stg_counts_s02[$fecha] : '0' }}
-                                                            </td>
-                                                            <td class="py-2 border-r">
-                                                                {{ !empty($stg_counts_s05[$fecha]) ? $stg_counts_s05[$fecha] : '0' }}
-                                                            </td>
-                                                        @endforeach
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        @else
-                                            <p class="mt-0 text-xl font-bold text-center"
-                                                style="color:rgb(88,226,194); padding: 10px">No hay datos disponibles
-                                                para mostrar.</p>
-                                        @endif
+                                                @endforeach
+                                            </tbody>
+
+                                        </table>
                                     </div>
-                                    <!-- Contenedor del botón de descarga -->
-                                    <div class="text-right mt-4">
-                                        <input type="button"
-                                            onclick="tableToExcel2Cols('testTableRecuperacionLecturas', 'W3C Example Table')"
-                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
+                                @else
+                                    <div class="rgb(27,32,38) p-4 rounded-lg shadow-xl">
+                                        <p class="mt-0 text-xl text-center" style="color:rgb(88,226,194)">
+                                            No hay datos
+                                        </p>
                                     </div>
+                                @endif
+
+                                <div class="text-right mt-4">
+                                    <input type="button"
+                                        onclick="tableToExcel2('testTableInfoDashboardCt', 'W3C Example Table')"
+                                        style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;">
                                 </div>
                             </div>
-                        </div>
+                        </div>                         
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </body>
+
+
+

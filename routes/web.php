@@ -120,6 +120,9 @@ Route::get('/curvascuartihorariaspf', [PuntoFronteraController::class, 'curvascu
 //REPORTES PF ----------------------------
 Route::get('/reportespf', [PuntoFronteraController::class, 'reportespf'])->name('reportespf');
 
+//VALORES INSTANTANEOS PF ----------------------------
+Route::get('/valoresinstantaneospf', [PuntoFronteraController::class, 'valoresinstantaneospf'])->name('valoresinstantaneospf');
+
 
 //************************
 //***********CUPS*********
@@ -152,6 +155,14 @@ Route::get('/detallesenergiacups', [CupsController::class, 'detallesenergiacups'
 //***********DASHBOARD*********
 //*****************************
 Route::get('/dashboardct', [DashboardController::class, 'dashboardct'])->name('dashboardct');
+Route::get('/modal/stats-ct', [DashboardController::class, 'statsCtModal']);
+Route::get('/modal/recuperacion-lecturas', [DashboardController::class, 'recuperacionLecturasModal']);
+Route::get('/modal/desequilibrios-voltaje/{id_ct}', [DashboardController::class, 'desequilibriosVoltajeModal']);
+Route::get('/modal/desequilibrios-corriente/{id_ct}', [DashboardController::class, 'desequilibriosCorrienteModal']);
+Route::get('/modal/promedio-fase-r/{id_ct}', [DashboardController::class, 'promedioFaseRModal']);
+Route::get('/modal/promedio-fase-s/{id_ct}', [DashboardController::class, 'promedioFaseSModal']);
+Route::get('/modal/promedio-fase-t/{id_ct}', [DashboardController::class, 'promedioFaseTModal']);
+Route::get('/modal/capacidad-ultimo-anio/{id_ct}', [DashboardController::class, 'capacidadUltimoAnioModal']);
 Route::get('/dashboardpf', [DashboardController::class, 'dashboardpf'])->name('dashboardpf');
 Route::get('/contacto', [DashboardController::class, 'contacto'])->name('contacto');
 Route::get('/dashboardsabt', [SupervisionAvanzadaController::class, 'dashboardsabt'])->name('dashboardsabt');

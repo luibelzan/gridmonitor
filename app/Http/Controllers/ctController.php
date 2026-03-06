@@ -145,48 +145,50 @@ class ctController extends Controller
 
 
     private function getCupsInfo(Request $request, $id_ct, $connection)
-    {
-        try {
-            if ($id_ct && Schema::connection($connection)->hasTable('t_cups')) {
-                // Obtener las fechas de inicio y fin del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
+{
+    try {
+        if ($id_ct && Schema::connection($connection)->hasTable('t_cups')) {
 
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin    = $request->input('fecha_fin');
 
+            $cups_info = Cups::on($connection)
+                ->where('core.t_cups.id_ct', $id_ct)
 
+                // 👉 CONDICIÓN cups_estado != 'B'
+                ->where(function ($q) {
+                    $q->where('core.t_cups.cups_estado', '!=', 'B')
+                      ->orWhereNull('core.t_cups.cups_estado');
+                })
 
-                // Construir la consulta principal
-                $cups_info = Cups::on($connection)
-                    ->where('id_ct', $id_ct)
-                    ->with([
-                        'estadisticasContadores' => function ($query) use ($fecha_inicio, $fecha_fin) {
-                            // Filtrar estadísticas de contadores por fechas si están presentes
-                            if ($fecha_inicio && $fecha_fin) {
-                                $query->whereBetween('fec_fin', [$fecha_inicio, $fecha_fin]);
-                            }
-                            $query->select('id_cups', 'id_cnt', 'fec_fin', 'por_minutos_contador');
+                ->with([
+                    'estadisticasContadores' => function ($query) use ($fecha_inicio, $fecha_fin) {
+                        if ($fecha_inicio && $fecha_fin) {
+                            $query->whereBetween('fec_fin', [$fecha_inicio, $fecha_fin]);
                         }
-                    ])
-                    ->join('core.t_contadores', 'core.t_cups.id_cnt', '=', 'core.t_contadores.id_cnt')
-                    ->join('core.t_modelos_contadores', 'core.t_contadores.mod_cnt', '=', 'core.t_modelos_contadores.mod_cnt')
-                    ->where(function ($query) {
-                        $query->where('t_modelos_contadores.num_fases', '1F')
-                            ->orWhere('t_modelos_contadores.num_fases', '3F');
-                    }) // Condición para el número de fases
-                    ->get();
+                        $query->select(
+                            'id_cups',
+                            'id_cnt',
+                            'fec_fin',
+                            'por_minutos_contador'
+                        );
+                    }
+                ])
+                ->join('core.t_contadores', 'core.t_cups.id_cnt', '=', 'core.t_contadores.id_cnt')
+                ->join('core.t_modelos_contadores', 'core.t_contadores.mod_cnt', '=', 'core.t_modelos_contadores.mod_cnt')
+                ->whereIn('t_modelos_contadores.num_fases', ['1F', '3F'])
+                ->get();
 
+            return $cups_info;
 
-
-
-                return $cups_info;
-            } else {
-                return collect(); // Retornar una colección vacía si no hay ID de CT válido
-            }
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
-            return collect(); // Retornar una colección vacía en caso de excepción
+        } else {
+            return collect();
         }
+    } catch (\Exception $e) {
+        return collect();
     }
+}
+
 
 
 
@@ -813,37 +815,36 @@ class ctController extends Controller
                 $resultadosQ1 = DB::connection($connection)
                     ->select('
                     SELECT
-                        count(t_trafos.id_trafo) as nro_trafos,
+                        COUNT(DISTINCT t_trafos.id_trafo) AS nro_trafos,
                         t_ct.id_ct,
                         t_ct.nom_ct,
-                        t_ct.lat_ct,  
-						t_ct.lon_ct,
+                        t_ct.lat_ct,
+                        t_ct.lon_ct,
                         t_concentradores.id_cnc,
                         t_concentradores.cod_mod,
                         t_concentradores.des_cnc_af,
                         t_concentradores.des_vdlms,
-                        t_supervisores.id_svr,
-                        t_supervisores.id_trafo,
-                        t_trafos.nom_trafo,
-                        sum(t_trafos.val_kva) as kva_ct
-                    FROM
-                        core.t_ct,
-                        core.t_concentradores,
-                        core.t_supervisores,
-                        core.t_trafos
-                    WHERE
-                        t_concentradores.id_ct = t_ct.id_ct AND
-                        t_supervisores.id_trafo = t_trafos.id_trafo AND
-                        t_trafos.id_cnc = t_concentradores.id_cnc AND
-                        t_ct.id_ct = :id_ct
+                        SUM(t_trafos.val_kva) AS kva_ct
+                    FROM core.t_ct
+                    JOIN core.t_concentradores 
+                        ON t_concentradores.id_ct = t_ct.id_ct
+                    JOIN core.t_trafos
+                        ON t_trafos.id_cnc = t_concentradores.id_cnc
+                    JOIN core.t_supervisores
+                        ON t_supervisores.id_trafo = t_trafos.id_trafo
+                    WHERE t_ct.id_ct = :id_ct
                     GROUP BY
-                        t_ct.id_ct, t_ct.nom_ct, t_concentradores.id_cnc,
-                        t_concentradores.cod_mod, t_concentradores.des_cnc_af,
-                        t_concentradores.des_vdlms,
-                        t_supervisores.id_svr, t_supervisores.id_trafo,
-                        t_trafos.nom_trafo
+                        t_ct.id_ct,
+                        t_ct.nom_ct,
+                        t_ct.lat_ct,
+                        t_ct.lon_ct,
+                        t_concentradores.id_cnc,
+                        t_concentradores.cod_mod,
+                        t_concentradores.des_cnc_af,
+                        t_concentradores.des_vdlms
                     ORDER BY
-                        t_ct.id_ct ASC, t_ct.nom_ct ASC;
+                        t_ct.id_ct,
+                        t_ct.nom_ct;
                 ', ['id_ct' => $id_ct]);
 
 
@@ -869,11 +870,12 @@ class ctController extends Controller
         try {
             if (Schema::connection($connection)->hasTable('t_cups')) {
                 $resultadosQ2 = DB::connection($connection)
-                    ->select('
+                    ->select("
                     SELECT count(*) as nro_cups
                     FROM core.t_cups
-                    WHERE t_cups.id_ct = :id_ct;
-                ', ['id_ct' => $id_ct]);
+                    WHERE t_cups.id_ct = :id_ct
+                    AND cups_estado != 'B';
+                ", ['id_ct' => $id_ct]);
 
 
 
@@ -1583,45 +1585,31 @@ class ctController extends Controller
                 Schema::connection($connection)->hasTable('t_ct')
             ) {
 
-
-
-
-
-
-
-
                 $resultadosQ18 = DB::connection($connection)
                     ->select("
                         SELECT
-                            date_trunc('month', fec_registro) AS mes,
-                            avg(((t_supervisores_voltajes.val_kva_t)/1000)*100)/ avg(t_trafos.val_kva) AS cap_instalada,
-                            t_ct.id_ct, val_kva
-                        FROM
-                            core.t_supervisores_voltajes,
-                            core.t_trafos,
-                            core.t_concentradores,
-                            core.t_ct
+                            MAX(fec_registro) AS mes,
+                            AVG((t_supervisores_voltajes.val_kva_t / 1000) * 100) 
+                                / AVG(t_trafos.val_kva) AS cap_instalada,
+                            t_ct.id_ct,
+                            t_trafos.val_kva
+                        FROM core.t_supervisores_voltajes
+                        JOIN core.t_trafos 
+                            ON t_supervisores_voltajes.id_svr = t_trafos.id_svr
+                        JOIN core.t_concentradores 
+                            ON t_concentradores.id_cnc = t_trafos.id_cnc
+                        JOIN core.t_ct 
+                            ON t_ct.id_ct = t_concentradores.id_ct
                         WHERE
-                            t_supervisores_voltajes.id_svr = t_trafos.id_svr
-                        AND
-                            t_concentradores.id_cnc = t_trafos.id_cnc
-                        AND
-                            t_ct.id_ct = t_concentradores.id_ct
-                        AND
                             t_ct.id_ct = :id_ct
+                            AND fec_registro >= NOW() - INTERVAL '48 hours'
                         GROUP BY
-                            1, t_ct.id_ct, val_kva
+                            t_ct.id_ct,
+                            t_trafos.val_kva
                         ORDER BY
-                            1 DESC
+                            mes DESC
                         LIMIT 1;
                     ", ['id_ct' => $id_ct]);
-
-
-
-
-
-
-
 
                 return $resultadosQ18 ?: ['message' => 'No hay datos'];
             } else {
@@ -1689,7 +1677,7 @@ class ctController extends Controller
 
 
 
-                return $resultadosQ19 ?: ['message' => 'No hay datos'];
+                return $resultadosQ19 ?: [];
             } else {
                 // Una de las tablas no existe, retornar un mensaje específico 
                 return ['message' => 'No hay datos'];
@@ -2035,8 +2023,11 @@ class ctController extends Controller
                     val_ai_d_sum_svr as energia_red,
                     num_contadores_d as nro_contadores,
                     (val_ai_d_sum_svr+val_ae_d_sum_cnt) as generacion, 
-                    ((val_ai_d_sum_svr+val_ae_d_sum_cnt) - (val_ai_d_sum_cnt)) as perdida, 
-                    (100 -((val_ai_d_sum_cnt)*100)/(val_ai_d_sum_svr+val_ae_d_sum_cnt)) as porcentaje_perdida 
+                    val_ae_d_sum_svr AS exceso,
+                    (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt-val_ae_d_sum_svr) as perdida,
+                    ROUND(
+			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
+			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida
                 FROM core.t_balances_diarios
                 WHERE tip_calculo = '1' and val_ai_d_sum_svr > 0 ";
 
@@ -2087,19 +2078,25 @@ class ctController extends Controller
                 if ($fecha_inicio && $fecha_fin) {
                     // Consulta con fechas (suma y agregaciones)
                     $query = "
-                    SELECT id_ct, 
-                        SUM(val_ai_d_sum_cnt) as energia_consumida, 
-                        SUM(val_ae_d_sum_cnt) as energia_autoconsumos, 
-                        SUM(val_ai_d_sum_svr) as energia_red,
-                        AVG(num_contadores_d) as nro_contadores,
-                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt) as generacion, 
-                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) as perdida, 
-                        Round((100 - SUM(val_ai_d_sum_cnt) * 100 / SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt)),1) as porcentaje_perdida 
+                        SELECT 
+                        id_ct, 
+                        SUM(val_ai_d_sum_cnt) AS energia_consumida, 
+                        SUM(val_ae_d_sum_cnt) AS energia_autoconsumos, 
+                        SUM(val_ai_d_sum_svr) AS energia_red,
+                        AVG(num_contadores_d) AS nro_contadores,
+                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt) AS generacion, 
+                        SUM(val_ae_d_sum_svr) AS exceso, 
+                        SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) AS perdida,
+                        ROUND(
+                            (
+                                SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) * 100.0
+                            ) 
+                            / NULLIF(SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt), 0),
+                        1) AS porcentaje_perdida
                     FROM core.t_balances_diarios
                     WHERE tip_calculo = '1' 
                         AND val_ai_d_sum_svr > 0
-                        AND fec_inicio >= :fecha_inicio
-                        AND fec_inicio <= :fecha_fin
+                        AND fec_inicio BETWEEN :fecha_inicio AND :fecha_fin
                         AND id_ct = :id_ct
                     GROUP BY id_ct
                     ORDER BY id_ct DESC;
@@ -2114,9 +2111,12 @@ class ctController extends Controller
                         val_ae_d_sum_cnt as energia_autoconsumos, 
                         val_ai_d_sum_svr as energia_red,
                         num_contadores_d as nro_contadores,
-                        (val_ai_d_sum_svr + val_ae_d_sum_cnt) as generacion, 
-                        (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt) as perdida, 
-                        Round((100 - (val_ai_d_sum_cnt * 100) / (val_ai_d_sum_svr + val_ae_d_sum_cnt)),1) as porcentaje_perdida 
+                        (val_ai_d_sum_svr + val_ae_d_sum_cnt) as generacion,
+                        val_ae_d_sum_svr AS exceso, 
+                        (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt-val_ae_d_sum_svr) as perdida, 
+                        ROUND(
+			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
+			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida 
                     FROM core.t_balances_diarios
                     WHERE tip_calculo = '1' 
                         AND val_ai_d_sum_svr > 0
@@ -2289,6 +2289,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN sobre_voltajes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
             // Añadir condiciones de fecha si están presentes
@@ -2390,6 +2391,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN sub_voltajes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
 
@@ -2492,6 +2494,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN apagones_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                  AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
 
@@ -2594,6 +2597,7 @@ class ctController extends Controller
                 JOIN max_fec_hor_evento h ON c.id_cups = h.id_cups AND m.max_fecha = h.max_fecha
                 JOIN micro_cortes_totales s ON c.id_cups = s.id_cups
                 WHERE t.id_ct = :id_ct
+                AND (c.cups_estado != 'B' OR c.cups_estado IS NULL)
             ";
 
 
@@ -2672,6 +2676,7 @@ class ctController extends Controller
             JOIN core.t_ct ON t_cups.id_ct = t_ct.id_ct
             JOIN MaxFechaPorCups ON t_indices_lectura.id_cups = MaxFechaPorCups.id_cups 
                 WHERE t_ct.id_ct = :id_ct
+                AND (t_cups.cups_estado != 'B' OR t_cups.cups_estado IS NULL)
                 ";
 
 
@@ -3217,7 +3222,10 @@ class ctController extends Controller
                     sub.sub_voltajes,
                     sub.micro_cortes,
                     sub.total_eventos,
-                    ROUND((sub.total_eventos / NULLIF(sub.total_cups, 0)), 2) AS ratio
+                    ROUND(
+                        sub.total_eventos::numeric / NULLIF(sub.total_cups, 0),
+                        2
+                    ) AS ratio
                 FROM (
                     SELECT
                         t.nom_ct,
@@ -3466,7 +3474,11 @@ class ctController extends Controller
 
 
             // Añadir el GROUP BY
-            $query .= " GROUP BY fec_evento;";
+            $query .= "
+                GROUP BY m.fec_evento::date
+                ORDER BY m.fec_evento::date ASC
+            ";
+
 
 
 
@@ -4271,6 +4283,7 @@ class ctController extends Controller
                 INNER JOIN core.t_cups
                     ON core.t_valores_instantaneos.id_cups = core.t_cups.id_cups
                 WHERE core.t_cups.id_ct = :id_ct
+                  AND (core.t_cups.cups_estado != 'B' OR core.t_cups.cups_estado IS NULL)
                 ";
 
                 // Añadir condiciones de fecha si están presentes
@@ -4946,168 +4959,186 @@ class ctController extends Controller
 
 
     public function getAllReportesEventos(Request $request, $connection)
-    {
-        try {
-            // Verificar que las tablas existen
-            if (
-                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
-                Schema::connection($connection)->hasTable('t_cups')
-            ) {
-                // Obtener los parámetros del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-                $descripcion = $request->input('descripcion');
+{
+    try {
+        // Verificar que las tablas existen
+        if (
+            Schema::connection($connection)->hasTable('t_eventos_contador') &&
+            Schema::connection($connection)->hasTable('t_cups')
+        ) {
+            // Obtener los parámetros del request
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+            $descripcion = $request->input('descripcion');
 
+            $params = [];
+            $query = "
+                SELECT
+                    tec.id_cups,
+                    tec.id_cnt,
+                    tc.cod_fase,
+                    tc.id_linea,
+                    TO_CHAR(tec.fec_evento, 'DD/MM/YYYY') as fecha,
+                    tec.hor_evento,
+                    tec.txt_adicionales_1,
+                    tec.txt_adicionales_2,
+                    tdec.des_evento_contador,
+                    tct.nom_ct
+                FROM core.t_eventos_contador tec
+                JOIN core.t_descripcion_eventos_contador tdec
+                    ON tec.grp_evento = tdec.grp_evento
+                    AND tec.cod_evento = tdec.cod_evento
+                JOIN core.t_cups tc
+                    ON tec.id_cups = tc.id_cups
+                JOIN core.t_ct tct
+                    ON tc.id_ct = tct.id_ct
+                WHERE 1=1
+            ";
 
-                $params = [];
-                $query = "
-                    SELECT
-                        tec.id_cups,
-                        tec.id_cnt,
-                        TO_CHAR(tec.fec_evento, 'DD/MM/YYYY') as fecha,
-                        tec.hor_evento,
-                        tec.txt_adicionales_1,
-                        tec.txt_adicionales_2,
-                        tdec.des_evento_contador,
-                        tct.nom_ct
-                    FROM core.t_eventos_contador tec
-                    JOIN core.t_descripcion_eventos_contador tdec
-                        ON tec.grp_evento = tdec.grp_evento
-                        AND tec.cod_evento = tdec.cod_evento
-                    JOIN core.t_cups tc
-                        ON tec.id_cups = tc.id_cups
-                    JOIN core.t_ct tct
-                        ON tc.id_ct = tct.id_ct
-                    WHERE 1=1
-                ";
+            // Agregar filtro por descripción si existe
+            if (!empty($descripcion)) {
+                $query .= " AND tdec.des_evento_contador ILIKE :descripcion";
+                $params['descripcion'] = "%{$descripcion}%";
+            }
 
-                // Agregar filtro por descripción si existe
-                if (!empty($descripcion)) {
-                    $query .= " AND tdec.des_evento_contador ILIKE :descripcion";
-                    $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
-                }
+            // Agregar filtros de fecha
+            if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+                $query .= " AND tec.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } elseif (!empty($fecha_inicio)) {
+                $query .= " AND tec.fec_evento >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            } elseif (!empty($fecha_fin)) {
+                $query .= " AND tec.fec_evento <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
 
-                // Agregar filtros de fecha
-                if (!empty($fecha_inicio) && !empty($fecha_fin)) {
-                    $query .= " AND tec.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                } elseif (!empty($fecha_inicio)) {
-                    $query .= " AND tec.fec_evento >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } elseif (!empty($fecha_fin)) {
-                    $query .= " AND tec.fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                }
+            if (empty($fecha_fin) && empty($fecha_inicio)) {
+                $query .= " ORDER BY tec.fec_evento DESC, tec.hor_evento DESC LIMIT 500";
+            } else {
+                $query .= " ORDER BY tec.fec_evento DESC, tec.hor_evento DESC;";
+            }
 
-                if (empty($fecha_fin) && empty($fecha_inicio)) {
-                    $query .= " ORDER BY tec.fec_evento DESC, tec.hor_evento DESC LIMIT 500";
-                } else {
-                    // Agregar orden y límite
-                    $query .= " ORDER BY tec.fec_evento DESC, tec.hor_evento DESC;";
-                }
+            // Ejecutar la consulta con los parámetros
+            $reporteseventos = DB::connection($connection)->select($query, $params);
 
-                // Ejecutar la consulta con los parámetros correctos
-                $reporteseventos = DB::connection($connection)->select($query, $params);
+            $reporteseventosCollection = new Collection($reporteseventos);
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 100;
+            $currentItems = $reporteseventosCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
 
-                $reporteseventosCollection = new Collection($reporteseventos);
-                // Obtener la página actual
-                $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                $perPage = 100; // Número de elementos por página
-                $currentItems = $reporteseventosCollection->slice(($currentPage - 1) * $perPage, $perPage)->all();
-
-
-                // Crear paginador manualmente
-                $reporteseventos = new LengthAwarePaginator($currentItems, count($reporteseventosCollection), $perPage, $currentPage, [
+            // Crear paginador manualmente
+            $reporteseventos = new LengthAwarePaginator(
+                $currentItems,
+                count($reporteseventosCollection),
+                $perPage,
+                $currentPage,
+                [
                     'path' => request()->url(),
                     'query' => request()->query()
-                ]);
+                ]
+            );
 
-                return $reporteseventos ?: ['message' => 'No hay datos'];
-            } else {
-                return ['message' => 'No hay datos'];
-            }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+            return $reporteseventos ?: ['message' => 'No hay datos'];
+        } else {
+            return ['message' => 'No hay datos'];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
 
     public function exportReportesEventos(Request $request)
-    {
-        try {
-            $user = auth()->user();
-            $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
-            if (
-                Schema::connection($connection)->hasTable('t_consumos_horarios') &&
-                Schema::connection($connection)->hasTable('t_cups')
-            ) {
-                // Obtener los parámetros del request
-                $fecha_inicio = $request->input('fecha_inicio');
-                $fecha_fin = $request->input('fecha_fin');
-                $descripcion = $request->input('descripcion');
-                // NUEVO: Tipo de archivo ('excel' por default)
-                $format = $request->input('format', 'excel');
-                $extension = $format === 'csv' ? 'csv' : 'xlsx';
-                $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
+{
+    try {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
 
-                $params = [];
-                $query = "
-                    SELECT
-                        t_eventos_contador.id_cups,
-                        t_eventos_contador.id_cnt,
-                        TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') as fecha,
-                        t_eventos_contador.hor_evento,
-                        t_eventos_contador.txt_adicionales_1,
-                        t_eventos_contador.txt_adicionales_2,
-                        t_descripcion_eventos_contador.des_evento_contador
-                    FROM core.t_eventos_contador
-                    JOIN core.t_descripcion_eventos_contador 
-                        ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
-                        AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
-                    WHERE 1=1 
-                ";
+        if (
+            Schema::connection($connection)->hasTable('t_eventos_contador') &&
+            Schema::connection($connection)->hasTable('t_cups')
+        ) {
+            // Obtener los parámetros del request
+            $fecha_inicio = $request->input('fecha_inicio');
+            $fecha_fin = $request->input('fecha_fin');
+            $descripcion = $request->input('descripcion');
 
-                // Agregar filtro por descripción si existe
-                if (!empty($descripcion)) {
-                    $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion";
-                    $params['descripcion'] = "%{$descripcion}%"; // Agregar '%' para buscar coincidencias parciales
-                }
+            // Tipo de archivo ('excel' por default)
+            $format = $request->input('format', 'excel');
+            $extension = $format === 'csv' ? 'csv' : 'xlsx';
+            $exportFormat = $format === 'csv' ? ExcelFormat::CSV : ExcelFormat::XLSX;
 
-                // Agregar filtros de fecha
-                if (!empty($fecha_inicio) && !empty($fecha_fin)) {
-                    $query .= " AND t_eventos_contador.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                    $params['fecha_fin'] = $fecha_fin;
-                } elseif (!empty($fecha_inicio)) {
-                    $query .= " AND t_eventos_contador.fec_evento >= :fecha_inicio";
-                    $params['fecha_inicio'] = $fecha_inicio;
-                } elseif (!empty($fecha_fin)) {
-                    $query .= " AND t_eventos_contador.fec_evento <= :fecha_fin";
-                    $params['fecha_fin'] = $fecha_fin;
-                }
+            $params = [];
+            $query = "
+                SELECT
+                    t_eventos_contador.id_cups,
+                    t_eventos_contador.id_cnt,
+                    tct.nom_ct,
+                    tc.cod_fase,
+                    tc.id_linea,
+                    TO_CHAR(t_eventos_contador.fec_evento, 'DD/MM/YYYY') AS fecha,
+                    t_eventos_contador.hor_evento,
+                    t_eventos_contador.txt_adicionales_1,
+                    t_eventos_contador.txt_adicionales_2,
+                    t_descripcion_eventos_contador.des_evento_contador
+                FROM core.t_eventos_contador
+                JOIN core.t_descripcion_eventos_contador 
+                    ON t_eventos_contador.grp_evento = t_descripcion_eventos_contador.grp_evento
+                    AND t_eventos_contador.cod_evento = t_descripcion_eventos_contador.cod_evento
+                JOIN core.t_cups tc
+                    ON t_eventos_contador.id_cups = tc.id_cups
+                JOIN core.t_ct tct
+                    ON tc.id_ct = tct.id_ct
+                WHERE 1=1
+            ";
 
-                if (empty($fecha_fin) && empty($fecha_inicio)) {
-                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 500;";
-                } else {
-                    // Agregar orden y límite
-                    $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
-                }
-
-                // Ejecutar la consulta con los parámetros correctos
-                $exportreporteseventos = DB::connection($connection)->select($query, $params);
-
-                if ($exportreporteseventos) {
-                    return Excel::download(new ReportesEventosExport($exportreporteseventos), 'reportes_eventos.' . $extension, $exportFormat);
-                } else {
-                    return response()->json(['message' => 'No hay datos'], 404);
-                }
-            } else {
-                return ['message' => 'No hay datos'];
+            // Agregar filtro por descripción si existe
+            if (!empty($descripcion)) {
+                $query .= " AND t_descripcion_eventos_contador.des_evento_contador ILIKE :descripcion";
+                $params['descripcion'] = "%{$descripcion}%";
             }
-        } catch (\Exception $e) {
-            return ['message' => 'Error: ' . $e->getMessage()];
+
+            // Agregar filtros de fecha
+            if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+                $query .= " AND t_eventos_contador.fec_evento BETWEEN :fecha_inicio AND :fecha_fin";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            } elseif (!empty($fecha_inicio)) {
+                $query .= " AND t_eventos_contador.fec_evento >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            } elseif (!empty($fecha_fin)) {
+                $query .= " AND t_eventos_contador.fec_evento <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            if (empty($fecha_fin) && empty($fecha_inicio)) {
+                $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC LIMIT 500;";
+            } else {
+                $query .= " ORDER BY t_eventos_contador.fec_evento DESC, t_eventos_contador.hor_evento DESC;";
+            }
+
+            // Ejecutar la consulta con los parámetros correctos
+            $exportreporteseventos = DB::connection($connection)->select($query, $params);
+
+            if ($exportreporteseventos) {
+                return Excel::download(
+                    new ReportesEventosExport($exportreporteseventos),
+                    'reportes_eventos.' . $extension,
+                    $exportFormat
+                );
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            }
+        } else {
+            return ['message' => 'No hay datos'];
         }
+    } catch (\Exception $e) {
+        return ['message' => 'Error: ' . $e->getMessage()];
     }
+}
+
 
 
     public function getSumBalances($id_ct, Request $request, $connection)
@@ -5437,6 +5468,119 @@ class ctController extends Controller
                 $tramos = DB::connection($connection)->select($query);
 
                 return $tramos ?: ['message' => 'No hay datos'];
+            } else {
+                return ['message' => 'No hay datos'];
+            }
+        } catch (\Exception $e) {
+            return ['message' => 'No hay datos error', $e];
+        }
+    }
+
+    public function getDashboardInfo(Request $request, $connection) {
+        try {
+            if(Schema::connection($connection)->hasTable('core.t_ct')) {
+                $query = "
+                    WITH trafos_por_ct AS (
+                        SELECT 
+                            c.id_ct,
+                            COUNT(DISTINCT t.id_trafo) AS nro_trafos,
+                            SUM(t.val_kva) AS capacidad_kva,
+                            AVG(t.val_kva) AS val_kva_promedio
+                        FROM core.t_concentradores c
+                        JOIN core.t_trafos t ON t.id_cnc = c.id_cnc
+                        GROUP BY c.id_ct
+                    ),
+                    lineas_por_ct AS (
+                        SELECT id_ct,
+                            COUNT(DISTINCT id_linea) AS nro_lineas
+                        FROM core.t_lineas
+                        GROUP BY id_ct
+                    ),
+                    cups_por_ct AS (
+                        SELECT id_ct,
+                            COUNT(DISTINCT id_cups) AS nro_cups
+                        FROM core.t_cups
+                        GROUP BY id_ct
+                    ),
+                    voltajes_por_ct AS (
+                        SELECT 
+                            c.id_ct,
+                            AVG(((sv.val_kva_t)/1000)*100) AS val_kva_t_prom
+                        FROM core.t_concentradores c
+                        JOIN core.t_supervisores_voltajes sv ON sv.id_cnc = c.id_cnc
+                        GROUP BY c.id_ct
+                    ),
+                    balance_ct AS (
+                        SELECT
+                            id_ct,
+                            (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) AS perdida,
+                            ROUND(
+			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
+			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida 
+                        FROM core.t_balances_diarios
+                        WHERE tip_calculo = 1
+                        AND val_ai_d_sum_svr > 0
+                        AND fec_inicio = (
+                                SELECT MAX(fec_inicio)
+                                FROM core.t_balances_diarios b2
+                                WHERE b2.id_ct = core.t_balances_diarios.id_ct
+                                AND b2.tip_calculo = 1
+                        )
+                    ),
+                    desbalance_ct AS (
+                        SELECT 
+                            tc.id_ct,
+                            ROUND(AVG(tsv.pct_deseq_voltaje)::numeric, 2) AS avg_pct_deseq_voltaje,
+                            ROUND(AVG(tsv.pct_deseq_corriente)::numeric, 2) AS avg_pct_deseq_corriente
+                        FROM core.t_supervisores_voltajes tsv
+                        JOIN core.t_concentradores tc ON tsv.id_cnc = tc.id_cnc
+                        WHERE tsv.fec_registro >= (
+                                (SELECT MAX(fec_registro) FROM core.t_supervisores_voltajes) - INTERVAL '48 hours'
+                            )
+                        GROUP BY tc.id_ct
+                    ),
+                    prom_voltajes_ct AS (
+                        SELECT
+                            tc.id_ct,
+                            CEIL(AVG(tsv.val_voltaje_1)) AS prom_volt1,
+                            CEIL(AVG(tsv.val_voltaje_2)) AS prom_volt2,
+                            CEIL(AVG(tsv.val_voltaje_3)) AS prom_volt3
+                        FROM core.t_supervisores_voltajes tsv
+                        JOIN core.t_concentradores tc ON tsv.id_cnc = tc.id_cnc
+                        WHERE tsv.fec_registro >= (
+                                (SELECT MAX(fec_registro) FROM core.t_supervisores_voltajes) - INTERVAL '48 hours'
+                            )
+                        GROUP BY tc.id_ct
+                    )
+                    SELECT
+                        ct.id_ct,
+                        ct.nom_ct AS nombre_ct,
+                        COALESCE(t.nro_trafos,0) AS nro_trafos,
+                        COALESCE(t.capacidad_kva,0) AS capacidad_kva,
+                        COALESCE(l.nro_lineas,0) AS nro_lineas,
+                        COALESCE(c.nro_cups,0) AS nro_cups,
+                        COALESCE(v.val_kva_t_prom / t.val_kva_promedio,0) AS cap_instalada,
+                        COALESCE(b.perdida,0) AS perdida,
+                        COALESCE(b.porcentaje_perdida,0) AS porcentaje_perdida,
+                        COALESCE(d.avg_pct_deseq_voltaje, 0) AS avg_pct_deseq_voltaje,
+                        COALESCE(d.avg_pct_deseq_corriente, 0) AS avg_pct_deseq_corriente,
+                        COALESCE(p.prom_volt1, 0) AS prom_volt1,
+                        COALESCE(p.prom_volt2, 0) AS prom_volt2,
+                        COALESCE(p.prom_volt3, 0) AS prom_volt3
+                    FROM core.t_ct ct
+                    LEFT JOIN trafos_por_ct t ON t.id_ct = ct.id_ct
+                    LEFT JOIN lineas_por_ct l ON l.id_ct = ct.id_ct
+                    LEFT JOIN cups_por_ct c ON c.id_ct = ct.id_ct
+                    LEFT JOIN voltajes_por_ct v ON v.id_ct = ct.id_ct
+                    LEFT JOIN balance_ct b ON b.id_ct = ct.id_ct
+                    LEFT JOIN desbalance_ct d ON d.id_ct = ct.id_ct
+                    LEFT JOIN prom_voltajes_ct p ON p.id_ct = ct.id_ct
+                    ORDER BY ct.nom_ct;
+                ";
+
+                $dashboardInfo = DB::connection($connection)->select($query);
+
+                return $dashboardInfo ?: ['message' => 'No hay datos'];
             } else {
                 return ['message' => 'No hay datos'];
             }

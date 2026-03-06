@@ -589,7 +589,7 @@
                                                             CAPACIDAD DEL TRAFO
                                                         </h1>
                                                         <h2 class="text-center text-1xl" style="color: white;">
-                                                            Último mes
+                                                            Últimas 48 horas
                                                         </h2>
                                                         <div
                                                             style="border-bottom: 3px solid transparent;
@@ -661,7 +661,7 @@
                                                             class="h-full">
                                                             <!-- Cuadrado para Porcentaje de Uso de
                                                                  Capacidad del Trafo Último Año -->
-                                                            @if (count($resultadosQ19) > 0 && !empty($resultadosQ19[0]->cap_instalada))
+                                                            @if (isset($resultadosQ19) && $resultadosQ19 > 0)
                                                                 <div class="grafico-wrapper"
                                                                     style="position: relative; height: 40vh; width: 80vw; overflow: hidden;">
                                                                     {{-- GRAFICO DE BARRAS CAPACIDAD Último Año --}}
