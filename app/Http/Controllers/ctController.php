@@ -1588,25 +1588,26 @@ class ctController extends Controller
                 $resultadosQ18 = DB::connection($connection)
                     ->select("
                         SELECT
-                            date_trunc('month', fec_registro) AS mes,
-                            AVG((t_supervisores_voltajes.val_kva_t / 1000) * 100) / AVG(t_trafos.val_kva) AS cap_instalada,
+                            MAX(fec_registro) AS mes,
+                            AVG((t_supervisores_voltajes.val_kva_t / 1000) * 100) 
+                                / AVG(t_trafos.val_kva) AS cap_instalada,
                             t_ct.id_ct,
-                            val_kva
-                        FROM
-                            core.t_supervisores_voltajes
-                        JOIN
-                            core.t_trafos ON t_supervisores_voltajes.id_svr = t_trafos.id_svr
-                        JOIN
-                            core.t_concentradores ON t_concentradores.id_cnc = t_trafos.id_cnc
-                        JOIN
-                            core.t_ct ON t_ct.id_ct = t_concentradores.id_ct
+                            t_trafos.val_kva
+                        FROM core.t_supervisores_voltajes
+                        JOIN core.t_trafos 
+                            ON t_supervisores_voltajes.id_svr = t_trafos.id_svr
+                        JOIN core.t_concentradores 
+                            ON t_concentradores.id_cnc = t_trafos.id_cnc
+                        JOIN core.t_ct 
+                            ON t_ct.id_ct = t_concentradores.id_ct
                         WHERE
                             t_ct.id_ct = :id_ct
                             AND fec_registro >= NOW() - INTERVAL '48 hours'
                         GROUP BY
-                            1, t_ct.id_ct, val_kva
+                            t_ct.id_ct,
+                            t_trafos.val_kva
                         ORDER BY
-                            1 DESC
+                            mes DESC
                         LIMIT 1;
                     ", ['id_ct' => $id_ct]);
 
@@ -1676,7 +1677,7 @@ class ctController extends Controller
 
 
 
-                return $resultadosQ19 ?: ['message' => 'No hay datos'];
+                return $resultadosQ19 ?: [];
             } else {
                 // Una de las tablas no existe, retornar un mensaje específico 
                 return ['message' => 'No hay datos'];
