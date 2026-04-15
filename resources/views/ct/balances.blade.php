@@ -1083,7 +1083,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             <div class="text-center">
 
                                                                 <div style="font-size:18px; margin-bottom:10px;">
-                                                                    ENERGÍA GENERADA
+                                                                    ENERGÍA DISTRIBUIDA
                                                                 </div>
 
                                                                 <div
@@ -1201,7 +1201,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                                             <div class="text-center">
                                                                 <div class="text-lg mb-3">
-                                                                    ENERGÍA CONSUMIDA
+                                                                    ENERGÍA DEMANDADA
                                                                 </div>
 
                                                                 <div class="w-[150px] h-[150px] rounded-full border-2 border-teal-400 flex flex-col items-center justify-center text-center"
@@ -1286,10 +1286,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 FECHA</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                                ENERGÍA GENERADA</th>
+                                                                                ENERGÍA DISTRIBUIDA</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                                EXCESO</th>
+                                                                                ENERGÍA SOBRANTE</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                                 ENERGÍA AUTOCONSUMOS</th>
@@ -1298,7 +1298,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                 TOTAL GENERACIÓN</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                                ENERGÍA CONSUMIDA</th>
+                                                                                ENERGÍA DEMANDADA</th>
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                                 TOTAL CUPS</th>
@@ -1308,12 +1308,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                             <th class="mt-0  text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
                                                                                 PÉRDIDA</th>
-                                                                           
-
-
                                                                             <th class="mt-0 text-xl font-bold text-center"
                                                                                 style="color:rgb(88,226,194); padding: 10px">
-                                                                                PERDIDA PORCENTUAL</th>
+                                                                                PÉRDIDA PORCENTUAL</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -1332,7 +1329,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     {{ !empty($resultado->energia_autoconsumos) ? $resultado->energia_autoconsumos : '0' }}
                                                                                 </td>
                                                                                 <td class="py-2">
-                                                                                    {{ !empty($resultado->generacion) ? $resultado->generacion : '0' }}
+                                                                                    {{ ($resultado->generacion ?? 0) - ($resultado->exceso ?? 0) }}
                                                                                 </td>
                                                                                 <td class="py-2">
                                                                                     {{ !empty($resultado->energia_consumida) ? $resultado->energia_consumida : '0' }}

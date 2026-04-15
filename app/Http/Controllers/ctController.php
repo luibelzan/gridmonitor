@@ -3370,10 +3370,12 @@ class ctController extends Controller
 
             // Construir la consulta SQL
             $query = "
-                SELECT COUNT(fec_evento) AS cantidad,
-                    TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
+                SELECT 
+                    COUNT(m.fec_evento) AS cantidad,
+                    TO_CHAR(m.fec_evento, 'DD/MM/YYYY') AS fec_evento
                 FROM core.v_apagones m
-                JOIN core.t_cups c ON m.id_cups = c.id_cups
+                INNER JOIN core.t_cups c ON m.id_cups = c.id_cups
+                INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
             ";
 
 
@@ -3450,7 +3452,8 @@ class ctController extends Controller
             SELECT COUNT(m.fec_evento) AS cantidad,
                 TO_CHAR(m.fec_evento, 'DD/MM/YYYY') AS fec_evento
             FROM core.v_micro_cortes m
-            JOIN core.t_cups c ON m.id_cups = c.id_cups
+            INNER JOIN core.t_cups c ON m.id_cups = c.id_cups
+            INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
         ";
 
 
@@ -3533,7 +3536,8 @@ class ctController extends Controller
             SELECT COUNT(fec_evento) AS cantidad,
                     TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
             FROM core.v_sub_voltajes m
-            JOIN core.t_cups c ON m.id_cups = c.id_cups
+            INNER JOIN core.t_cups c ON m.id_cups = c.id_cups
+            INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
         ";
 
 
@@ -3610,7 +3614,8 @@ class ctController extends Controller
             SELECT COUNT(fec_evento) AS cantidad,
                     TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento
             FROM core.v_sobre_voltajes m
-            JOIN core.t_cups c ON m.id_cups = c.id_cups
+            INNER JOIN core.t_cups c ON m.id_cups = c.id_cups
+            INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
         ";
 
 

@@ -432,15 +432,15 @@ class SupervisionAvanzadaController extends Controller
                 AVG(num_cnt) AS total_cnt,
                 SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
                 SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
-                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0)) AS total_lvs,
+                SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0)) AS total_lvs,
                 SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
                 SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
-                SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
+                SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
                 CASE
                     WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
                     ELSE
                         ROUND(
-                            (SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
+                            (SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
                             / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
                             2
                         )
@@ -502,7 +502,7 @@ class SupervisionAvanzadaController extends Controller
                     SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
 
                     -- Pérdida total
-                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
+                    SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
 
                     -- Porcentaje total de pérdida
                     CASE
@@ -510,7 +510,7 @@ class SupervisionAvanzadaController extends Controller
                         ELSE
                             ROUND(
                                 (
-                                    SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_cnt, 0))
+                                    SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0))
                                     - SUM(COALESCE(ai_cnt, 0))
                                 ) * 100.0
                                 / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
@@ -627,56 +627,142 @@ class SupervisionAvanzadaController extends Controller
                 $params = ['id_ct' => $id_ct];
 
                 $query = "
-            SELECT
-                id_ct,
-                id_linea,
+                    SELECT
+                        id_ct,
+                        id_linea,
 
-                -- FASE R
-                SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
-                SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
-                SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
-                SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
-                SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
-                SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) AS perdida_energia_r,
-                CASE
-                    WHEN SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) = 0 THEN 0
-                    ELSE ROUND(
-                        (SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) * 100.0)
-                        / SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)), 2)
-                END AS porcentaje_perdida_r,
+                        -- FASE R
+                        SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
+                        SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
+                        SUM(COALESCE(lvs_ai_r, 0) + COALESCE(cnt_ae_r, 0) - COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
 
-                -- FASE S
-                SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
-                SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
-                SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
-                SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
-                SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
-                SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) AS perdida_energia_s,
-                CASE
-                    WHEN SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) = 0 THEN 0
-                    ELSE ROUND(
-                        (SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) * 100.0)
-                        / SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)), 2)
-                END AS porcentaje_perdida_s,
+                        SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
+                        SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
 
-                -- FASE T
-                SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
-                SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
-                SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
-                SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
-                SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
-                SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) AS perdida_energia_t,
-                CASE
-                    WHEN SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) = 0 THEN 0
-                    ELSE ROUND(
-                        (SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) * 100.0)
-                        / SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)), 2)
-                END AS porcentaje_perdida_t
+                        SUM(
+                            (
+                                COALESCE(lvs_ai_r, 0) + 
+                                COALESCE(cnt_ae_r, 0) +
+                                (COALESCE(cnt_ae_3f, 0) / 3) -
+                                COALESCE(lvs_ae_r, 0)
+                            ) - COALESCE(cnt_ai_r, 0) + (COALESCE(cnt_ai_3f, 0) / 3)
+                        ) AS perdida_energia_r,
 
-            FROM
-                core.t_balances_horarios_fases
-            WHERE
-                id_ct = :id_ct";
+                        CASE
+                            WHEN SUM(
+                                COALESCE(lvs_ai_r, 0) + 
+                                COALESCE(cnt_ae_r, 0) - 
+                                COALESCE(lvs_ae_r, 0)
+                            ) = 0 THEN 0
+                            ELSE ROUND(
+                                SUM(
+                                    (
+                                        COALESCE(lvs_ai_r, 0) + 
+                                        COALESCE(cnt_ae_r, 0) +
+                                        (COALESCE(cnt_ae_3f, 0) / 3) - 
+                                        COALESCE(lvs_ae_r, 0)
+                                    ) - COALESCE(cnt_ai_r, 0) + (COALESCE(cnt_ai_3f, 0) / 3)
+                                ) * 100.0
+                                /
+                                SUM(
+                                    COALESCE(lvs_ai_r, 0) + 
+                                    COALESCE(cnt_ae_r, 0) +
+                                    (COALESCE(cnt_ae_3f, 0) / 3) - 
+                                    COALESCE(lvs_ae_r, 0)
+                                ),
+                            2)
+                        END AS porcentaje_perdida_r,
+
+                        -- FASE S
+                        SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
+                        SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
+                        SUM(COALESCE(lvs_ai_s, 0) + COALESCE(cnt_ae_s, 0) - COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
+
+                        SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
+                        SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
+
+                        SUM(
+                            (
+                                COALESCE(lvs_ai_s, 0) + 
+                                COALESCE(cnt_ae_s, 0) + 
+                                (COALESCE(cnt_ae_3f, 0) / 3) -
+                                COALESCE(lvs_ae_s, 0)
+                            ) - COALESCE(cnt_ai_s, 0) + (COALESCE(cnt_ai_3f, 0) / 3)
+                        ) AS perdida_energia_s,
+
+                        CASE
+                            WHEN SUM(
+                                COALESCE(lvs_ai_s, 0) + 
+                                COALESCE(cnt_ae_s, 0) - 
+                                COALESCE(lvs_ae_s, 0)
+                            ) = 0 THEN 0
+                            ELSE ROUND(
+                                SUM(
+                                    (
+                                        COALESCE(lvs_ai_s, 0) + 
+                                        COALESCE(cnt_ae_s, 0) +
+                                        (COALESCE(cnt_ae_3f, 0) / 3) - 
+                                        COALESCE(lvs_ae_s, 0)
+                                    ) - COALESCE(cnt_ai_s, 0) + (COALESCE(cnt_ai_3f, 0) / 3)
+                                ) * 100.0
+                                /
+                                SUM(
+                                    COALESCE(lvs_ai_s, 0) + 
+                                    COALESCE(cnt_ae_s, 0) +
+                                    (COALESCE(cnt_ae_3f, 0) / 3) - 
+                                    COALESCE(lvs_ae_s, 0)
+                                ),
+                            2)
+                        END AS porcentaje_perdida_s,
+
+                        -- FASE T
+                        SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
+                        SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
+                        SUM(COALESCE(lvs_ai_t, 0) + COALESCE(cnt_ae_t, 0) - COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
+
+                        SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
+                        SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
+
+                        SUM(
+                            (
+                                COALESCE(lvs_ai_t, 0) + 
+                                COALESCE(cnt_ae_t, 0) + 
+                                (COALESCE(cnt_ae_3f, 0) / 3) -
+                                COALESCE(lvs_ae_t, 0)
+                            ) - COALESCE(cnt_ai_t, 0) + (COALESCE(cnt_ai_3f, 0) / 3)
+                        ) AS perdida_energia_t,
+
+                        CASE
+                            WHEN SUM(
+                                COALESCE(lvs_ai_t, 0) + 
+                                COALESCE(cnt_ae_t, 0) - 
+                                COALESCE(lvs_ae_t, 0)
+                            ) = 0 THEN 0
+                            ELSE ROUND(
+                                SUM(
+                                    (
+                                        COALESCE(lvs_ai_t, 0) + 
+                                        COALESCE(cnt_ae_t, 0) +
+                                        (COALESCE(cnt_ae_3f, 0) / 3) - 
+                                        COALESCE(lvs_ae_t, 0)
+                                    ) - COALESCE(cnt_ai_t, 0) + (COALESCE(cnt_ai_3f, 0) / 3)
+                                ) * 100.0
+                                /
+                                SUM(
+                                    COALESCE(lvs_ai_t, 0) + 
+                                    COALESCE(cnt_ae_t, 0) +
+                                    (COALESCE(cnt_ae_3f, 0) / 3) - 
+                                    COALESCE(lvs_ae_t, 0)
+                                ),
+                            2)
+                        END AS porcentaje_perdida_t,
+
+                        -- FASE 3
+                        SUM(COALESCE(cnt_ai_3f, 0)) AS total_ai_cnt_3f,
+                        SUM(COALESCE(cnt_ae_3f, 0)) AS total_ae_cnt_3f
+
+                    FROM core.t_balances_horarios_fases
+                    WHERE id_ct = :id_ct";
 
                 if ($fecha_inicio && $fecha_fin) {
                     $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
@@ -722,56 +808,129 @@ class SupervisionAvanzadaController extends Controller
                 $params = ['id_ct' => $id_ct];
 
                 $query = "
-            SELECT
-                id_ct,
-                id_linea,
+                    SELECT
+                        id_ct,
+                        id_linea,
 
-                -- FASE R
-                SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
-                SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
-                SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
-                SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
-                SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
-                SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) AS perdida_energia_r,
-                CASE
-                    WHEN SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) = 0 THEN 0
-                    ELSE ROUND(
-                        (SUM((COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)) - (COALESCE(cnt_ai_r, 0) + COALESCE(cnt_ae_r, 0))) * 100.0)
-                        / SUM(COALESCE(lvs_ai_r, 0) + COALESCE(lvs_ae_r, 0)), 2)
-                END AS porcentaje_perdida_r,
+                        -- FASE R
+                        SUM(COALESCE(lvs_ai_r, 0)) AS total_ai_lvs_r,
+                        SUM(COALESCE(lvs_ae_r, 0)) AS total_ae_lvs_r,
+                        SUM(COALESCE(lvs_ai_r, 0) + COALESCE(cnt_ae_r, 0) - COALESCE(lvs_ae_r, 0)) AS total_lvs_r,
 
-                -- FASE S
-                SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
-                SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
-                SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
-                SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
-                SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
-                SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) AS perdida_energia_s,
-                CASE
-                    WHEN SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) = 0 THEN 0
-                    ELSE ROUND(
-                        (SUM((COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)) - (COALESCE(cnt_ai_s, 0) + COALESCE(cnt_ae_s, 0))) * 100.0)
-                        / SUM(COALESCE(lvs_ai_s, 0) + COALESCE(lvs_ae_s, 0)), 2)
-                END AS porcentaje_perdida_s,
+                        SUM(COALESCE(cnt_ai_r, 0)) AS total_ai_cnt_r,
+                        SUM(COALESCE(cnt_ae_r, 0)) AS total_ae_cnt_r,
 
-                -- FASE T
-                SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
-                SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
-                SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
-                SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
-                SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
-                SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) AS perdida_energia_t,
-                CASE
-                    WHEN SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) = 0 THEN 0
-                    ELSE ROUND(
-                        (SUM((COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)) - (COALESCE(cnt_ai_t, 0) + COALESCE(cnt_ae_t, 0))) * 100.0)
-                        / SUM(COALESCE(lvs_ai_t, 0) + COALESCE(lvs_ae_t, 0)), 2)
-                END AS porcentaje_perdida_t
+                        SUM(
+                            (
+                                COALESCE(lvs_ai_r, 0) + 
+                                COALESCE(cnt_ae_r, 0) - 
+                                COALESCE(lvs_ae_r, 0)
+                            ) - COALESCE(cnt_ai_r, 0)
+                        ) AS perdida_energia_r,
 
-            FROM
-                core.t_balances_horarios_fases
-            WHERE
-                id_ct = :id_ct";
+                        CASE
+                            WHEN SUM(
+                                COALESCE(lvs_ai_r, 0) + 
+                                COALESCE(cnt_ae_r, 0) - 
+                                COALESCE(lvs_ae_r, 0)
+                            ) = 0 THEN 0
+                            ELSE ROUND(
+                                SUM(
+                                    (
+                                        COALESCE(lvs_ai_r, 0) + 
+                                        COALESCE(cnt_ae_r, 0) - 
+                                        COALESCE(lvs_ae_r, 0)
+                                    ) - COALESCE(cnt_ai_r, 0)
+                                ) * 100.0
+                                /
+                                SUM(
+                                    COALESCE(lvs_ai_r, 0) + 
+                                    COALESCE(cnt_ae_r, 0) - 
+                                    COALESCE(lvs_ae_r, 0)
+                                ),
+                            2)
+                        END AS porcentaje_perdida_r,
+
+                        -- FASE S
+                        SUM(COALESCE(lvs_ai_s, 0)) AS total_ai_lvs_s,
+                        SUM(COALESCE(lvs_ae_s, 0)) AS total_ae_lvs_s,
+                        SUM(COALESCE(lvs_ai_s, 0) + COALESCE(cnt_ae_s, 0) - COALESCE(lvs_ae_s, 0)) AS total_lvs_s,
+
+                        SUM(COALESCE(cnt_ai_s, 0)) AS total_ai_cnt_s,
+                        SUM(COALESCE(cnt_ae_s, 0)) AS total_ae_cnt_s,
+
+                        SUM(
+                            (
+                                COALESCE(lvs_ai_s, 0) + 
+                                COALESCE(cnt_ae_s, 0) - 
+                                COALESCE(lvs_ae_s, 0)
+                            ) - COALESCE(cnt_ai_s, 0)
+                        ) AS perdida_energia_s,
+
+                        CASE
+                            WHEN SUM(
+                                COALESCE(lvs_ai_s, 0) + 
+                                COALESCE(cnt_ae_s, 0) - 
+                                COALESCE(lvs_ae_s, 0)
+                            ) = 0 THEN 0
+                            ELSE ROUND(
+                                SUM(
+                                    (
+                                        COALESCE(lvs_ai_s, 0) + 
+                                        COALESCE(cnt_ae_s, 0) - 
+                                        COALESCE(lvs_ae_s, 0)
+                                    ) - COALESCE(cnt_ai_s, 0)
+                                ) * 100.0
+                                /
+                                SUM(
+                                    COALESCE(lvs_ai_s, 0) + 
+                                    COALESCE(cnt_ae_s, 0) - 
+                                    COALESCE(lvs_ae_s, 0)
+                                ),
+                            2)
+                        END AS porcentaje_perdida_s,
+
+                        -- FASE T
+                        SUM(COALESCE(lvs_ai_t, 0)) AS total_ai_lvs_t,
+                        SUM(COALESCE(lvs_ae_t, 0)) AS total_ae_lvs_t,
+                        SUM(COALESCE(lvs_ai_t, 0) + COALESCE(cnt_ae_t, 0) - COALESCE(lvs_ae_t, 0)) AS total_lvs_t,
+
+                        SUM(COALESCE(cnt_ai_t, 0)) AS total_ai_cnt_t,
+                        SUM(COALESCE(cnt_ae_t, 0)) AS total_ae_cnt_t,
+
+                        SUM(
+                            (
+                                COALESCE(lvs_ai_t, 0) + 
+                                COALESCE(cnt_ae_t, 0) - 
+                                COALESCE(lvs_ae_t, 0)
+                            ) - COALESCE(cnt_ai_t, 0)
+                        ) AS perdida_energia_t,
+
+                        CASE
+                            WHEN SUM(
+                                COALESCE(lvs_ai_t, 0) + 
+                                COALESCE(cnt_ae_t, 0) - 
+                                COALESCE(lvs_ae_t, 0)
+                            ) = 0 THEN 0
+                            ELSE ROUND(
+                                SUM(
+                                    (
+                                        COALESCE(lvs_ai_t, 0) + 
+                                        COALESCE(cnt_ae_t, 0) - 
+                                        COALESCE(lvs_ae_t, 0)
+                                    ) - COALESCE(cnt_ai_t, 0)
+                                ) * 100.0
+                                /
+                                SUM(
+                                    COALESCE(lvs_ai_t, 0) + 
+                                    COALESCE(cnt_ae_t, 0) - 
+                                    COALESCE(lvs_ae_t, 0)
+                                ),
+                            2)
+                        END AS porcentaje_perdida_t
+
+                    FROM core.t_balances_horarios_fases
+                    WHERE id_ct = :id_ct";
 
                 if ($fecha_inicio && $fecha_fin) {
                     $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";

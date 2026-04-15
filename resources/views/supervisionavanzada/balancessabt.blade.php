@@ -646,25 +646,25 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 <tr>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
-                                                                        CT ID</th>
+                                                                        CT</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
                                                                         Linea</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Generada</th>
+                                                                        Energia Distribuida</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia (Exceso)</th>
+                                                                        Autoconsumos</th>
+                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                        style="color:rgb(88,226,194); padding: 10px">
+                                                                        Energia Sobrante</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
                                                                         Total generacion</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Consumida</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Autoconsumos</th>
+                                                                        Energia Demandada</th>
                                                                     <th class="mt-0  text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
                                                                         CUPS Leidos</th>
@@ -689,6 +689,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                             {{ !empty($resultado->total_ai_lvs) ? intval($resultado->total_ai_lvs/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
+                                                                            {{ !empty($resultado->total_ae_cnt) ? intval($resultado->total_ae_cnt/1000) : '0' }}
+                                                                        </td>
+                                                                        <td class="py-2">
                                                                             {{ !empty($resultado->total_ae_lvs) ? intval($resultado->total_ae_lvs/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
@@ -696,9 +699,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->total_ai_cnt) ? intval($resultado->total_ai_cnt/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt) ? intval($resultado->total_ae_cnt/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->total_cnt) ? intval($resultado->total_cnt) : '0' }}
@@ -800,6 +800,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         Energia Consumida (T)</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
+                                                                        Energia Consumida (3F)</th>
+                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                        style="color:rgb(88,226,194); padding: 10px">
                                                                         Autoconsumos (R)</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
@@ -807,6 +810,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
                                                                         Autoconsumos (T)</th>
+                                                                    <th class="mt-0 text-xl font-bold text-center"
+                                                                        style="color:rgb(88,226,194); padding: 10px">
+                                                                        Autoconsumos (3F)</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
                                                                         Perdida (R)</th>
@@ -864,6 +870,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                             {{ !empty($resultado->total_ai_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
+                                                                            {{ !empty($resultado->total_ai_cnt_3f) ? intval($resultado->total_ai_cnt_3f/1000) : '0' }}
+                                                                        </td>
+                                                                        <td class="py-2">
                                                                             {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ae_cnt_r/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
@@ -871,6 +880,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->total_ae_cnt_t) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
+                                                                        </td>
+                                                                        <td class="py-2">
+                                                                            {{ !empty($resultado->total_ae_cnt_3f) ? intval($resultado->total_ae_cnt_3f/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->perdida_energia_r) ? intval($resultado->perdida_energia_r/1000) : '0' }}

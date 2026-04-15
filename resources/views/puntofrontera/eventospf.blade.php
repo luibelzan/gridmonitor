@@ -428,11 +428,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                                     </th>
                                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                                         style="color:rgb(88,226,194)">
-                                                                                        DURACION (Segundos)
+                                                                                        FIN
                                                                                     </th>
                                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                                         style="color:rgb(88,226,194)">
-                                                                                        FIN
+                                                                                        DURACION (Segundos)
                                                                                     </th>
                                                                                 </tr>
                                                                             </thead>
