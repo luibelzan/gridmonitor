@@ -1328,7 +1328,7 @@
 
 
 
-                                                            @if (count($resultadosQ22) > 0 && !empty($resultadosQ22[0]->lect_s02))
+                                                            @if (count($resultadosQ22) > 0 && isset($resultadosQ22))
                                                                 {{-- GRÁFICO DE lect_s02 --}}
                                                                 <div class="grafico-wrapper"
                                                                     style="position: relative; height: 30vh; width: 80vw; overflow: hidden;">

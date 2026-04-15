@@ -824,6 +824,7 @@ class ctController extends Controller
                         t_concentradores.cod_mod,
                         t_concentradores.des_cnc_af,
                         t_concentradores.des_vdlms,
+						t_trafos.id_svr,
                         SUM(t_trafos.val_kva) AS kva_ct
                     FROM core.t_ct
                     JOIN core.t_concentradores 
@@ -841,6 +842,7 @@ class ctController extends Controller
                         t_concentradores.id_cnc,
                         t_concentradores.cod_mod,
                         t_concentradores.des_cnc_af,
+						t_trafos.id_svr,
                         t_concentradores.des_vdlms
                     ORDER BY
                         t_ct.id_ct,
@@ -3482,7 +3484,6 @@ class ctController extends Controller
 
 
 
-
             // Ejecutar la consulta
             $resultadosQ40 = DB::connection($connection)->select($query, $params);
 
@@ -3669,88 +3670,75 @@ class ctController extends Controller
 
 
 
-    public function consultaCuarentayTres(Request $request, $connection) //ratio cortes reportes de calidad
-    {
-        try {
-            // Obtener las fechas de inicio y fin del request
-            $fecha_inicio = $request->input('fecha_inicio');
-            $fecha_fin = $request->input('fecha_fin');
+    public function consultaCuarentayTres(Request $request, $connection) // ratio cortes reportes de calidad
+{
+    try {
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
 
+        $params = [];
 
-
-
-            // Inicializar el array de parámetros
-            $params = [];
-
-
-
-
-            // Construir la consulta SQL
-            $query = "
-            WITH total_cups AS (
-                SELECT count(t_cups.id_cups) AS total_cups
-                FROM core.t_cups
-            ),
-            total_eventos AS (
-                SELECT COUNT(v_apagones.fec_evento) AS total_eventos
-                FROM core.v_apagones
+        $query = "
+        WITH total_cups AS (
+            SELECT COUNT(id_cups) AS total_cups
+            FROM core.t_cups
+        ),
+        total_eventos AS (
+            SELECT COUNT(*) AS total_eventos
+            FROM core.v_apagones m
+            WHERE 1=1
         ";
 
+        // 🔹 Filtro fecha inicio
+        if ($fecha_inicio) {
+            $query .= " AND m.fec_evento >= :fecha_inicio ";
+            $params['fecha_inicio'] = $fecha_inicio;
+        } else {
+            $query .= " AND m.fec_evento >= NOW() - INTERVAL '30 days' ";
+        }
 
+        // 🔹 Filtro fecha fin (IMPORTANTE: usar < día siguiente)
+        if ($fecha_fin) {
+            $query .= " AND m.fec_evento < (:fecha_fin::date + INTERVAL '1 day') ";
+            $params['fecha_fin'] = $fecha_fin;
+        }
 
-
-            // Añadir condiciones de fecha si están presentes
-            if ($fecha_inicio) {
-                $query .= " WHERE fec_evento >= :fecha_inicio ";
-                $params['fecha_inicio'] = $fecha_inicio;
-            } else {
-                $query .= " WHERE fec_evento >= NOW() - INTERVAL '30 days'";
-            }
-
-
-
-
-            if ($fecha_fin) {
-                $query .= "AND fec_evento <= :fecha_fin ";
-                $params['fecha_fin'] = $fecha_fin;
-            }
-
-
-
-
-            // Completar la consulta SQL
-            $query .= "
+        // 🔹 🔥 FILTRO CLAVE: solo id_cups válidos
+        $query .= "
+            AND EXISTS (
+                SELECT 1
+                FROM core.t_cups c
+                WHERE c.id_cups = m.id_cups
+                AND c.id_ct IS NOT NULL
+                AND EXISTS (
+                    SELECT 1
+                    FROM core.t_ct t
+                    WHERE t.id_ct = c.id_ct
+                )
             )
-            SELECT 
-                total_cups.total_cups,
-                total_eventos.total_eventos,
-                CASE 
-                    WHEN total_eventos.total_eventos = 0 THEN NULL
-                    ELSE ROUND(total_eventos.total_eventos / total_cups.total_cups::decimal, 2)
-                END AS ratio
-            FROM total_cups, total_eventos;
+        )
+        SELECT 
+            total_cups.total_cups,
+            total_eventos.total_eventos,
+            CASE 
+                WHEN total_eventos.total_eventos = 0 THEN NULL
+                ELSE ROUND(total_eventos.total_eventos / total_cups.total_cups::decimal, 2)
+            END AS ratio
+        FROM total_cups, total_eventos;
         ";
 
+        $resultadosQ43 = DB::connection($connection)->select($query, $params);
 
-
-
-            // Ejecutar la consulta
-            $resultadosQ43 = DB::connection($connection)->select($query, $params);
-
-
-
-
-            // Verificar si hay resultados
-            if (empty($resultadosQ43)) {
-                return ['message' => 'No hay datos'];
-            }
-            // dd($resultadosQ43);
-            return $resultadosQ43;
-        } catch (\Exception $e) {
-            // Manejo de excepciones con mensaje específico
+        if (empty($resultadosQ43)) {
             return ['message' => 'No hay datos'];
         }
+
+        return $resultadosQ43;
+
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
     }
+}
 
 
 
@@ -3780,7 +3768,8 @@ class ctController extends Controller
             total_eventos AS (
                 SELECT COUNT(v_micro_cortes.fec_evento) AS total_eventos
                 FROM core.v_micro_cortes 
-                JOIN core.t_cups ON v_micro_cortes.id_cups = core.t_cups.id_cups
+                INNER JOIN core.t_cups c ON v_micro_cortes.id_cups = c.id_cups
+                INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
         ";
 
 
@@ -3867,7 +3856,8 @@ class ctController extends Controller
             total_eventos AS (
                 SELECT COUNT(v_sub_voltajes.fec_evento) AS total_eventos
                 FROM core.v_sub_voltajes
-                JOIN core.t_cups ON v_sub_voltajes.id_cups = core.t_cups.id_cups
+                INNER JOIN core.t_cups c ON v_sub_voltajes.id_cups = c.id_cups
+                INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
         ";
 
 
@@ -3954,7 +3944,8 @@ class ctController extends Controller
             total_eventos AS (
                 SELECT COUNT(v_sobre_voltajes.fec_evento) AS total_eventos
                 FROM core.v_sobre_voltajes
-                JOIN core.t_cups ON v_sobre_voltajes.id_cups = core.t_cups.id_cups
+                INNER JOIN core.t_cups c ON v_sobre_voltajes.id_cups = c.id_cups
+                INNER JOIN core.t_ct t ON t.id_ct = c.id_ct
         ";
 
 
@@ -5478,7 +5469,7 @@ class ctController extends Controller
 
     public function getDashboardInfo(Request $request, $connection) {
         try {
-            if(Schema::connection($connection)->hasTable('core.t_ct')) {
+            if(Schema::connection($connection)->hasTable('t_ct')) {
                 $query = "
                     WITH trafos_por_ct AS (
                         SELECT 

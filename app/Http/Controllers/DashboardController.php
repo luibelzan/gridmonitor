@@ -1013,19 +1013,16 @@ class DashboardController extends Controller
                     balance_ct AS (
                         SELECT
                             id_ct,
-                            (val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) AS perdida,
+                            SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) AS perdida,
                             ROUND(
-			            	((val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr)* 100.0) 
-			      			/ (val_ai_d_sum_svr + val_ae_d_sum_cnt),1) as porcentaje_perdida 
+                                SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt - val_ai_d_sum_cnt - val_ae_d_sum_svr) * 100.0
+                                / NULLIF(SUM(val_ai_d_sum_svr + val_ae_d_sum_cnt),0)
+                            ,1) AS porcentaje_perdida
                         FROM core.t_balances_diarios
                         WHERE tip_calculo = 1
                         AND val_ai_d_sum_svr > 0
-                        AND fec_inicio = (
-                                SELECT MAX(fec_inicio)
-                                FROM core.t_balances_diarios b2
-                                WHERE b2.id_ct = core.t_balances_diarios.id_ct
-                                AND b2.tip_calculo = 1
-                        )
+                        AND fec_inicio >= (CURRENT_DATE - INTERVAL '1 month')
+                        GROUP BY id_ct
                     ),
                     desbalance_ct AS (
                         SELECT 

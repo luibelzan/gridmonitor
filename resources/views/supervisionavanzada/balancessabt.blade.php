@@ -864,10 +864,10 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                             {{ !empty($resultado->total_ai_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ae_cnt_r/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_s) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->total_ae_cnt_s) ? intval($resultado->total_ae_cnt_s/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->total_ae_cnt_t) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
