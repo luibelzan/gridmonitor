@@ -673,7 +673,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         Perdida</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
-                                                                        Perdida Porcentual</th>
+                                                                        Perdida %</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -701,7 +701,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                             {{ !empty($resultado->total_ai_cnt) ? intval($resultado->total_ai_cnt/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_cnt) ? intval($resultado->total_cnt) : '0' }}
+                                                                            {{ intval($resultado->total_cnt ?? 0) }} / {{ intval($resultado->total_cups ?? 0) }}
                                                                         </td>
                                                                         <td class="py-2">
                                                                             {{ !empty($resultado->perdida_energia) ? intval($resultado->perdida_energia/1000) : '0' }}

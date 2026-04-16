@@ -426,29 +426,52 @@ class SupervisionAvanzadaController extends Controller
                 $params = ['id_ct' => $id_ct];
 
                 $query = "
-            SELECT
-                id_ct,
-                id_linea,
-                AVG(num_cnt) AS total_cnt,
-                SUM(COALESCE(ai_lvs, 0)) AS total_ai_lvs,
-                SUM(COALESCE(ae_lvs, 0)) AS total_ae_lvs,
-                SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0)) AS total_lvs,
-                SUM(COALESCE(ai_cnt, 0)) AS total_ai_cnt,
-                SUM(COALESCE(ae_cnt, 0)) AS total_ae_cnt,
-                SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0) - COALESCE(ai_cnt, 0)) AS perdida_energia,
-                CASE
-                    WHEN SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)) = 0 THEN 0
-                    ELSE
-                        ROUND(
-                            (SUM(COALESCE(ai_lvs, 0) - COALESCE(ae_lvs, 0) + COALESCE(ae_cnt, 0)) - SUM(COALESCE(ai_cnt, 0))) * 100.0
-                            / SUM(COALESCE(ai_lvs, 0) + COALESCE(ae_lvs, 0)),
-                            2
-                        )
-                END AS porcentaje_perdida
-            FROM
-                core.t_balances_horarios_lineas
-            WHERE
-                id_ct = :id_ct";
+                WITH cups_por_linea AS (
+                    SELECT
+                        id_ct,
+                        id_linea,
+                        COUNT(DISTINCT id_cups) AS total_cups
+                    FROM core.t_cups
+                    WHERE fec_fecha_baja IS NULL
+                    GROUP BY id_ct, id_linea
+                )
+
+                SELECT
+                    b.id_ct,
+                    b.id_linea,
+                    AVG(b.num_cnt) AS total_cnt,
+                    COALESCE(c.total_cups, 0) AS total_cups,
+
+                    SUM(COALESCE(b.ai_lvs, 0)) AS total_ai_lvs,
+                    SUM(COALESCE(b.ae_lvs, 0)) AS total_ae_lvs,
+                    SUM(COALESCE(b.ai_lvs, 0) - COALESCE(b.ae_lvs, 0) + COALESCE(b.ae_cnt, 0)) AS total_lvs,
+                    SUM(COALESCE(b.ai_cnt, 0)) AS total_ai_cnt,
+                    SUM(COALESCE(b.ae_cnt, 0)) AS total_ae_cnt,
+
+                    SUM(COALESCE(b.ai_lvs, 0) - COALESCE(b.ae_lvs, 0) + COALESCE(b.ae_cnt, 0) - COALESCE(b.ai_cnt, 0)) AS perdida_energia,
+
+                    CASE
+                        WHEN COALESCE(c.total_cups, 0) = 0 THEN 0
+                        ELSE ROUND(AVG(b.num_cnt) * 100.0 / c.total_cups, 2)
+                    END AS cups_ratio,
+
+                    CASE
+                        WHEN SUM(COALESCE(b.ai_lvs, 0) + COALESCE(b.ae_lvs, 0)) = 0 THEN 0
+                        ELSE
+                            ROUND(
+                                (SUM(COALESCE(b.ai_lvs, 0) - COALESCE(b.ae_lvs, 0) + COALESCE(b.ae_cnt, 0)) - SUM(COALESCE(b.ai_cnt, 0))) * 100.0
+                                / SUM(COALESCE(b.ai_lvs, 0) + COALESCE(b.ae_lvs, 0)),
+                                2
+                            )
+                    END AS porcentaje_perdida
+
+                FROM core.t_balances_horarios_lineas b
+
+                LEFT JOIN cups_por_linea c
+                    ON c.id_ct = b.id_ct
+                    AND c.id_linea = b.id_linea
+
+                WHERE b.id_ct = :id_ct";
 
                 if ($fecha_inicio && $fecha_fin) {
                     $query .= " AND fecha_inicio >= :fecha_inicio AND fecha_inicio <= :fecha_fin";
@@ -459,11 +482,12 @@ class SupervisionAvanzadaController extends Controller
                 }
 
                 $query .= " GROUP BY
-                            id_ct,
-                            id_linea
-                        ORDER BY
-                            id_ct,
-                            id_linea;";
+                                b.id_ct,
+                                b.id_linea,
+                                c.total_cups
+                            ORDER BY
+                                id_ct,
+                                id_linea;";
 
                 $balancesSABT = DB::connection($connection)->select($query, $params);
 
