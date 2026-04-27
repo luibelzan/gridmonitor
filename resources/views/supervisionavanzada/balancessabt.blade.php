@@ -661,7 +661,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                         Energia Sobrante</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
-                                                                        Total generacion</th>
+                                                                        Total Generacion</th>
                                                                     <th class="mt-0 text-xl font-bold text-center"
                                                                         style="color:rgb(88,226,194); padding: 10px">
                                                                         Energia Demandada</th>
@@ -755,143 +755,90 @@ document.addEventListener("DOMContentLoaded", function () {
                                                         <table id="testTableBalancesCt"
                                                             class="w-full text-white text-center">
                                                             <thead style="border-bottom: 1px solid #ffffff;">
+        
+                                                                <!-- NUEVA FILA SUPERIOR -->
                                                                 <tr>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        CT ID</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Linea</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Generada (R)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Generada (S)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Generada (T)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia (Exceso R)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia (Exceso S)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia (Exceso T)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Total generacion (R)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Total generacion (S)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Total generacion (T)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Consumida (R)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Consumida (S)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Consumida (T)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Energia Consumida (3F)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Autoconsumos (R)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Autoconsumos (S)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Autoconsumos (T)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Autoconsumos (3F)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Perdida (R)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Perdida (S)</th>
-                                                                    <th class="mt-0 text-xl font-bold text-center"
-                                                                        style="color:rgb(88,226,194); padding: 10px">
-                                                                        Perdida (T)</th>
+                                                                    <th colspan="2"></th>
+                                                                    <th colspan="4" style="color:rgb(88,226,194); padding: 10px;">Fase R</th>
+                                                                    <th colspan="4" style="color:rgb(88,226,194); padding: 10px;">Fase S</th>
+                                                                    <th colspan="4" style="color:rgb(88,226,194); padding: 10px;">Fase T</th>
                                                                 </tr>
+
+                                                                <!-- TU FILA ORIGINAL -->
+                                                                <tr>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">CT</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Linea</th>
+
+                                                                    <!-- Fase R -->
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Energia Distribuida</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Energia Demandada</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Perdida</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Perdida %</th>
+
+                                                                    <!-- Fase S -->
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Energia Distribuida</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Energia Demandada</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Perdida</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Perdida %</th>
+
+                                                                    <!-- Fase T -->
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Energia Distribuida</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Energia Demandada</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Perdida</th>
+                                                                    <th style="color:rgb(88,226,194); padding: 10px">Perdida %</th>
+                                                                </tr>
+
                                                             </thead>
                                                             <tbody>
                                                                 @foreach ($balancesFasesSABT as $resultado)
                                                                     <tr class="highlight-row ">
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->id_ct) ? $resultado->id_ct : 'No hay datos' }}
+                                                                            {{ $resultado->id_ct }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->id_linea) ? $resultado->id_linea : 'No hay datos' }}
+                                                                            {{ $resultado->id_linea }}
+                                                                        </td>
+
+                                                                        <!-- FASE R -->
+                                                                        <td class="py-2">
+                                                                            {{ !empty($resultado->energia_distribuida_r) ? intval($resultado->energia_distribuida_r/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_lvs_r) ? intval($resultado->total_ai_lvs_r/1000) : '0' }}
+                                                                            {{ !empty($resultado->energia_demandada_r) ? intval($resultado->energia_demandada_r/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_lvs_s) ? intval($resultado->total_ai_lvs_s/1000) : '0' }}
+                                                                            {{ !empty($resultado->perdida_r) ? intval($resultado->perdida_r/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_lvs_t) ? intval($resultado->total_ai_lvs_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->porcentaje_perdida_r) ? $resultado->porcentaje_perdida_r : '0' }}%
+                                                                        </td>
+
+                                                                        <!-- FASE S -->
+                                                                        <td class="py-2">
+                                                                            {{ !empty($resultado->energia_distribuida_s) ? intval($resultado->energia_distribuida_s/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_lvs_r) ? intval($resultado->total_ae_lvs_r/1000) : '0' }}
+                                                                            {{ !empty($resultado->energia_demandada_s) ? intval($resultado->energia_demandada_s/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_lvs_s) ? intval($resultado->total_ae_lvs_s/1000) : '0' }}
+                                                                            {{ !empty($resultado->perdida_s) ? intval($resultado->perdida_s/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_lvs_t) ? intval($resultado->total_ae_lvs_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->porcentaje_perdida_s) ? $resultado->porcentaje_perdida_s : '0' }}%
+                                                                        </td>
+
+                                                                        <!-- FASE T -->
+                                                                        <td class="py-2">
+                                                                            {{ !empty($resultado->energia_distribuida_t) ? intval($resultado->energia_distribuida_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_lvs_r) ? intval($resultado->total_lvs_r/1000) : '0' }}
+                                                                            {{ !empty($resultado->energia_demandada_t) ? intval($resultado->energia_demandada_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_lvs_s) ? intval($resultado->total_lvs_s/1000) : '0' }}
+                                                                            {{ !empty($resultado->perdida_t) ? intval($resultado->perdida_t/1000) : '0' }}
                                                                         </td>
                                                                         <td class="py-2">
-                                                                            {{ !empty($resultado->total_lvs_t) ? intval($resultado->total_lvs_t/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_cnt_r) ? intval($resultado->total_ai_cnt_r/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_cnt_s) ? intval($resultado->total_ai_cnt_s/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_cnt_t) ? intval($resultado->total_ai_cnt_t/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ai_cnt_3f) ? intval($resultado->total_ai_cnt_3f/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_r) ? intval($resultado->total_ae_cnt_r/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_s) ? intval($resultado->total_ae_cnt_s/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_t) ? intval($resultado->total_ae_cnt_t/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->total_ae_cnt_3f) ? intval($resultado->total_ae_cnt_3f/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->perdida_energia_r) ? intval($resultado->perdida_energia_r/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->perdida_energia_s) ? intval($resultado->perdida_energia_s/1000) : '0' }}
-                                                                        </td>
-                                                                        <td class="py-2">
-                                                                            {{ !empty($resultado->perdida_energia_t) ? intval($resultado->perdida_energia_t/1000) : '0' }}
+                                                                            {{ !empty($resultado->porcentaje_perdida_t) ? $resultado->porcentaje_perdida_t : '0' }}%
                                                                         </td>
                                                                     </tr>
                                                                 @endforeach

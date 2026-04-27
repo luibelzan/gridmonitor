@@ -370,6 +370,53 @@
             updateChartDesequilibrioVoltaje(avg_pct_deseq_voltaje)
         };
     </script>
+
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        function exportarArchivo(formato) {
+            var idCt = document.querySelector('input[name="id_ct"]').value;
+            var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+            var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+
+            var url = "{{ route('exportar.voltajes.ct') }}?";
+
+            if (idCt) {
+                url += "id_ct=" + encodeURIComponent(idCt) + "&";
+            }
+            if (fecInicio) {
+                url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+            }
+            if (fecFin) {
+                url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+            }
+
+            url += "format=" + formato;
+
+            window.location.href = url;
+        }
+
+        var exportExcelBtn = document.getElementById('exportarExcel');
+        var exportCsvBtn = document.getElementById('exportarCsv');
+
+        if (exportExcelBtn) {
+            exportExcelBtn.addEventListener('click', function () {
+                exportarArchivo('excel');
+            });
+        } else {
+            console.error("El botón exportarExcel no existe en el DOM.");
+        }
+
+        if (exportCsvBtn) {
+            exportCsvBtn.addEventListener('click', function () {
+                exportarArchivo('csv');
+            });
+        }
+    });
+    </script>
+
+
     <title>Energía</title>
 </head>
 
@@ -1553,153 +1600,120 @@
                                     </script>
                                     {{-- SCRIPTS PARA EL GRÁFICO VOLTAJE 1 --}}
                                     <script>
-                                        // Transformar los datos para el gráfico de línea
                                         var labels_volt1 = [];
                                         var values_volt1 = [];
+
                                         @if ($resultadosQ16 && count($resultadosQ16) > 0)
-                                            @foreach ($resultadosQ16 as $key => $resultado)
+                                            @foreach ($resultadosQ16 as $resultado)
                                                 @if (isset($resultado->fec_registro) && isset($resultado->hor_registro) && isset($resultado->val_voltaje_1))
-                                                    // Verificar que fec_registro, hor_registro y val_voltaje_1 estén definidos y no sean nulos o cadenas vacías
                                                     var dateTime = '{{ $resultado->fec_registro }} {{ $resultado->hor_registro }}';
                                                     labels_volt1.push(dateTime);
                                                     values_volt1.push({{ $resultado->val_voltaje_1 }});
                                                 @endif
                                             @endforeach
                                         @endif
-                                        if (labels_volt1.length > 0 && values_volt1.length > 0) {
-                                            // Ordenar los datos por fecha y hora
-                                            var sortedData = labels_volt1.slice().sort();
-                                            // Filtrar las etiquetas para evitar repeticiones consecutivas de fechas y horas
-                                            var filteredLabels = [sortedData[0]];
-                                            for (var i = 1; i < sortedData.length; i++) {
-                                                if (sortedData[i] !== sortedData[i - 1]) {
-                                                    filteredLabels.push(sortedData[i]);
-                                                }
+
+                                        if (labels_volt1.length > 0) {
+
+                                            // 🔥 Unir fecha + valor
+                                            var data = [];
+
+                                            for (var i = 0; i < labels_volt1.length; i++) {
+                                                data.push({
+                                                    fecha: labels_volt1[i],
+                                                    valor: values_volt1[i]
+                                                });
                                             }
+
+                                            // 🔥 Ordenar correctamente por fecha real
+                                            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+                                            // 🔥 Separar ya ordenado
+                                            var sortedLabels = data.map(d => d.fecha);
+                                            var sortedValues = data.map(d => d.valor);
+
                                             var myChartLineVoltaje1;
-                                            // Actualiza el gráfico con las etiquetas filtradas
+
                                             function updateChartLineVoltaje1(data) {
-                                                if (myChartLineVoltaje1) {
-                                                    myChartLineVoltaje1.data.labels = data.labels_volt1;
-                                                    myChartLineVoltaje1.data.datasets[0].data = data.values_volt1;
-                                                    myChartLineVoltaje1.update();
-                                                } else {
-                                                    var ctx = document.getElementById('graficoLineaVoltaje1').getContext('2d');
-                                                    myChartLineVoltaje1 = new Chart(ctx, {
-                                                        type: 'line',
-                                                        data: {
-                                                            labels: data.labels_volt1,
-                                                            datasets: [{
-                                                                label: 'Voltaje Fase R.',
-                                                                data: data.values_volt1,
-                                                                borderColor: 'rgb(238,145,4)',
-                                                                backgroundColor: function(context) {
-                                                                    var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
-                                                                    gradient.addColorStop(0,
-                                                                        'rgba(238,145,4, 0.9)'); // Color inicial con opacidad 0.9
-                                                                    gradient.addColorStop(0.3,
-                                                                        'rgba(238,145,4, 0.5)'
-                                                                    ); // Nuevo color en la mitad del gradiente
-                                                                    gradient.addColorStop(1,
-                                                                        'rgba(238,145,4, 0)'
-                                                                    ); // Color final con opacidad 0 (transparente)
-                                                                    return gradient;
-                                                                },
-                                                                borderWidth: 2,
-                                                                pointBackgroundColor: 'rgb(238,145,4)',
-                                                                pointBorderColor: 'rgba(238,145,4, 0.5)',
-                                                                pointBorderWidth: 1,
-                                                                fill: true,
-                                                                tension: 0.4,
-                                                                pointRadius: 3,
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            plugins: {
-                                                                legend: {
-                                                                    position: 'bottom', // Mueve la leyenda a la parte inferior
-                                                                    labels: {
-                                                                        color: 'white',
-                                                                        font: {
-                                                                            family: 'Didact Gothic',
-                                                                            weight: 'normal'
-                                                                        }
-                                                                    }
-                                                                },
-                                                                tooltip: {
-                                                                    callbacks: {
-                                                                        title: function(tooltipItems, data) {
-                                                                            var tooltipTitle = '';
-                                                                            if (tooltipItems.length > 0) {
-                                                                                var label = tooltipItems[0].label;
-                                                                                tooltipTitle = label;
-                                                                            }
-                                                                            return tooltipTitle;
-                                                                        },
-                                                                        label: function(context) {
-                                                                            var label = '';
-                                                                            if (context.parsed.y !== null) {
-                                                                                label += context.parsed.y + ' V';
-                                                                            }
-                                                                            return label;
-                                                                        }
-                                                                    },
-                                                                    titleFont: {
-                                                                        family: 'Didact Gothic',
-                                                                        weight: 'normal'
-                                                                    },
-                                                                    bodyFont: {
-                                                                        family: 'Didact Gothic',
-                                                                        weight: 'normal'
-                                                                    }
+
+                                                var ctx = document.getElementById('graficoLineaVoltaje1').getContext('2d');
+
+                                                myChartLineVoltaje1 = new Chart(ctx, {
+                                                    type: 'line',
+                                                    data: {
+                                                        labels: data.labels_volt1.map(label => {
+                                                            return label.replace(/\:\d\d$/, 'h'); // quitar segundos
+                                                        }),
+                                                        datasets: [{
+                                                            label: 'Voltaje Fase R',
+                                                            data: data.values_volt1,
+                                                            borderColor: 'rgb(238,145,4)',
+                                                            backgroundColor: function(context) {
+                                                                var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
+                                                                gradient.addColorStop(0, 'rgba(238,145,4,0.9)');
+                                                                gradient.addColorStop(0.3, 'rgba(238,145,4,0.5)');
+                                                                gradient.addColorStop(1, 'rgba(238,145,4,0)');
+                                                                return gradient;
+                                                            },
+                                                            borderWidth: 2,
+                                                            pointBackgroundColor: 'rgb(238,145,4)',
+                                                            pointRadius: 3,
+                                                            fill: true,
+                                                            tension: 0.4
+                                                        }]
+                                                    },
+                                                    options: {
+                                                        responsive: true,
+                                                        maintainAspectRatio: false,
+                                                        plugins: {
+                                                            legend: {
+                                                                position: 'bottom',
+                                                                labels: {
+                                                                    color: 'white'
                                                                 }
                                                             },
-                                                            scales: {
-                                                                x: {
-                                                                    type: 'category',
-                                                                    labels: data.labels_volt1.map(label => {
-                                                                        // Eliminar los segundos de cada etiqueta
-                                                                        const timeWithoutSeconds = label.replace(/\:\d\d$/, 'h');
-                                                                        return timeWithoutSeconds;
-                                                                    }).sort(), // Utilizar las cadenas de fecha sin formato
-                                                                    grid: {
-                                                                        color: 'rgb(50, 50, 50)'
-                                                                    },
-                                                                    ticks: {
-                                                                        color: '#FFFFFF',
-                                                                        stepSize: 2 // Establecer el tamaño del paso entre los valores en el eje y    
+                                                            tooltip: {
+                                                                callbacks: {
+                                                                    label: function(context) {
+                                                                        return context.parsed.y + ' V';
                                                                     }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            x: {
+                                                                grid: {
+                                                                    color: 'rgb(50,50,50)'
                                                                 },
-                                                                y: {
-                                                                    display: true, // Mostrar el eje y
-                                                                    beginAtZero: true,
-                                                                    grid: {
-                                                                        color: 'rgb(50, 50, 50)'
-                                                                    },
-                                                                    ticks: {
-                                                                        color: '#FFFFFF',
-                                                                        // min: 0, // Valor mínimo en el eje y
-                                                                        // max: 300, // Valor máximo en el eje y
-                                                                        stepSize: 100, // Espaciado entre cada valor
-                                                                        callback: function(value, index, values) {
-                                                                            // Devolver solo los valores que deseas mostrar
-                                                                            return [0, 100, 200, 300].includes(value) ? value + ' V' : '';
-                                                                        }
+                                                                ticks: {
+                                                                    color: '#FFFFFF'
+                                                                }
+                                                            },
+                                                            y: {
+                                                                beginAtZero: true,
+                                                                grid: {
+                                                                    color: 'rgb(50,50,50)'
+                                                                },
+                                                                ticks: {
+                                                                    color: '#FFFFFF',
+                                                                    stepSize: 100,
+                                                                    callback: function(value) {
+                                                                        return [0,100,200,300].includes(value) ? value + ' V' : '';
                                                                     }
                                                                 }
                                                             }
                                                         }
-                                                    });
-                                                }
+                                                    }
+                                                });
                                             }
+
                                             updateChartLineVoltaje1({
-                                                labels_volt1: filteredLabels,
-                                                values_volt1: values_volt1
+                                                labels_volt1: sortedLabels,
+                                                values_volt1: sortedValues
                                             });
+
                                         } else {
-                                            console.log("No hay datos disponibles para mostrar en el gráfico.");
+                                            console.log("No hay datos para el gráfico");
                                         }
                                     </script>
 
@@ -1921,150 +1935,118 @@
                                     </script>
                                     {{-- SCRIPTS PARA EL GRÁFICO VOLTAJE 2 --}}
                                     <script>
-                                        // Transformar los datos para el gráfico de línea
                                         var labels_volt2 = [];
                                         var values_volt2 = [];
+
                                         @if ($resultadosQ16 && count($resultadosQ16) > 0)
-                                            @foreach ($resultadosQ16 as $key => $resultado)
+                                            @foreach ($resultadosQ16 as $resultado)
                                                 @if (isset($resultado->fec_registro) && isset($resultado->hor_registro) && isset($resultado->val_voltaje_2))
-                                                    // Agregar la fecha y hora como etiquetas del eje x
                                                     var dateTime = '{{ $resultado->fec_registro }} {{ $resultado->hor_registro }}';
                                                     labels_volt2.push(dateTime);
-                                                    // Agregar el valor de 'val_voltaje_2' como valor del eje y
                                                     values_volt2.push({{ $resultado->val_voltaje_2 }});
                                                 @endif
                                             @endforeach
                                         @endif
-                                        if (labels_volt2.length > 0 && values_volt2.length > 0) {
-                                            // Ordenar los datos por fecha y hora
-                                            var sortedDataVolt2 = labels_volt2.slice().sort();
-                                            // Filtrar las etiquetas para evitar repeticiones consecutivas de fechas y horas
-                                            var filteredLabelsVolt2 = [sortedDataVolt2[0]];
-                                            for (var i = 1; i < sortedDataVolt2.length; i++) {
-                                                if (sortedDataVolt2[i] !== sortedDataVolt2[i - 1]) {
-                                                    filteredLabelsVolt2.push(sortedDataVolt2[i]);
-                                                }
+
+                                        if (labels_volt2.length > 0) {
+
+                                            // 🔥 Unir fecha + valor
+                                            var data = [];
+
+                                            for (var i = 0; i < labels_volt2.length; i++) {
+                                                data.push({
+                                                    fecha: labels_volt2[i],
+                                                    valor: values_volt2[i]
+                                                });
                                             }
+
+                                            // 🔥 Ordenar correctamente por fecha real
+                                            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+                                            // 🔥 Separar datos ya ordenados
+                                            var sortedLabels = data.map(d => d.fecha);
+                                            var sortedValues = data.map(d => d.valor);
+
                                             var myChartLineVoltaje2;
-                                            // Actualizar el gráfico con las etiquetas filtradas
+
                                             function updateChartLineVoltaje2(data) {
-                                                if (myChartLineVoltaje2) {
-                                                    myChartLineVoltaje2.data.labels = data.labels_volt2;
-                                                    myChartLineVoltaje2.data.datasets[0].data = data.values_volt2;
-                                                    myChartLineVoltaje2.update();
-                                                } else {
-                                                    var ctx = document.getElementById('graficoLineaVoltaje2').getContext('2d');
-                                                    myChartLineVoltaje2 = new Chart(ctx, {
-                                                        type: 'line',
-                                                        data: {
-                                                            labels: data.labels_volt2,
-                                                            datasets: [{
-                                                                label: 'Voltaje Fase S.',
-                                                                data: data.values_volt2,
-                                                                borderColor: 'rgb(88, 226, 194)',
-                                                                backgroundColor: function(context) {
-                                                                    var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
-                                                                    gradient.addColorStop(0,
-                                                                        'rgba(88,226,194, 0.9)'); // Color inicial con opacidad 0.9
-                                                                    gradient.addColorStop(0.3,
-                                                                        'rgba(88,226,194, 0.5)'
-                                                                    ); // Nuevo color en la mitad del gradiente
-                                                                    gradient.addColorStop(1,
-                                                                        'rgba(88,226,194, 0)'
-                                                                    ); // Color final con opacidad 0 (transparente)
-                                                                    return gradient;
-                                                                },
-                                                                borderWidth: 2,
-                                                                pointBackgroundColor: 'rgba(88,226,194, 0.8)',
-                                                                pointBorderColor: 'rgb(88,226,194)',
-                                                                pointBorderWidth: 1,
-                                                                fill: true,
-                                                                tension: 0.4,
-                                                                pointRadius: 3, // Establecer el radio del punto a 0 para que no se muestren los puntos
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            plugins: {
-                                                                legend: {
-                                                                    position: 'bottom', // Mueve la leyenda a la parte inferior
-                                                                    labels: {
-                                                                        color: 'white',
-                                                                        font: {
-                                                                            family: 'Didact Gothic',
-                                                                            weight: 'normal'
-                                                                        }
-                                                                    }
-                                                                },
-                                                                tooltip: {
-                                                                    callbacks: {
-                                                                        title: function(tooltipItems, data) {
-                                                                            var tooltipTitle = '';
-                                                                            if (tooltipItems.length > 0) {
-                                                                                var label = tooltipItems[0].label;
-                                                                                tooltipTitle = label;
-                                                                            }
-                                                                            return tooltipTitle;
-                                                                        },
-                                                                        label: function(context) {
-                                                                            var label = '';
-                                                                            if (context.parsed.y !== null) {
-                                                                                label += context.parsed.y + ' V';
-                                                                            }
-                                                                            return label;
-                                                                        }
-                                                                    },
-                                                                    titleFont: {
-                                                                        family: 'Didact Gothic',
-                                                                        weight: 'normal'
-                                                                    },
-                                                                    bodyFont: {
-                                                                        family: 'Didact Gothic',
-                                                                        weight: 'normal'
-                                                                    }
+
+                                                var ctx = document.getElementById('graficoLineaVoltaje2').getContext('2d');
+
+                                                myChartLineVoltaje2 = new Chart(ctx, {
+                                                    type: 'line',
+                                                    data: {
+                                                        labels: data.labels_volt2.map(label => {
+                                                            return label.replace(/\:\d\d$/, 'h'); // quitar segundos
+                                                        }),
+                                                        datasets: [{
+                                                            label: 'Voltaje Fase S',
+                                                            data: data.values_volt2,
+                                                            borderColor: 'rgb(88,226,194)',
+                                                            backgroundColor: function(context) {
+                                                                var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
+                                                                gradient.addColorStop(0, 'rgba(88,226,194,0.9)');
+                                                                gradient.addColorStop(0.3, 'rgba(88,226,194,0.5)');
+                                                                gradient.addColorStop(1, 'rgba(88,226,194,0)');
+                                                                return gradient;
+                                                            },
+                                                            borderWidth: 2,
+                                                            pointBackgroundColor: 'rgba(88,226,194,0.8)',
+                                                            pointRadius: 3,
+                                                            fill: true,
+                                                            tension: 0.4
+                                                        }]
+                                                    },
+                                                    options: {
+                                                        responsive: true,
+                                                        maintainAspectRatio: false,
+                                                        plugins: {
+                                                            legend: {
+                                                                position: 'bottom',
+                                                                labels: {
+                                                                    color: 'white'
                                                                 }
                                                             },
-                                                            scales: {
-                                                                x: {
-                                                                    type: 'category',
-                                                                    labels: data.labels_volt2.map(label => {
-                                                                        // Eliminar los segundos de cada etiqueta
-                                                                        const timeWithoutSeconds = label.replace(/\:\d\d$/, 'h');
-                                                                        return timeWithoutSeconds;
-                                                                    }).sort(), // Utilizar las cadenas de fecha sin formato
-                                                                    grid: {
-                                                                        color: 'rgb(50, 50, 50)'
-                                                                    },
-                                                                    ticks: {
-                                                                        color: '#FFFFFF',
-                                                                        stepSize: 2 // Establecer el tamaño del paso entre los valores en el eje y    
+                                                            tooltip: {
+                                                                callbacks: {
+                                                                    label: function(context) {
+                                                                        return context.parsed.y + ' V';
                                                                     }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            x: {
+                                                                grid: {
+                                                                    color: 'rgb(50,50,50)'
                                                                 },
-                                                                y: {
-                                                                    display: true, // Mostrar el eje y
-                                                                    beginAtZero: true,
-                                                                    grid: {
-                                                                        color: 'rgb(50, 50, 50)'
-                                                                    },
-                                                                    ticks: {
-                                                                        color: '#FFFFFF',
-                                                                        stepSize: 100, // Espaciado entre cada valor
-                                                                        callback: function(value, index, values) {
-                                                                            // Devolver solo los valores que deseas mostrar
-                                                                            return [0, 100, 200, 300].includes(value) ? value + ' V' : '';
-                                                                        }
+                                                                ticks: {
+                                                                    color: '#FFFFFF'
+                                                                }
+                                                            },
+                                                            y: {
+                                                                beginAtZero: true,
+                                                                grid: {
+                                                                    color: 'rgb(50,50,50)'
+                                                                },
+                                                                ticks: {
+                                                                    color: '#FFFFFF',
+                                                                    stepSize: 100,
+                                                                    callback: function(value) {
+                                                                        return [0,100,200,300].includes(value) ? value + ' V' : '';
                                                                     }
                                                                 }
                                                             }
                                                         }
-                                                    });
-                                                }
+                                                    }
+                                                });
                                             }
+
                                             updateChartLineVoltaje2({
-                                                labels_volt2: filteredLabelsVolt2,
-                                                values_volt2: values_volt2
+                                                labels_volt2: sortedLabels,
+                                                values_volt2: sortedValues
                                             });
+
                                         } else {
                                             console.log("No hay datos disponibles para mostrar en el gráfico.");
                                         }
@@ -2286,164 +2268,270 @@
                                     </script>
                                     {{-- SCRIPTS PARA EL GRÁFICO VOLTAJE 3 --}}
                                     <script>
-                                        // Transformar los datos para el gráfico de línea
                                         var labels_volt3 = [];
                                         var values_volt3 = [];
+
                                         @if ($resultadosQ16 && count($resultadosQ16) > 0)
-                                            @foreach ($resultadosQ16 as $key => $resultado)
+                                            @foreach ($resultadosQ16 as $resultado)
                                                 @if (isset($resultado->fec_registro) && isset($resultado->hor_registro) && isset($resultado->val_voltaje_3))
-                                                    // Agregar la fecha y hora como etiquetas del eje x
                                                     var dateTime = '{{ $resultado->fec_registro }} {{ $resultado->hor_registro }}';
                                                     labels_volt3.push(dateTime);
-                                                    // Agregar el valor de 'val_voltaje_3' como valor del eje y
                                                     values_volt3.push({{ $resultado->val_voltaje_3 }});
                                                 @endif
                                             @endforeach
                                         @endif
-                                        if (labels_volt3.length > 0 && values_volt3.length > 0) {
-                                            // Ordenar los datos por fecha y hora
-                                            var sortedDataVolt3 = labels_volt3.slice().sort();
-                                            // Filtrar las etiquetas para evitar repeticiones consecutivas de fechas y horas
-                                            var filteredLabelsVolt3 = [sortedDataVolt3[0]];
-                                            for (var i = 1; i < sortedDataVolt3.length; i++) {
-                                                if (sortedDataVolt3[i] !== sortedDataVolt3[i - 1]) {
-                                                    filteredLabelsVolt3.push(sortedDataVolt3[i]);
-                                                }
+
+                                        if (labels_volt3.length > 0) {
+
+                                            // 🔥 Unir fecha + valor
+                                            var data = [];
+
+                                            for (var i = 0; i < labels_volt3.length; i++) {
+                                                data.push({
+                                                    fecha: labels_volt3[i],
+                                                    valor: values_volt3[i]
+                                                });
                                             }
+
+                                            // 🔥 Ordenar correctamente por fecha real
+                                            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+                                            // 🔥 Separar ya ordenado
+                                            var sortedLabels = data.map(d => d.fecha);
+                                            var sortedValues = data.map(d => d.valor);
+
                                             var myChartLineVoltaje3;
-                                            // Actualizar el gráfico con las etiquetas filtradas
+
                                             function updateChartLineVoltaje3(data) {
-                                                if (myChartLineVoltaje3) {
-                                                    myChartLineVoltaje3.data.labels = data.labels_volt3;
-                                                    myChartLineVoltaje3.data.datasets[0].data = data.values_volt3;
-                                                    myChartLineVoltaje3.update();
-                                                } else {
-                                                    var ctx = document.getElementById('graficoLineaVoltaje3').getContext('2d');
-                                                    myChartLineVoltaje3 = new Chart(ctx, {
-                                                        type: 'line',
-                                                        data: {
-                                                            labels: data.labels_volt3,
-                                                            datasets: [{
-                                                                label: 'Voltaje Fase T.',
-                                                                data: data.values_volt3,
-                                                                borderColor: 'rgb(44, 131, 174)',
-                                                                backgroundColor: function(context) {
-                                                                    var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
-                                                                    gradient.addColorStop(0,
-                                                                        'rgba(44, 131, 174, 0.9)'); // Color inicial con opacidad 0.9
-                                                                    gradient.addColorStop(0.3,
-                                                                        'rgba(44, 131, 174, 0.5)'
-                                                                    ); // Nuevo color en la mitad del gradiente
-                                                                    gradient.addColorStop(1,
-                                                                        'rgba(44, 131, 174, 0)'
-                                                                    ); // Color final con opacidad 0 (transparente)
-                                                                    return gradient;
-                                                                },
-                                                                borderWidth: 2,
-                                                                pointBackgroundColor: 'rgba(44, 131, 174, 0.8)',
-                                                                pointBorderColor: 'rgba(44, 131, 174, 0.5)',
-                                                                pointBorderWidth: 1,
 
+                                                var ctx = document.getElementById('graficoLineaVoltaje3').getContext('2d');
 
-
-
-
-
-
-
-                                                                fill: true,
-                                                                tension: 0.4,
-                                                                pointRadius: 3, // Establecer el radio del punto a 0 para que no se muestren los puntos
-                                                            }]
-                                                        },
-                                                        options: {
-                                                            responsive: true,
-                                                            maintainAspectRatio: false,
-                                                            plugins: {
-                                                                legend: {
-                                                                    position: 'bottom', // Mueve la leyenda a la parte inferior
-                                                                    labels: {
-                                                                        color: 'white',
-                                                                        font: {
-                                                                            family: 'Didact Gothic',
-                                                                            weight: 'normal'
-                                                                        }
-                                                                    }
-                                                                },
-                                                                tooltip: {
-                                                                    callbacks: {
-                                                                        title: function(tooltipItems, data) {
-                                                                            var tooltipTitle = '';
-                                                                            if (tooltipItems.length > 0) {
-                                                                                var label = tooltipItems[0].label;
-                                                                                tooltipTitle = label;
-                                                                            }
-                                                                            return tooltipTitle;
-                                                                        },
-                                                                        label: function(context) {
-                                                                            var label = '';
-                                                                            if (context.parsed.y !== null) {
-                                                                                label += context.parsed.y + ' V';
-                                                                            }
-                                                                            return label;
-                                                                        }
-                                                                    },
-                                                                    titleFont: {
-                                                                        family: 'Didact Gothic',
-                                                                        weight: 'normal'
-                                                                    },
-                                                                    bodyFont: {
-                                                                        family: 'Didact Gothic',
-                                                                        weight: 'normal'
-                                                                    }
+                                                myChartLineVoltaje3 = new Chart(ctx, {
+                                                    type: 'line',
+                                                    data: {
+                                                        labels: data.labels_volt3.map(label => {
+                                                            return label.replace(/\:\d\d$/, 'h'); // quitar segundos
+                                                        }),
+                                                        datasets: [{
+                                                            label: 'Voltaje Fase T',
+                                                            data: data.values_volt3,
+                                                            borderColor: 'rgb(44,131,174)',
+                                                            backgroundColor: function(context) {
+                                                                var gradient = context.chart.ctx.createLinearGradient(0, 0, 0, 400);
+                                                                gradient.addColorStop(0, 'rgba(44,131,174,0.9)');
+                                                                gradient.addColorStop(0.3, 'rgba(44,131,174,0.5)');
+                                                                gradient.addColorStop(1, 'rgba(44,131,174,0)');
+                                                                return gradient;
+                                                            },
+                                                            borderWidth: 2,
+                                                            pointBackgroundColor: 'rgba(44,131,174,0.8)',
+                                                            pointRadius: 3,
+                                                            fill: true,
+                                                            tension: 0.4
+                                                        }]
+                                                    },
+                                                    options: {
+                                                        responsive: true,
+                                                        maintainAspectRatio: false,
+                                                        plugins: {
+                                                            legend: {
+                                                                position: 'bottom',
+                                                                labels: {
+                                                                    color: 'white'
                                                                 }
                                                             },
-                                                            scales: {
-                                                                x: {
-                                                                    type: 'category',
-                                                                    labels: data.labels_volt3.map(label => {
-                                                                        // Eliminar los segundos de cada etiqueta
-                                                                        const timeWithoutSeconds = label.replace(/\:\d\d$/, 'h');
-                                                                        return timeWithoutSeconds;
-                                                                    }).sort(), // Utilizar las cadenas de fecha sin formato
-                                                                    grid: {
-                                                                        color: 'rgb(50, 50, 50)'
-                                                                    },
-                                                                    ticks: {
-                                                                        color: '#FFFFFF',
-                                                                        stepSize: 2 // Establecer el tamaño del paso entre los valores en el eje y    
+                                                            tooltip: {
+                                                                callbacks: {
+                                                                    label: function(context) {
+                                                                        return context.parsed.y + ' V';
                                                                     }
+                                                                }
+                                                            }
+                                                        },
+                                                        scales: {
+                                                            x: {
+                                                                grid: {
+                                                                    color: 'rgb(50,50,50)'
                                                                 },
-                                                                y: {
-                                                                    display: true, // Mostrar el eje y
-                                                                    beginAtZero: true,
-                                                                    grid: {
-                                                                        color: 'rgb(50, 50, 50)'
-                                                                    },
-                                                                    ticks: {
-                                                                        color: '#FFFFFF',
-                                                                        min: 100, // Valor mínimo en el eje y
-                                                                        max: 300, // Valor máximo en el eje y
-                                                                        stepSize: 100, // Espaciado entre cada valor
-                                                                        callback: function(value, index, values) {
-                                                                            // Devolver solo los valores que deseas mostrar
-                                                                            return [0, 100, 200, 300].includes(value) ? value + ' V' : '';
-                                                                        }
+                                                                ticks: {
+                                                                    color: '#FFFFFF'
+                                                                }
+                                                            },
+                                                            y: {
+                                                                beginAtZero: true,
+                                                                min: 100,
+                                                                max: 300,
+                                                                grid: {
+                                                                    color: 'rgb(50,50,50)'
+                                                                },
+                                                                ticks: {
+                                                                    color: '#FFFFFF',
+                                                                    stepSize: 100,
+                                                                    callback: function(value) {
+                                                                        return [0,100,200,300].includes(value) ? value + ' V' : '';
                                                                     }
                                                                 }
                                                             }
                                                         }
-                                                    });
-                                                }
+                                                    }
+                                                });
                                             }
+
                                             updateChartLineVoltaje3({
-                                                labels_volt3: filteredLabelsVolt3,
-                                                values_volt3: values_volt3
+                                                labels_volt3: sortedLabels,
+                                                values_volt3: sortedValues
                                             });
+
                                         } else {
                                             console.log("No hay datos disponibles para mostrar en el gráfico.");
                                         }
                                     </script>
+
+                                    {{-- FASE R S Y T --}}
+                                    <div class="card text-white mb-3 col-span-6"
+                                        style="background: linear-gradient(to bottom, RGB(27 32 38), RGB(27 32 38));">
+
+                                        <div class="p-4">
+                                            <h2 class="text-center text-white mb-3">Voltajes Fases R, S y T</h2>
+
+                                            <div style="position: relative; height: 25vh; width: 100%;">
+                                                <canvas id="graficoLinea3Fases"></canvas>
+                                            </div>
+                                            <!-- Contenedor del botón de descarga -->
+                                            <div class="text-right mt-4">
+                                                <!-- Botón Excel -->
+                                                <button id="exportarExcel" 
+                                                    style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                                    title="Exportar a Excel">
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <script>
+                                        var data3Fases = [];
+
+                                        @if ($resultadosQ16 && count($resultadosQ16) > 0)
+                                            @foreach ($resultadosQ16 as $resultado)
+                                                @if (
+                                                    isset($resultado->fec_registro) &&
+                                                    isset($resultado->hor_registro) &&
+                                                    isset($resultado->val_voltaje_1) &&
+                                                    isset($resultado->val_voltaje_2) &&
+                                                    isset($resultado->val_voltaje_3)
+                                                )
+                                                    data3Fases.push({
+                                                        fecha: '{{ $resultado->fec_registro }} {{ $resultado->hor_registro }}',
+                                                        r: {{ $resultado->val_voltaje_1 }},
+                                                        s: {{ $resultado->val_voltaje_2 }},
+                                                        t: {{ $resultado->val_voltaje_3 }}
+                                                    });
+                                                @endif
+                                            @endforeach
+                                        @endif
+
+                                        if (data3Fases.length > 0) {
+
+                                            // 🔥 Ordenar por fecha real
+                                            data3Fases.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+                                            // 🔥 Separar datos
+                                            var labels = data3Fases.map(d => d.fecha.replace(/\:\d\d$/, 'h'));
+                                            var voltR = data3Fases.map(d => d.r);
+                                            var voltS = data3Fases.map(d => d.s);
+                                            var voltT = data3Fases.map(d => d.t);
+
+                                            var ctx = document.getElementById('graficoLinea3Fases').getContext('2d');
+
+                                            new Chart(ctx, {
+                                                type: 'line',
+                                                data: {
+                                                    labels: labels,
+                                                    datasets: [
+
+                                                        // 🔶 FASE R
+                                                        {
+                                                            label: 'Fase R',
+                                                            data: voltR,
+                                                            borderColor: 'rgb(238,145,4)',
+                                                            backgroundColor: 'rgba(238,145,4,0.2)',
+                                                            tension: 0.4,
+                                                            pointRadius: 2
+                                                        },
+
+                                                        // 🟢 FASE S
+                                                        {
+                                                            label: 'Fase S',
+                                                            data: voltS,
+                                                            borderColor: 'rgb(88,226,194)',
+                                                            backgroundColor: 'rgba(88,226,194,0.2)',
+                                                            tension: 0.4,
+                                                            pointRadius: 2
+                                                        },
+
+                                                        // 🔵 FASE T
+                                                        {
+                                                            label: 'Fase T',
+                                                            data: voltT,
+                                                            borderColor: 'rgb(44,131,174)',
+                                                            backgroundColor: 'rgba(44,131,174,0.2)',
+                                                            tension: 0.4,
+                                                            pointRadius: 2
+                                                        }
+                                                    ]
+                                                },
+                                                options: {
+                                                    responsive: true,
+                                                    maintainAspectRatio: false,
+
+                                                    plugins: {
+                                                        legend: {
+                                                            position: 'bottom',
+                                                            labels: {
+                                                                color: 'white'
+                                                            }
+                                                        },
+                                                        tooltip: {
+                                                            callbacks: {
+                                                                label: function(context) {
+                                                                    return context.dataset.label + ': ' + context.parsed.y + ' V';
+                                                                }
+                                                            }
+                                                        }
+                                                    },
+
+                                                    scales: {
+                                                        x: {
+                                                            grid: {
+                                                                color: 'rgb(50,50,50)'
+                                                            },
+                                                            ticks: {
+                                                                color: '#FFFFFF'
+                                                            }
+                                                        },
+                                                        y: {
+                                                            beginAtZero: true,
+                                                            grid: {
+                                                                color: 'rgb(50,50,50)'
+                                                            },
+                                                            ticks: {
+                                                                color: '#FFFFFF',
+                                                                stepSize: 100,
+                                                                callback: function(value) {
+                                                                    return value + ' V';
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            });
+
+                                        } else {
+                                            console.log("No hay datos para el gráfico de 3 fases");
+                                        }
+                                    </script>
+
+
                                 @endif
                             @endforeach
                         @endif

@@ -14,6 +14,7 @@ use App\Exports\ReportesCalidadExport;
 use App\Exports\ReportesInventarioExport;
 use App\Exports\ReportesInventarioFWExport;
 use App\Exports\SumBalancesExport;
+use App\Exports\VoltajesCTExport;
 use App\Models\ConsumoDiario;
 use App\Models\Ct;
 use App\Models\Cups;
@@ -1521,7 +1522,8 @@ class ctController extends Controller
 
 
                 // Agregar el ordenamiento
-                $query .= " ORDER BY core.t_supervisores_voltajes.fec_registro ASC";
+                $query .= " ORDER BY core.t_supervisores_voltajes.fec_registro ASC,
+                core.t_supervisores_voltajes.hor_registro ASC";
 
 
 
@@ -1543,6 +1545,72 @@ class ctController extends Controller
             return ['message' => 'No hay datos'];
         }
     }
+
+    public function exportVoltajesCT(Request $request)
+{
+    try {
+        $user = auth()->user();
+        $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+
+        $fecha_inicio = $request->input('fecha_inicio');
+        $fecha_fin = $request->input('fecha_fin');
+        $id_ct = $request->input('id_ct');
+
+        $format = $request->input('format', 'excel');
+        $extension = $format === 'csv' ? 'csv' : 'xlsx';
+        $exportFormat = $format === 'csv' 
+            ? \Maatwebsite\Excel\Excel::CSV 
+            : \Maatwebsite\Excel\Excel::XLSX;
+
+        if ($id_ct) {
+
+            $query = "
+                SELECT 
+                    TO_CHAR(v.fec_registro, 'DD/MM/YYYY') as fecha,
+                    v.hor_registro,
+                    v.val_voltaje_1,
+                    v.val_voltaje_2,
+                    v.val_voltaje_3
+                FROM core.t_supervisores_voltajes v
+                JOIN core.t_concentradores c 
+                    ON v.id_cnc = c.id_cnc
+                WHERE c.id_ct = :id_ct
+            ";
+
+            $params = ['id_ct' => $id_ct];
+
+            if ($fecha_inicio && $fecha_fin) {
+                $query .= "
+                    AND v.fec_registro BETWEEN :fecha_inicio AND :fecha_fin
+                ";
+                $params['fecha_inicio'] = $fecha_inicio;
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            $query .= "
+                ORDER BY v.fec_registro ASC, v.hor_registro ASC
+            ";
+
+            $data = DB::connection($connection)->select($query, $params);
+
+            if ($data) {
+                return Excel::download(
+                    new VoltajesCTExport($data),
+                    'voltajes_ct.' . $extension,
+                    $exportFormat
+                );
+            } else {
+                return response()->json(['message' => 'No hay datos'], 404);
+            }
+
+        } else {
+            return ['message' => 'No hay datos'];
+        }
+
+    } catch (\Exception $e) {
+        return ['message' => 'No hay datos'];
+    }
+}
 
 
 
