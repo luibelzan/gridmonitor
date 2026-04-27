@@ -1,17 +1,13 @@
 <?php
 
-
-
-
 namespace App\Http\Controllers;
-
-
 
 
 use App\Exports\ConsumosTotalesDiariosExport;
 use App\Exports\CurvasHorariasCupsExport;
 use App\Exports\EventosCupsExport;
 use App\Exports\RegistrosMensualesExport;
+use App\Exports\VoltajesCUPSExport;
 use App\Models\Ct;
 use App\Models\Cups;
 use App\Models\User;
@@ -26,11 +22,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Excel as ExcelFormat;
-
-
-
-
-
 
 
 class CupsController extends Controller
@@ -1982,233 +1973,407 @@ class CupsController extends Controller
     }
 
 
-    public function consultaCatorceCups($id_cups, $connection, Request $request) //Nro de Cortes
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
+    public function consultaCatorceCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
+    if ($id_cups) {
 
-        if ($id_cups) {
-            $resultadosQ14cups = DB::connection($connection)
-                ->select("
-                SELECT count(*) as cortes
-                FROM core.v_apagones
-                where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-            // dd($resultadosQ14cups);
-            return $resultadosQ14cups ?: [];
-        }
-    }
-
-
-    public function consultaQuinceCups($id_cups, $connection, Request $request) //micro Cortes
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if ($id_cups) {
-            $resultadosQ15cups = DB::connection($connection)
-                ->select("
-                SELECT count(*) as micro_cortes
-                FROM core.v_micro_cortes
-                where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-            // dd($resultadosQ15cups);
-            return $resultadosQ15cups ?: [];
-        }
-    }
-
-
-    public function consultaDieciseisCups($id_cups, $connection, Request $request) //sobretensiones
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if ($id_cups) {
-            $resultadosQ16cups = DB::connection($connection)
-                ->select("
-                SELECT count(*) as sobre_tensiones
-                FROM core.v_sobre_voltajes
-                where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-            // dd($resultadosQ16cups);
-            return $resultadosQ16cups ?: [];
-        }
-    }
-
-
-    public function consultaDiecisieteCups($id_cups, $connection, Request $request) //subtensiones
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if ($id_cups) {
-            $resultadosQ17cups = DB::connection($connection)
-                ->select("
-                SELECT count(*) as sub_tensiones
-                FROM core.v_sub_voltajes
-                where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-            // dd($resultadosQ17cups);
-            return $resultadosQ17cups ?: [];
-        }
-    }
-
-
-    public function consultaDieciochoCups($id_cups, $connection, Request $request) //factor potencia
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if ($id_cups) {
-            $resultadosQ18cups = DB::connection($connection)
-                ->select("
-                SELECT ROUND(avg(val_fp_h), 2) as factor_potencia
-                FROM core.t_consumos_horarios
-                where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-            // dd($resultadosQ18cups);
-            return $resultadosQ18cups ?: [];
-        }
-    }
-
-
-    public function consultaDiecinueveCups($id_cups, $connection, Request $request) //fechas nro cortes
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if ($id_cups) {
-            $resultadosQ19cups = DB::connection($connection)
-                ->select("
-            SELECT TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, hor_evento
+        $sql = "
+            SELECT count(*) as cortes
             FROM core.v_apagones
             WHERE id_cups = :id_cups
-            ORDER BY fec_evento DESC, hor_evento DESC
-        ", ['id_cups' => $id_cups]);
+        ";
 
+        $params = ['id_cups' => $id_cups];
 
-            // Convertir las fechas y horas en objetos DateTime
-            foreach ($resultadosQ19cups as $resultado) {
-                $resultado->fecha_hora = DateTime::createFromFormat('d/m/Y H:i:s', $resultado->fec_evento . ' ' . $resultado->hor_evento);
-            }
-
-
-            // Ordenar los resultados por fecha y hora
-            usort($resultadosQ19cups, function ($a, $b) {
-                return $b->fecha_hora <=> $a->fecha_hora;
-            });
-
-
-            // dd($resultadosQ19cups);
-            return $resultadosQ19cups ?: [];
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
         }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $resultadosQ14cups = DB::connection($connection)->select($sql, $params);
+
+        return $resultadosQ14cups ?: [];
     }
 
+    return [];
+}
 
 
+    public function consultaQuinceCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
+    if ($id_cups) {
 
-
-
-
-
-
-    public function consultaVeinteCups($id_cups, $connection, Request $request) //fechas micro cortes
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if ($id_cups) {
-            $resultadosQ20cups = DB::connection($connection)
-                ->select("
-            SELECT TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, hor_evento
+        $sql = "
+            SELECT count(*) as micro_cortes
             FROM core.v_micro_cortes
             WHERE id_cups = :id_cups
-            ORDER BY fec_evento DESC, hor_evento DESC
-        ", ['id_cups' => $id_cups]);
+        ";
 
+        $params = ['id_cups' => $id_cups];
 
-            // Convertir las fechas y horas en objetos DateTime
-            foreach ($resultadosQ20cups as $resultado) {
-                $resultado->fecha_hora = DateTime::createFromFormat('d/m/Y H:i:s', $resultado->fec_evento . ' ' . $resultado->hor_evento);
-            }
-
-
-            // Ordenar los resultados por fecha y hora
-            usort($resultadosQ20cups, function ($a, $b) {
-                return $b->fecha_hora <=> $a->fecha_hora;
-            });
-
-            // dd($resultadosQ20cups);
-            return $resultadosQ20cups ?: [];
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
         }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            // Si es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $resultadosQ15cups = DB::connection($connection)->select($sql, $params);
+
+        return $resultadosQ15cups ?: [];
     }
 
+    return [];
+}
 
 
+    public function consultaDieciseisCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
-    public function consultaVeintiUnoCups($id_cups, $connection, Request $request) //fechas sobre voltajes
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
+    if ($id_cups) {
 
-
-        if ($id_cups) {
-            $resultadosQ21cups = DB::connection($connection)
-                ->select("
-            SELECT TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, hor_evento
+        $sql = "
+            SELECT count(*) as sobre_tensiones
             FROM core.v_sobre_voltajes
             WHERE id_cups = :id_cups
-            ORDER BY fec_evento DESC, hor_evento DESC
-        ", ['id_cups' => $id_cups]);
+        ";
 
+        $params = ['id_cups' => $id_cups];
 
-            // Convertir las fechas y horas en objetos DateTime
-            foreach ($resultadosQ21cups as $resultado) {
-                $resultado->fecha_hora = DateTime::createFromFormat('d/m/Y H:i:s', $resultado->fec_evento . ' ' . $resultado->hor_evento);
-            }
-
-
-            // Ordenar los resultados por fecha y hora
-            usort($resultadosQ21cups, function ($a, $b) {
-                return $b->fecha_hora <=> $a->fecha_hora;
-            });
-
-
-            return $resultadosQ21cups ?: [];
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
         }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            // Si fec_evento es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $resultadosQ16cups = DB::connection($connection)->select($sql, $params);
+
+        return $resultadosQ16cups ?: [];
     }
 
-
-    public function consultaVeintiDosCups($id_cups, $connection, Request $request) //fechas sub voltajes
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
+    return [];
+}
 
 
-        if ($id_cups) {
-            $resultadosQ22cups = DB::connection($connection)
-                ->select("
-            SELECT TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, hor_evento
+    public function consultaDiecisieteCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT count(*) as sub_tensiones
             FROM core.v_sub_voltajes
             WHERE id_cups = :id_cups
-            ORDER BY fec_evento DESC, hor_evento DESC
-        ", ['id_cups' => $id_cups]);
+        ";
 
+        $params = ['id_cups' => $id_cups];
 
-            // Convertir las fechas y horas en objetos DateTime
-            foreach ($resultadosQ22cups as $resultado) {
-                $resultado->fecha_hora = DateTime::createFromFormat('d/m/Y H:i:s', $resultado->fec_evento . ' ' . $resultado->hor_evento);
-            }
-
-
-            // Ordenar los resultados por fecha y hora
-            usort($resultadosQ22cups, function ($a, $b) {
-                return $b->fecha_hora <=> $a->fecha_hora;
-            });
-
-
-            return $resultadosQ22cups ?: [];
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
         }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            // Si es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $resultadosQ17cups = DB::connection($connection)->select($sql, $params);
+
+        return $resultadosQ17cups ?: [];
     }
+
+    return [];
+}
+
+
+    public function consultaDieciochoCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT ROUND(avg(val_fp_h), 2) as factor_potencia
+            FROM core.t_consumos_horarios
+            WHERE id_cups = :id_cups
+        ";
+
+        $params = ['id_cups' => $id_cups];
+
+        // ⚠️ Aquí tienes que usar el campo de fecha de esta tabla
+        // (ej: fec_hora, fecha, timestamp... AJÚSTALO)
+        if ($fecha_inicio) {
+            $sql .= " AND fec_inicio >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
+        }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_inicio <= :fecha_fin";
+            // Si es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $resultadosQ18cups = DB::connection($connection)->select($sql, $params);
+
+        return $resultadosQ18cups ?: [];
+    }
+
+    return [];
+}
+
+
+    public function consultaDiecinueveCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT 
+                TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, 
+                hor_evento
+            FROM core.v_apagones
+            WHERE id_cups = :id_cups
+        ";
+
+        $params = ['id_cups' => $id_cups];
+
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
+        }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            // Si es timestamp, mejor:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $sql .= " ORDER BY fec_evento DESC, hor_evento DESC";
+
+        $resultadosQ19cups = DB::connection($connection)->select($sql, $params);
+
+        // Convertir a DateTime (solo si realmente lo necesitas)
+        foreach ($resultadosQ19cups as $resultado) {
+            $resultado->fecha_hora = DateTime::createFromFormat(
+                'd/m/Y H:i:s',
+                $resultado->fec_evento . ' ' . $resultado->hor_evento
+            );
+        }
+
+        // ⚠️ Esto ya NO hace falta porque SQL ya ordena
+        // usort(...)
+
+        return $resultadosQ19cups ?: [];
+    }
+
+    return [];
+}
+
+
+
+
+
+
+
+
+
+
+    public function consultaVeinteCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT 
+                TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, 
+                hor_evento
+            FROM core.v_micro_cortes
+            WHERE id_cups = :id_cups
+        ";
+
+        $params = ['id_cups' => $id_cups];
+
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
+        }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $sql .= " ORDER BY fec_evento DESC, hor_evento DESC";
+
+        $resultadosQ20cups = DB::connection($connection)->select($sql, $params);
+
+        // Convertir a DateTime
+        foreach ($resultadosQ20cups as $resultado) {
+            $resultado->fecha_hora = DateTime::createFromFormat(
+                'd/m/Y H:i:s',
+                $resultado->fec_evento . ' ' . $resultado->hor_evento
+            );
+        }
+
+        // Ordenar (aunque ya viene ordenado, esto sería redundante)
+        usort($resultadosQ20cups, function ($a, $b) {
+            return $b->fecha_hora <=> $a->fecha_hora;
+        });
+
+        return $resultadosQ20cups ?: [];
+    }
+
+    return [];
+}
+
+
+
+
+    public function consultaVeintiUnoCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT 
+                TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, 
+                hor_evento
+            FROM core.v_sobre_voltajes
+            WHERE id_cups = :id_cups
+        ";
+
+        $params = ['id_cups' => $id_cups];
+
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
+        }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            // Si es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $sql .= " ORDER BY fec_evento DESC, hor_evento DESC";
+
+        $resultadosQ21cups = DB::connection($connection)->select($sql, $params);
+
+        // Convertir a DateTime (opcional)
+        foreach ($resultadosQ21cups as $resultado) {
+            $resultado->fecha_hora = DateTime::createFromFormat(
+                'd/m/Y H:i:s',
+                $resultado->fec_evento . ' ' . $resultado->hor_evento
+            );
+        }
+
+        // ❌ Redundante (ya ordenas en SQL)
+        // usort(...)
+
+        return $resultadosQ21cups ?: [];
+    }
+
+    return [];
+}
+
+
+    public function consultaVeintiDosCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT 
+                TO_CHAR(fec_evento, 'DD/MM/YYYY') as fec_evento, 
+                hor_evento
+            FROM core.v_sub_voltajes
+            WHERE id_cups = :id_cups
+        ";
+
+        $params = ['id_cups' => $id_cups];
+
+        if ($fecha_inicio) {
+            $sql .= " AND fec_evento >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
+        }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_evento <= :fecha_fin";
+            // Si es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $sql .= " ORDER BY fec_evento DESC, hor_evento DESC";
+
+        $resultadosQ22cups = DB::connection($connection)->select($sql, $params);
+
+        // Convertir a DateTime (opcional)
+        foreach ($resultadosQ22cups as $resultado) {
+            $resultado->fecha_hora = DateTime::createFromFormat(
+                'd/m/Y H:i:s',
+                $resultado->fec_evento . ' ' . $resultado->hor_evento
+            );
+        }
+
+        // ❌ Redundante
+        // usort(...)
+
+        return $resultadosQ22cups ?: [];
+    }
+
+    return [];
+}
 
 
 
@@ -2216,104 +2381,239 @@ class CupsController extends Controller
     //QUERYS PARA VOLATES PROMEDIO, MIN Y MAX
 
 
-    public function consultaVeintiTresCups($id_cups, $connection, Request $request) //grafico tension por hora
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
+    public function consultaVeintiTresCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
 
-
-        if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
-            if ($id_cups) {
-                $resultadosQ23cups = DB::connection($connection)
-                    ->select("
-                    SELECT 
-                        TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura_texto,  -- Formatea la fecha como texto
-                        hor_lectura, 
-                        l1v AS tension
-                    FROM (
-                        SELECT 
-                            fec_lectura,
-                            hor_lectura, 
-                            l1v 
-                        FROM core.t_valores_instantaneos
-                        WHERE id_cups = :id_cups
-                            AND fec_lectura <= (SELECT MAX(fec_lectura) FROM core.t_valores_instantaneos)
-                        ORDER BY fec_lectura DESC, hor_lectura DESC  -- Limita a los 100 más recientes
-                        LIMIT 100
-                    ) AS subquery
-                    ORDER BY fec_lectura::DATE ASC, hor_lectura ASC;
-", ['id_cups' => $id_cups]);
-                // dd($resultadosQ23cups);
-                return $resultadosQ23cups ?: [];
-            }
-        } else {
-            // Una de las tablas no existe, retornar un mensaje específico
-            return ['message' => 'No hay datos'];
-        }
-    }
-
-
-    public function consultaVeintiCuatroCups($id_cups, $connection, Request $request) //prom, max y min
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
-            if ($id_cups) {
-                $resultadosQ24cups = DB::connection($connection)
-                    ->select("
-                    SELECT round(max(l1v),0) as maximo, round(min(l1v),0) as minimo, round(avg(l1v), 2) as promedio
-                    FROM core.t_valores_instantaneos
-                    where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-                // dd($resultadosQ24cups);
-                return $resultadosQ24cups ?: [];
-            }
-        } else {
-            // Una de las tablas no existe, retornar un mensaje específico
-            return ['message' => 'No hay datos'];
-        }
-    }
-
-
-    public function consultaVeintiCincoCups($id_cups, $connection, Request $request) //prom, max y min
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
-
-        if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
-            if ($id_cups) {
-                $resultadosQ25cups = DB::connection($connection)
-                    ->select("
-                    SELECT round(max(l1v),0) as maximo, round(min(l1v),0) as minimo, round(avg(l1v), 2) as promedio
-                    FROM core.t_valores_instantaneos
-                    where id_cups = :id_cups
-            ", ['id_cups' => $id_cups]);
-                // dd($resultadosQ24cups);
-                return $resultadosQ25cups ?: [];
-            }
-        } else {
-            // Una de las tablas no existe, retornar un mensaje específico
-            return ['message' => 'No hay datos'];
-        }
-    }
-
-
-    public function consultaVeintiSeisCups($id_cups, $connection, Request $request) //factor potencia max y min
-    {
-        $id_cups = strtoupper($request->input('id_cups'));
-
+    if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
 
         if ($id_cups) {
-            $resultadosQ26cups = DB::connection($connection)
-                ->select("
-                SELECT max(val_fp_h) as factor_potencia_max, min(val_fp_h) as factor_potencia_min
-                FROM core.t_consumos_horarios
-                where id_cups =  :id_cups
-            ", ['id_cups' => $id_cups]);
-            // dd($resultadosQ26cups);
-            return $resultadosQ26cups ?: [];
+
+            $sql = "
+                SELECT 
+                    TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura_texto,
+                    hor_lectura,
+                    l1v AS tension
+                FROM core.t_valores_instantaneos
+                WHERE id_cups = :id_cups
+            ";
+
+            $params = ['id_cups' => $id_cups];
+
+            // 🔹 Filtros de fechas opcionales
+            if ($fecha_inicio) {
+                $sql .= " AND fec_lectura::DATE >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            }
+
+            if ($fecha_fin) {
+                $sql .= " AND fec_lectura::DATE <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            $sql .= "
+                ORDER BY fec_lectura DESC, hor_lectura DESC
+                LIMIT 100
+            ";
+
+            $resultadosQ23cups = DB::connection($connection)->select($sql, $params);
+
+            return $resultadosQ23cups ?: [];
         }
     }
+
+    return ['message' => 'No hay datos'];
+}
+
+    public function exportVoltajesCups(Request $request)
+{
+    $user = auth()->user();
+    $connection = 'pgsql' . '-' . strtolower($user->nom_distribuidora);
+
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    $format = $request->input('format', 'excel');
+    $extension = $format === 'csv' ? 'csv' : 'xlsx';
+    $exportFormat = $format === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX;
+
+    if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
+
+        if ($id_cups) {
+
+            $sql = "
+                SELECT 
+                    TO_CHAR(fec_lectura, 'DD/MM/YYYY') AS fec_lectura,
+                    hor_lectura,
+                    l1v AS tension
+                FROM core.t_valores_instantaneos
+                WHERE id_cups = :id_cups
+            ";
+
+            $params = ['id_cups' => $id_cups];
+
+            if ($fecha_inicio) {
+                $sql .= " AND fec_lectura::DATE >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            }
+
+            if ($fecha_fin) {
+                $sql .= " AND fec_lectura::DATE <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            $sql .= "
+                ORDER BY fec_lectura::DATE ASC, hor_lectura ASC
+                LIMIT 100
+            ";
+
+            $resultados = DB::connection($connection)->select($sql, $params);
+
+            if ($resultados) {
+                return Excel::download(
+                    new VoltajesCUPSExport($resultados),
+                    'tension_hora.' . $extension,
+                    $exportFormat
+                );
+            }
+
+            return response()->json(['message' => 'No hay datos'], 404);
+        }
+
+        return response()->json(['message' => 'No hay datos'], 404);
+    }
+
+    return response()->json(['message' => 'Tabla no disponible'], 404);
+}
+
+
+    public function consultaVeintiCuatroCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
+
+        if ($id_cups) {
+
+            $sql = "
+                SELECT 
+                    round(max(l1v),0) as maximo, 
+                    round(min(l1v),0) as minimo, 
+                    round(avg(l1v), 2) as promedio
+                FROM core.t_valores_instantaneos
+                WHERE id_cups = :id_cups
+            ";
+
+            $params = ['id_cups' => $id_cups];
+
+            // 🔹 Filtro fecha inicio
+            if ($fecha_inicio) {
+                $sql .= " AND fec_lectura::DATE >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            }
+
+            // 🔹 Filtro fecha fin
+            if ($fecha_fin) {
+                $sql .= " AND fec_lectura::DATE <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            $resultadosQ24cups = DB::connection($connection)->select($sql, $params);
+
+            return $resultadosQ24cups ?: [];
+        }
+    }
+
+    return ['message' => 'No hay datos'];
+}
+
+
+    public function consultaVeintiCincoCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if (Schema::connection($connection)->hasTable('t_valores_instantaneos')) {
+
+        if ($id_cups) {
+
+            $sql = "
+                SELECT 
+                    round(max(l1v),0) as maximo, 
+                    round(min(l1v),0) as minimo, 
+                    round(avg(l1v), 2) as promedio
+                FROM core.t_valores_instantaneos
+                WHERE id_cups = :id_cups
+            ";
+
+            $params = ['id_cups' => $id_cups];
+
+            // 🔹 filtro fecha inicio
+            if ($fecha_inicio) {
+                $sql .= " AND fec_lectura::DATE >= :fecha_inicio";
+                $params['fecha_inicio'] = $fecha_inicio;
+            }
+
+            // 🔹 filtro fecha fin
+            if ($fecha_fin) {
+                $sql .= " AND fec_lectura::DATE <= :fecha_fin";
+                $params['fecha_fin'] = $fecha_fin;
+            }
+
+            $resultadosQ25cups = DB::connection($connection)->select($sql, $params);
+
+            return $resultadosQ25cups ?: [];
+        }
+    }
+
+    return ['message' => 'No hay datos'];
+}
+
+
+    public function consultaVeintiSeisCups($id_cups, $connection, Request $request)
+{
+    $id_cups = strtoupper($request->input('id_cups'));
+    $fecha_inicio = $request->input('fecha_inicio');
+    $fecha_fin = $request->input('fecha_fin');
+
+    if ($id_cups) {
+
+        $sql = "
+            SELECT 
+                max(val_fp_h) as factor_potencia_max, 
+                min(val_fp_h) as factor_potencia_min
+            FROM core.t_consumos_horarios
+            WHERE id_cups = :id_cups
+        ";
+
+        $params = ['id_cups' => $id_cups];
+
+        // ⚠️ Ajusta el nombre real del campo de fecha
+        if ($fecha_inicio) {
+            $sql .= " AND fec_inicio >= :fecha_inicio";
+            $params['fecha_inicio'] = $fecha_inicio;
+        }
+
+        if ($fecha_fin) {
+            $sql .= " AND fec_inicio <= :fecha_fin";
+            // Si es timestamp:
+            // $params['fecha_fin'] = $fecha_fin . ' 23:59:59';
+            $params['fecha_fin'] = $fecha_fin;
+        }
+
+        $resultadosQ26cups = DB::connection($connection)->select($sql, $params);
+
+        return $resultadosQ26cups ?: [];
+    }
+
+    return [];
+}
 
 
     public function consultaVeintisieteCups($id_cups, $connection, Request $request) //valor maximetro

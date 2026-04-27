@@ -96,7 +96,8 @@ Route::get('/exportar-diferencia-consumos', [ctController::class, 'exportDiferen
 Route::get('/export-progress/{exportId}', [ExportController::class, 'getExportProgress']);
 Route::get('/exportar-balances-sabt', [SupervisionAvanzadaController::class, 'exportBalancesSABT'])->name('exportar.balances.sabt');
 Route::get('/exportar-balances-fases-sabt', [SupervisionAvanzadaController::class, 'exportBalancesFasesSABT'])->name('exportar.balances.fases.sabt');
-
+Route::get('/exportar-voltajes-ct', [ctController::class, 'exportVoltajesCT'])->name('exportar.voltajes.ct');
+Route::get('/exportar-voltajes-cups', [CupsController::class, 'exportVoltajesCups'])->name('exportar.voltajes.cups');
 
 
 //*********************************

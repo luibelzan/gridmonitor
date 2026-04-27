@@ -271,6 +271,54 @@
             document.body.removeChild(link);
         }
     </script>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    function exportarArchivo(formato) {
+        var fecInicio = document.querySelector('input[name="fecha_inicio"]').value;
+        var fecFin = document.querySelector('input[name="fecha_fin"]').value;
+        var idCups = document.querySelector('input[name="id_cups"]').value;
+
+        var url = "{{ route('exportar.voltajes.cups') }}?";
+
+        if (fecInicio) {
+            url += "fecha_inicio=" + encodeURIComponent(fecInicio) + "&";
+        }
+
+        if (fecFin) {
+            url += "fecha_fin=" + encodeURIComponent(fecFin) + "&";
+        }
+
+        if (idCups) {
+            url += "id_cups=" + encodeURIComponent(idCups) + "&";
+        }
+
+        url += "format=" + formato;
+
+        window.location.href = url;
+    }
+
+    var exportExcelBtn = document.getElementById('exportarExcel');
+    var exportCsvBtn = document.getElementById('exportarCsv');
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            exportarArchivo('excel');
+        });
+    } else {
+        console.error("El botón exportarExcel no existe en el DOM.");
+    }
+
+    if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', function () {
+            exportarArchivo('csv');
+        });
+    }
+
+});
+</script>
+
     <title>Calidad Energía CUPS</title>
 </head>
 
@@ -371,6 +419,47 @@
                             {{-- <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 gap-2 mb-6"> --}}
                             {{-- PRIMERA FILA --}}
                             <div class="container">
+                                {{-- FILTRO AQUI --}}
+                                <form
+                                    action="{{ route('detallesenergiacups', ['id_cups' => $id_cups, 'id_cnt' => $id_cnt]) }}"
+                                    method="GET"
+                                    class="flex flex-wrap items-center justify-start gap-2 mt-6">
+                                    <input type="hidden" name="id_cups" value="{{ $id_cups }}">
+                                    <input type="hidden" name="id_cnt" value="{{ $id_cnt }}">
+                                    {{-- FILTRO FECHAS --}}
+                                                                            
+                                    <div class="form-group flex items-center">
+                                        <label for="fecha_inicio"
+                                            class="text-white mr-2">Fecha
+                                            de
+                                            inicio:</label>
+                                        <input type="date" id="fecha_inicio"
+                                            name="fecha_inicio"
+                                            class="border border-gray-400 p-2 rounded-lg text-white"
+                                            @if (isset($_GET['fecha_inicio'])) value="{{ $_GET['fecha_inicio'] }}" @endif
+                                            max="{{ date('Y-m-d') }}"
+                                            style="background-color: transparent;">
+                                    </div>
+                                    <div class="form-group flex items-center">
+                                        <label for="fecha_fin"
+                                            class="text-white mr-2">Fecha
+                                            de
+                                            fin:</label>
+                                        <input type="date" id="fecha_fin"
+                                            name="fecha_fin"
+                                            class="border border-slate-900 p-2 rounded-lg text-white"
+                                            @if (isset($_GET['fecha_fin'])) value="{{ $_GET['fecha_fin'] }}" @endif
+                                            max="{{ date('Y-m-d') }}"
+                                            style="background-color: transparent;">
+                                    </div>
+                                                            
+                                    <button type="submit"
+                                        class="btn btn-outline-info mb-3 text-white"
+                                        style="background-color: transparent; border-color: rgb(255, 255, 255);"
+                                        onmouseover="this.style.borderColor='rgb(88,226,194)'"
+                                        onmouseout="this.style.borderColor='rgb(255, 255, 255)'">Filtrar</button>
+                                </form>
+
                                 <div class="grid sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-5 gap-2 ">
 
                                     <!-- Cuadrado para Cortes de Tensión  CAJA 1-->
@@ -833,6 +922,20 @@
                                             </div>
                                         </div>
                                     @endif
+                                    <!-- Contenedor del botón de descarga -->
+                                    <div class="text-right mt-4">
+                                        <!-- Botón Excel -->
+                                        <button id="exportarExcel" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/excel-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a Excel">
+                                        </button>
+
+                                        <!-- Botón CSV -->
+                                        <button id="exportarCsv" 
+                                            style="padding: 5px; border: none; border-radius: 5px; cursor: pointer; background-image: url('../../images/csv-icon.png'); background-size: cover; width: 30px; height: 30px;" 
+                                            title="Exportar a CSV">
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             {{-- GRAFICO GAUGE --}}
